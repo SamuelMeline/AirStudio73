@@ -1,0 +1,11 @@
+{# templates/home/index.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+    <h1>Bienvenue sur la page d'accueil</h1>
+        <a href="{{ path('app_calendar') }}">
+        Réserver</a>
+{% endblock %}
