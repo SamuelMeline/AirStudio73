@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -29,6 +30,18 @@ class CourseType extends AbstractType
             ->add('isRecurrent', CheckboxType::class, [
                 'label'    => 'Cours récurrent',
                 'required' => false,
+            ])
+            ->add('recurrenceDuration', ChoiceType::class, [
+                'label'    => 'Durée de récurrence',
+                'choices'  => [
+                    '1 mois' => '1_month',
+                    '3 mois' => '3_months',
+                    '6 mois' => '6_months',
+                    '1 an' => '1_year',
+                    '2 ans' => '2_years',
+                    '3 ans' => '3_years',
+                ],
+                'required' => false,
             ]);
     }
 
@@ -39,6 +52,3 @@ class CourseType extends AbstractType
         ]);
     }
 }
-
-
-
