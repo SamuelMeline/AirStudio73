@@ -1,0 +1,17 @@
+{# templates/booking/new.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Réserver le cours: {{ courseInstance.course.name }}</h1>
+
+    <p>Description: {{ courseInstance.course.description }}</p>
+    <p>Date: {{ courseInstance.startTime|date('d/m/Y H:i') }} - {{ courseInstance.endTime|date('H:i') }}</p>
+
+    <form action="{{ path('booking_new', { 'courseInstanceId': courseInstance.id }) }}" method="post">
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit" class="btn btn-primary">Confirmer la réservation</button>
+        {{ form_end(form) }}
+    </form>
+{% endblock %}

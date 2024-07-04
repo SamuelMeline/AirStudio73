@@ -71,3 +71,7 @@ button[disabled] {
     border: 1px solid #f5c6cb;
     border-radius: 3px;
 }
+
+.dn {
+    display: none;
+}
