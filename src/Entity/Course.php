@@ -30,6 +30,9 @@ class Course
     #[ORM\Column]
     private ?int $capacity = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private $isRecurrent = false;
+
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Booking::class, orphanRemoval: true)]
     private Collection $bookings;
 
@@ -87,6 +90,18 @@ class Course
     public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
+
+        return $this;
+    }
+
+    public function isRecurrent(): bool
+    {
+        return $this->isRecurrent;
+    }
+
+    public function setIsRecurrent(bool $isRecurrent): self
+    {
+        $this->isRecurrent = $isRecurrent;
 
         return $this;
     }
