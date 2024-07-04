@@ -6,7 +6,6 @@ namespace App\Form;
 
 use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -19,13 +18,13 @@ class CourseType extends AbstractType
     {
         $builder
             ->add('name', TextType::class)
-            ->add('startTime', DateTimeType::class)
-            ->add('endTime', DateTimeType::class)
-            ->add('capacity', IntegerType::class)
-            ->add('isRecurrent', CheckboxType::class, [
-                'label'    => 'Cours récurrent',
-                'required' => false,
+            ->add('startTime', DateTimeType::class, [
+                'widget' => 'single_text',
             ])
+            ->add('endTime', DateTimeType::class, [
+                'widget' => 'single_text',
+            ])
+            ->add('capacity', IntegerType::class)
         ;
     }
 
@@ -36,3 +35,5 @@ class CourseType extends AbstractType
         ]);
     }
 }
+
+

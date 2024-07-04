@@ -5,7 +5,6 @@
 namespace App\Controller;
 
 use App\Entity\Course;
-use App\Entity\CourseInstance;
 use App\Form\CourseType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,9 +25,6 @@ class CourseController extends AbstractController
             $em->persist($course);
             $em->flush();
 
-            // Crée l'instance du cours
-            $this->createCourseInstance($course, $em);
-
             return $this->redirectToRoute('calendar');
         }
 
@@ -37,36 +33,13 @@ class CourseController extends AbstractController
         ]);
     }
 
-    private function createCourseInstance(Course $course, EntityManagerInterface $em): void
+    #[Route('/course', name: 'course_list')]
+    public function list(EntityManagerInterface $em): Response
     {
-        // Crée l'instance initiale du cours
-        $this->createInstance($course, $course->getStartTime(), $course->getEndTime(), $em);
+        $courses = $em->getRepository(Course::class)->findAll();
 
-        // Crée des instances récurrentes si le cours est récurrent
-        if ($course->isRecurrent()) {
-            $interval = new \DateInterval('P1W');
-            $startDate = new \DateTime($course->getStartTime()->format('Y-m-d H:i:s'));
-            $startDate->modify('next saturday');
-            $period = new \DatePeriod($startDate, $interval, 51);
-
-            foreach ($period as $date) {
-                $endDate = new \DateTime($date->format('Y-m-d H:i:s'));
-                $endDate->setTime((int)$course->getEndTime()->format('H'), (int)$course->getEndTime()->format('i'));
-                $this->createInstance($course, $date, $endDate, $em);
-            }
-
-            $em->flush();
-        }
-    }
-
-    private function createInstance(Course $course, \DateTimeInterface $startDate, \DateTimeInterface $endDate, EntityManagerInterface $em): void
-    {
-        $courseInstance = new CourseInstance();
-        $courseInstance->setCourse($course);
-        $courseInstance->setStartTime($startDate);
-        $courseInstance->setEndTime($endDate);
-        $courseInstance->setCapacity($course->getCapacity());
-
-        $em->persist($courseInstance);
+        return $this->render('course/list.html.twig', [
+            'courses' => $courses,
+        ]);
     }
 }

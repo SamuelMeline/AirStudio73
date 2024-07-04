@@ -1,4 +1,4 @@
-{# templates/course/calendar.html.twig #}
+{# templates/calendar/index.html.twig #}
 
 {% extends 'base.html.twig' %}
 
@@ -6,18 +6,13 @@
     <h1>Calendrier des Cours</h1>
     <p>Du {{ startOfWeek|date('d/m/Y') }} au {{ endOfWeek|date('d/m/Y') }}</p>
 
-    {# Bouton pour ajouter un nouveau cours #}
+    {# Navigation entre les semaines #}
     <div class="mb-3">
-        <a href="{{ path('course_new') }}" class="btn btn-success">Ajouter un cours</a>
-    </div>
-
-    {# Navigation entre les semaines et les mois #}
-    <div class="mb-3">
-        {% set prevWeek = week - 1 %}
-        {% set nextWeek = week + 1 %}
-        <a href="{{ path('calendar', { 'year': currentMonth|date('Y'), 'month': currentMonth|date('m'), 'week': prevWeek }) }}" class="btn btn-primary">&laquo; Semaine précédente</a>
-        <a href="{{ path('calendar', { 'year': currentMonth|date('Y'), 'month': currentMonth|date('m'), 'week': nextWeek }) }}" class="btn btn-primary">Semaine suivante &raquo;</a>
-        <a href="{{ path('calendar', { 'year': "now"|date('Y'), 'month': "now"|date('m'), 'week': "now"|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
+        {% set prevWeek = currentWeek - 1 %}
+        {% set nextWeek = currentWeek + 1 %}
+        <a href="{{ path('calendar', { 'year': currentYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo; Semaine précédente</a>
+        <a href="{{ path('calendar', { 'year': currentYear, 'week': nextWeek }) }}" class="btn btn-primary">Semaine suivante &raquo;</a>
+        <a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
     </div>
 
     {# Tableaux des horaires et jours #}
@@ -45,25 +40,25 @@
                     <td>{{ timeslot }}</td>
                     {% for dow in 1..7 %}
                         {% set course_found = false %}
-                        {% for instance in course_instances %}
-                            {% set course_start_time = instance.startTime|date('H:i') %}
-                            {% set course_end_time = instance.endTime|date('H:i') %}
-                            {% set course_day_of_week = instance.startTime|date('N') %}
-                            {% set course_capacity = instance.capacity %}
-                            {% set bookings = instance.bookings|length %}
+                        {% for course in courses %}
+                            {% set course_start_time = course.startTime|date('H:i') %}
+                            {% set course_end_time = course.endTime|date('H:i') %}
+                            {% set course_day_of_week = course.startTime|date('N') %}
+                            {% set course_capacity = course.capacity %}
+                            {% set bookings = course.bookings|length %}
                             {% set available_spots = course_capacity - bookings %}
 
                             {% if course_day_of_week == dow and course_start_time == timeslot %}
-                                {% set duration = (instance.endTime|date('U') - instance.startTime|date('U')) // 1800 %}
+                                {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
                                 {% if not course_found %}
                                     <td rowspan="{{ duration }}">
-                                        <a href="{{ path('booking_new', { 'courseInstanceId': instance.id }) }}">
-                                            {{ instance.course.name }}
+                                        <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
+                                            {{ course.name }}
                                         </a>
                                         <br>
                                         {% if available_spots > 0 %}
                                             {{ available_spots }} places restantes
-                                            <a href="{{ path('booking_new', { 'courseInstanceId': instance.id }) }}" class="btn btn-primary">Réserver</a>
+                                            <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary">Réserver</a>
                                         {% else %}
                                             Complet
                                         {% endif %}

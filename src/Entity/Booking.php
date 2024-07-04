@@ -18,12 +18,9 @@ class Booking
     #[ORM\Column(length: 255)]
     private ?string $userName = null;
 
-    #[ORM\ManyToOne(targetEntity: CourseInstance::class, inversedBy: 'bookings')]
+    #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'bookings')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?CourseInstance $courseInstance = null;
-
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $startDate = null;
+    private ?Course $course = null;
 
     public function getId(): ?int
     {
@@ -42,26 +39,14 @@ class Booking
         return $this;
     }
 
-    public function getCourseInstance(): ?CourseInstance
+    public function getCourse(): ?Course
     {
-        return $this->courseInstance;
+        return $this->course;
     }
 
-    public function setCourseInstance(?CourseInstance $courseInstance): self
+    public function setCourse(?Course $course): self
     {
-        $this->courseInstance = $courseInstance;
-
-        return $this;
-    }
-
-    public function getStartDate(): ?\DateTimeInterface
-    {
-        return $this->startDate;
-    }
-
-    public function setStartDate(\DateTimeInterface $startDate): self
-    {
-        $this->startDate = $startDate;
+        $this->course = $course;
 
         return $this;
     }
