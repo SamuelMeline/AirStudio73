@@ -5,7 +5,7 @@
 namespace App\Controller;
 
 use App\Entity\Booking;
-use App\Entity\CourseInstance;
+use App\Entity\Course;
 use App\Form\BookingType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,13 +15,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class BookingController extends AbstractController
 {
-    #[Route('/booking/new/{courseInstanceId}', name: 'booking_new')]
-    public function new(Request $request, EntityManagerInterface $em, int $courseInstanceId): Response
+    #[Route('/booking/new/{courseId}', name: 'booking_new')]
+    public function new(Request $request, EntityManagerInterface $em, int $courseId): Response
     {
-        $courseInstance = $em->getRepository(CourseInstance::class)->find($courseInstanceId);
+        $course = $em->getRepository(Course::class)->find($courseId);
 
-        if (!$courseInstance) {
-            throw $this->createNotFoundException('No course instance found for id ' . $courseInstanceId);
+        if (!$course) {
+            throw $this->createNotFoundException('No course found for id ' . $courseId);
         }
 
         $booking = new Booking();
@@ -29,19 +29,15 @@ class BookingController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $date = new \DateTime();
+            $booking->setCourse($course);
 
-            $existingBookings = $courseInstance->getBookings();
+            $existingBookings = $course->getBookings();
 
-            $booking->setStartDate($date);
-
-            if (count($existingBookings) < $courseInstance->getCapacity()) {
-                $booking->setCourseInstance($courseInstance);
-                $booking->setStartDate($date);
+            if (count($existingBookings) < $course->getCapacity()) {
                 $em->persist($booking);
                 $em->flush();
 
-                return $this->redirectToRoute('calendar');
+                return $this->redirectToRoute('course_list');
             } else {
                 $this->addFlash('error', 'This course is fully booked.');
             }
@@ -49,7 +45,8 @@ class BookingController extends AbstractController
 
         return $this->render('booking/new.html.twig', [
             'form' => $form->createView(),
-            'courseInstance' => $courseInstance
+            'course' => $course,
         ]);
     }
 }
+

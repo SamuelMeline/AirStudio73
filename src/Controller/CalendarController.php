@@ -1,10 +1,10 @@
-<?php 
+<?php
 
 // src/Controller/CalendarController.php
 
 namespace App\Controller;
 
-use App\Entity\CourseInstance;
+use App\Entity\Course;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,12 +12,12 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class CalendarController extends AbstractController
 {
-    #[Route('/calendar/{year?}/{month?}/{week?}', name: 'calendar')]
-    public function index(EntityManagerInterface $em, int $year = null, int $month = null, int $week = null): Response
+    #[Route('/calendar/{year?}/{week?}', name: 'calendar')]
+    public function index(EntityManagerInterface $em, int $year = null, int $week = null): Response
     {
         $currentDate = new \DateTime();
 
-        if ($year && $month && $week) {
+        if ($year && $week) {
             $currentDate->setISODate($year, $week);
         }
 
@@ -27,22 +27,19 @@ class CalendarController extends AbstractController
         $startOfWeek = (clone $currentDate)->modify('monday this week');
         $endOfWeek = (clone $startOfWeek)->modify('sunday this week');
 
-        $courseInstances = $em->getRepository(CourseInstance::class)->createQueryBuilder('ci')
-            ->where('ci.startTime BETWEEN :start AND :end')
+        $courses = $em->getRepository(Course::class)->createQueryBuilder('c')
+            ->where('c.startTime BETWEEN :start AND :end')
             ->setParameter('start', $startOfWeek)
             ->setParameter('end', $endOfWeek)
             ->getQuery()
             ->getResult();
 
-        return $this->render('course/calendar.html.twig', [
-            'course_instances' => $courseInstances,
+        return $this->render('calendar/index.html.twig', [
+            'courses' => $courses,
             'startOfWeek' => $startOfWeek,
             'endOfWeek' => $endOfWeek,
-            'currentMonth' => $currentDate,
-            'week' => $week,
+            'currentYear' => $year,
+            'currentWeek' => $week,
         ]);
     }
 }
-
-
-

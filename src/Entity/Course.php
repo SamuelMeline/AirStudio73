@@ -21,9 +21,6 @@ class Course
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $description = null;
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $startTime = null;
 
@@ -33,12 +30,12 @@ class Course
     #[ORM\Column]
     private ?int $capacity = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isRecurrent = false;
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Booking::class, orphanRemoval: true)]
+    private Collection $bookings;
 
     public function __construct()
     {
-        // Initialisation des collections si nécessaire
+        $this->bookings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -54,18 +51,6 @@ class Course
     public function setName(string $name): self
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(?string $description): self
-    {
-        $this->description = $description;
 
         return $this;
     }
@@ -106,20 +91,33 @@ class Course
         return $this;
     }
 
-    public function isRecurrent(): bool
+    /**
+     * @return Collection<int, Booking>
+     */
+    public function getBookings(): Collection
     {
-        return $this->isRecurrent;
+        return $this->bookings;
     }
 
-    public function setIsRecurrent(bool $isRecurrent): self
+    public function addBooking(Booking $booking): self
     {
-        $this->isRecurrent = $isRecurrent;
+        if (!$this->bookings->contains($booking)) {
+            $this->bookings->add($booking);
+            $booking->setCourse($this);
+        }
 
         return $this;
     }
 
-    public function __toString()
+    public function removeBooking(Booking $booking): self
     {
-        return $this->name;
+        if ($this->bookings->removeElement($booking)) {
+            // set the owning side to null (unless already changed)
+            if ($booking->getCourse() === $this) {
+                $booking->setCourse(null);
+            }
+        }
+
+        return $this;
     }
 }
