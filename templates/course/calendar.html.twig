@@ -1,0 +1,83 @@
+{# templates/course/calendar.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Calendrier des Cours</h1>
+    <p>Du {{ startOfWeek|date('d/m/Y') }} au {{ endOfWeek|date('d/m/Y') }}</p>
+
+    {# Bouton pour ajouter un nouveau cours #}
+    <div class="mb-3">
+        <a href="{{ path('course_new') }}" class="btn btn-success">Ajouter un cours</a>
+    </div>
+
+    {# Navigation entre les semaines et les mois #}
+    <div class="mb-3">
+        {% set prevWeek = week - 1 %}
+        {% set nextWeek = week + 1 %}
+        <a href="{{ path('calendar', { 'year': currentMonth|date('Y'), 'month': currentMonth|date('m'), 'week': prevWeek }) }}" class="btn btn-primary">&laquo; Semaine précédente</a>
+        <a href="{{ path('calendar', { 'year': currentMonth|date('Y'), 'month': currentMonth|date('m'), 'week': nextWeek }) }}" class="btn btn-primary">Semaine suivante &raquo;</a>
+        <a href="{{ path('calendar', { 'year': "now"|date('Y'), 'month': "now"|date('m'), 'week': "now"|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
+    </div>
+
+    {# Tableaux des horaires et jours #}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Heures</th>
+                <th>Lundi {{ startOfWeek|date('d/m/Y') }}</th>
+                <th>Mardi {{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
+                <th>Mercredi {{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
+                <th>Jeudi {{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
+                <th>Vendredi {{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
+                <th>Samedi {{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
+                <th>Dimanche {{ startOfWeek|date_modify('+6 days')|date('d/m/Y') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set timeslots = [
+                '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
+                '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00',
+                '19:30', '20:00', '20:30', '21:00'
+            ] %}
+            {% for timeslot in timeslots %}
+                <tr>
+                    <td>{{ timeslot }}</td>
+                    {% for dow in 1..7 %}
+                        {% set course_found = false %}
+                        {% for instance in course_instances %}
+                            {% set course_start_time = instance.startTime|date('H:i') %}
+                            {% set course_end_time = instance.endTime|date('H:i') %}
+                            {% set course_day_of_week = instance.startTime|date('N') %}
+                            {% set course_capacity = instance.capacity %}
+                            {% set bookings = instance.bookings|length %}
+                            {% set available_spots = course_capacity - bookings %}
+
+                            {% if course_day_of_week == dow and course_start_time == timeslot %}
+                                {% set duration = (instance.endTime|date('U') - instance.startTime|date('U')) // 1800 %}
+                                {% if not course_found %}
+                                    <td rowspan="{{ duration }}">
+                                        <a href="{{ path('booking_new', { 'courseInstanceId': instance.id }) }}">
+                                            {{ instance.course.name }}
+                                        </a>
+                                        <br>
+                                        {% if available_spots > 0 %}
+                                            {{ available_spots }} places restantes
+                                            <a href="{{ path('booking_new', { 'courseInstanceId': instance.id }) }}" class="btn btn-primary">Réserver</a>
+                                        {% else %}
+                                            Complet
+                                        {% endif %}
+                                    </td>
+                                    {% set course_found = true %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if not course_found %}
+                            <td>&nbsp;</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
