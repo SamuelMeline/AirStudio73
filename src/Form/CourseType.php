@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -25,7 +26,10 @@ class CourseType extends AbstractType
                 'widget' => 'single_text',
             ])
             ->add('capacity', IntegerType::class)
-        ;
+            ->add('isRecurrent', CheckboxType::class, [
+                'label'    => 'Cours récurrent',
+                'required' => false,
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -35,5 +39,6 @@ class CourseType extends AbstractType
         ]);
     }
 }
+
 
 
