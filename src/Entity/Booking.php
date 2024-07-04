@@ -22,6 +22,9 @@ class Booking
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isRecurrent = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -50,4 +53,17 @@ class Booking
 
         return $this;
     }
+
+    public function isRecurrent(): bool
+    {
+        return $this->isRecurrent;
+    }
+
+    public function setIsRecurrent(bool $isRecurrent): self
+    {
+        $this->isRecurrent = $isRecurrent;
+
+        return $this;
+    }
 }
+

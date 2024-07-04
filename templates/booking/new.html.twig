@@ -3,12 +3,11 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Réserver le cours: {{ course.name }}</h1>
-
-    <p>Date: {{ course.startTime|date('d/m/Y H:i') }} - {{ course.endTime|date('H:i') }}</p>
+    <h1>Réserver un cours</h1>
 
     {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button type="submit" class="btn btn-primary">Confirmer la réservation</button>
+        {{ form_row(form.userName) }}
+        {{ form_row(form.isRecurrent) }}
+        <button class="btn btn-primary">Réserver</button>
     {{ form_end(form) }}
 {% endblock %}

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20240704202534 extends AbstractMigration
+final class Version20240704221227 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,12 +20,12 @@ final class Version20240704202534 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE course ADD is_recurrent TINYINT(1) NOT NULL');
+        $this->addSql('ALTER TABLE course ADD recurrence_duration VARCHAR(255) DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE course DROP is_recurrent');
+        $this->addSql('ALTER TABLE course DROP recurrence_duration');
     }
 }

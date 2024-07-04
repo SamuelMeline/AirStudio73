@@ -33,6 +33,12 @@ class Course
     #[ORM\Column(type: 'boolean')]
     private $isRecurrent = false;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $recurrenceInterval = 7; // Default to 7 days
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $recurrenceDuration = null; // Duration of recurrence
+
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Booking::class, orphanRemoval: true)]
     private Collection $bookings;
 
@@ -54,7 +60,6 @@ class Course
     public function setName(string $name): self
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -66,7 +71,6 @@ class Course
     public function setStartTime(\DateTimeInterface $startTime): self
     {
         $this->startTime = $startTime;
-
         return $this;
     }
 
@@ -78,7 +82,6 @@ class Course
     public function setEndTime(\DateTimeInterface $endTime): self
     {
         $this->endTime = $endTime;
-
         return $this;
     }
 
@@ -90,7 +93,6 @@ class Course
     public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
-
         return $this;
     }
 
@@ -102,7 +104,28 @@ class Course
     public function setIsRecurrent(bool $isRecurrent): self
     {
         $this->isRecurrent = $isRecurrent;
+        return $this;
+    }
 
+    public function getRecurrenceInterval(): ?int
+    {
+        return $this->recurrenceInterval;
+    }
+
+    public function setRecurrenceInterval(?int $recurrenceInterval): self
+    {
+        $this->recurrenceInterval = $recurrenceInterval;
+        return $this;
+    }
+
+    public function getRecurrenceDuration(): ?string
+    {
+        return $this->recurrenceDuration;
+    }
+
+    public function setRecurrenceDuration(?string $recurrenceDuration): self
+    {
+        $this->recurrenceDuration = $recurrenceDuration;
         return $this;
     }
 

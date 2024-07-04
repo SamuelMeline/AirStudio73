@@ -27,33 +27,16 @@ class CalendarController extends AbstractController
         $startOfWeek = (clone $currentDate)->modify('monday this week');
         $endOfWeek = (clone $startOfWeek)->modify('sunday this week');
 
-        // Récupérer tous les cours récurrents et non récurrents
+        // Récupérer tous les cours dans la semaine
         $courses = $em->getRepository(Course::class)->createQueryBuilder('c')
             ->where('c.startTime BETWEEN :start AND :end')
-            ->orWhere('c.isRecurrent = true')
             ->setParameter('start', $startOfWeek)
             ->setParameter('end', $endOfWeek)
             ->getQuery()
             ->getResult();
 
-        $recurrentCourses = [];
-        foreach ($courses as $course) {
-            if ($course->isRecurrent()) {
-                $courseClone = clone $course;
-                $courseClone->setStartTime((clone $startOfWeek)->modify($course->getStartTime()->format('l'))->setTime(
-                    $course->getStartTime()->format('H'),
-                    $course->getStartTime()->format('i')
-                ));
-                $courseClone->setEndTime((clone $startOfWeek)->modify($course->getStartTime()->format('l'))->setTime(
-                    $course->getEndTime()->format('H'),
-                    $course->getEndTime()->format('i')
-                ));
-                $recurrentCourses[] = $courseClone;
-            }
-        }
-
         return $this->render('calendar/index.html.twig', [
-            'courses' => array_merge($courses, $recurrentCourses),
+            'courses' => $courses,
             'startOfWeek' => $startOfWeek,
             'endOfWeek' => $endOfWeek,
             'currentYear' => $year,
@@ -61,5 +44,6 @@ class CalendarController extends AbstractController
         ]);
     }
 }
+
 
 
