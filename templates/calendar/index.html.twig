@@ -1,12 +1,10 @@
-{# templates/calendar/index.html.twig #}
-
 {% extends 'base.html.twig' %}
 
 {% block body %}
     <h1>Calendrier des Cours</h1>
     <p>Du {{ startOfWeek|date('d/m/Y') }} au {{ endOfWeek|date('d/m/Y') }}</p>
+    <a href="{{ path('course_new') }}">Créer un cours</a>
 
-    {# Navigation entre les semaines #}
     <div class="mb-3">
         {% set prevWeek = currentWeek - 1 %}
         {% set nextWeek = currentWeek + 1 %}
@@ -15,64 +13,132 @@
         <a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
     </div>
 
-    {# Tableaux des horaires et jours #}
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Heures</th>
-                <th>Lundi {{ startOfWeek|date('d/m/Y') }}</th>
-                <th>Mardi {{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
-                <th>Mercredi {{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
-                <th>Jeudi {{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
-                <th>Vendredi {{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
-                <th>Samedi {{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
-                <th>Dimanche {{ startOfWeek|date_modify('+6 days')|date('d/m/Y') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% set timeslots = [
-                '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
-                '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00',
-                '19:30', '20:00', '20:30', '21:00'
-            ] %}
-            {% for timeslot in timeslots %}
+    <div style="display: flex;">
+        <table class="table table-bordered" style="flex: 1; margin-right: 10px;">
+            <thead>
                 <tr>
-                    <td>{{ timeslot }}</td>
-                    {% for dow in 1..7 %}
-                        {% set course_found = false %}
-                        {% for course in courses %}
-                            {% set course_start_time = course.startTime|date('H:i') %}
-                            {% set course_end_time = course.endTime|date('H:i') %}
-                            {% set course_day_of_week = course.startTime|date('N') %}
-                            {% set course_capacity = course.capacity %}
-                            {% set bookings = course.bookings|length %}
-                            {% set available_spots = course_capacity - bookings %}
+                    <th>Heures</th>
+                    <th>Lundi {{ startOfWeek|date('d/m/Y') }}</th>
+                    <th>Mardi {{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
+                    <th>Mercredi {{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
+                    <th>Jeudi {{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
+                    <th>Vendredi {{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set weekday_timeslots = [
+                    '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00',
+                    '19:30', '20:00', '20:30', '21:00'
+                ] %}
 
-                            {% if course_day_of_week == dow and course_start_time == timeslot %}
-                                {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
-                                {% if not course_found %}
-                                    <td rowspan="{{ duration }}">
-                                        <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
-                                            {{ course.name }}
-                                        </a>
-                                        <br>
-                                        {% if available_spots > 0 %}
-                                            {{ available_spots }} places restantes
-                                            <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary">Réserver</a>
-                                        {% else %}
-                                            Complet
+                {% set merged_slots = {} %}
+
+                {% for timeslot in weekday_timeslots %}
+                    <tr>
+                        <td>{{ timeslot }}</td>
+                        {% for dow in 1..5 %}
+                            {% set key = dow ~ '-' ~ timeslot %}
+                            {% if merged_slots[key] is not defined %}
+                                {% set course_found = false %}
+                                {% for course in courses %}
+                                    {% set course_start_time = course.startTime|date('H:i') %}
+                                    {% set course_end_time = course.endTime|date('H:i') %}
+                                    {% set course_day_of_week = course.startTime|date('N') %}
+                                    {% set course_capacity = course.capacity %}
+                                    {% set bookings = course.bookings|length %}
+                                    {% set available_spots = course_capacity - bookings %}
+
+                                    {% if course_day_of_week == dow and course_start_time == timeslot %}
+                                        {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
+                                        {% if not course_found %}
+                                            <td rowspan="{{ duration }}">
+                                                <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
+                                                    {{ course.name }}
+                                                </a>
+                                                <br>
+                                                {% if available_spots > 0 %}
+                                                    {{ available_spots }} places restantes
+                                                    <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary">Réserver</a>
+                                                {% else %}
+                                                    Complet
+                                                {% endif %}
+                                            </td>
+                                            {% set course_found = true %}
+                                            {% for i in 0..duration-1 %}
+                                                {% set merged_key = dow ~ '-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
+                                                {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+                                            {% endfor %}
                                         {% endif %}
-                                    </td>
-                                    {% set course_found = true %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not course_found %}
+                                    <td>&nbsp;</td>
                                 {% endif %}
                             {% endif %}
                         {% endfor %}
-                        {% if not course_found %}
-                            <td>&nbsp;</td>
-                        {% endif %}
-                    {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <table class="table table-bordered" style="flex: 1;">
+            <thead>
+                <tr>
+                    <th>Heures (Samedi)</th>
+                    <th>Samedi {{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% set saturday_timeslots = [
+                    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'
+                ] %}
+
+                {% set merged_slots = {} %}
+
+                {% for timeslot in saturday_timeslots %}
+                    <tr>
+                        <td>{{ timeslot }}</td>
+                        {% set key = '6-' ~ timeslot %}
+                        {% if merged_slots[key] is not defined %}
+                            {% set course_found = false %}
+                            {% for course in courses %}
+                                {% set course_start_time = course.startTime|date('H:i') %}
+                                {% set course_end_time = course.endTime|date('H:i') %}
+                                {% set course_day_of_week = course.startTime|date('N') %}
+                                {% set course_capacity = course.capacity %}
+                                {% set bookings = course.bookings|length %}
+                                {% set available_spots = course_capacity - bookings %}
+
+                                {% if course_day_of_week == 6 and course_start_time == timeslot %}
+                                    {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
+                                    {% if not course_found %}
+                                        <td rowspan="{{ duration }}">
+                                            <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
+                                                {{ course.name }}
+                                            </a>
+                                            <br>
+                                            {% if available_spots > 0 %}
+                                                {{ available_spots }} places restantes
+                                                <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary">Réserver</a>
+                                            {% else %}
+                                                Complet
+                                            {% endif %}
+                                        </td>
+                                        {% set course_found = true %}
+                                        {% for i in 0..duration-1 %}
+                                            {% set merged_key = '6-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
+                                            {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if not course_found %}
+                                <td>&nbsp;</td>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
