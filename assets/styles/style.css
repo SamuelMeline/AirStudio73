@@ -22,7 +22,11 @@ th, td {
 
 th {
     background-color: #f4f4f4;
-    min-width: 100px;
+    /* min-width: 100px; */
+}
+
+.hsam {
+    max-width: 30% !important;
 }
 
 .session {
