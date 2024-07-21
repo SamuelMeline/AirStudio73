@@ -27,6 +27,9 @@ class Course
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $endTime = null;
 
+    #[ORM\Column(type: 'decimal')]
+    private $price;
+
     #[ORM\Column]
     private ?int $capacity = null;
 
@@ -93,6 +96,18 @@ class Course
     public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
+        return $this;
+    }
+
+    public function getPrice(): ?float
+    {
+        return $this->price;
+    }
+
+    public function setPrice(float $price): self
+    {
+        $this->price = $price;
+
         return $this;
     }
 
