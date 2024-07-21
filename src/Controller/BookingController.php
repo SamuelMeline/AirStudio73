@@ -32,40 +32,42 @@ class BookingController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Créez une session Stripe sans enregistrer la réservation
             Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
-            // Calculer le nombre de cours récurrents
             $isRecurrent = $booking->isRecurrent();
-            $numOccurrences = $booking->getNumOccurrences() ?: 1; // Par défaut à 1 si non récurrent
-            $totalOccurrences = 1;
-
-            if ($isRecurrent && $course->isRecurrent()) {
+            $numOccurrences = $booking->getNumOccurrences();
+            
+            if ($isRecurrent) {
                 $startTime = $course->getStartTime();
-                if (!$startTime instanceof \DateTimeInterface) {
-                    $startTime = new \DateTime($startTime);
-                }
+                $startTime = $this->ensureDateTime($startTime);
                 $totalOccurrences = $this->calculateOccurrences($course->getRecurrenceDuration(), $startTime);
-                $numOccurrences = min($numOccurrences, $totalOccurrences); // Limiter au nombre maximal d'occurrences disponibles
+
+                // Si le nombre d'occurrences n'est pas spécifié, réserver tous les cours disponibles
+                if (!$numOccurrences) {
+                    $numOccurrences = $totalOccurrences;
+                }
+
+                $numOccurrences = min($numOccurrences, $totalOccurrences);
+            } else {
+                $numOccurrences = 1; // Si non récurrent, une seule occurrence
             }
 
-            // Ajuster le montant total en fonction du nombre de cours récurrents
             $totalAmount = $course->getPrice() * 100 * $numOccurrences;
 
             $session = StripeSession::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price_data' => [
-                        'currency' => 'eur', // Utiliser l'euro comme devise
+                        'currency' => 'eur',
                         'product_data' => [
                             'name' => $course->getName(),
                         ],
-                        'unit_amount' => $course->getPrice() * 100, // Le montant doit être en centimes
+                        'unit_amount' => $course->getPrice() * 100,
                     ],
-                    'quantity' => $numOccurrences, // Utiliser le nombre d'occurrences spécifié
+                    'quantity' => $numOccurrences,
                 ]],
                 'mode' => 'payment',
-                'client_reference_id' => json_encode(['courseId' => $courseId, 'isRecurrent' => $isRecurrent, 'numOccurrences' => $numOccurrences]), // Ajouter les informations nécessaires
+                'client_reference_id' => json_encode(['courseId' => $courseId, 'isRecurrent' => $isRecurrent, 'numOccurrences' => $numOccurrences]),
                 'success_url' => $this->generateUrl('booking_success', [
                     'courseId' => $courseId,
                     'isRecurrent' => $isRecurrent,
@@ -80,7 +82,7 @@ class BookingController extends AbstractController
         return $this->render('booking/new.html.twig', [
             'form' => $form->createView(),
             'course' => $course,
-            'stripe_public_key' => $this->getParameter('stripe.public_key'), // Passez la clé publique au template
+            'stripe_public_key' => $this->getParameter('stripe.public_key'),
         ]);
     }
 
@@ -98,10 +100,9 @@ class BookingController extends AbstractController
             throw $this->createNotFoundException('No course found for id ' . $courseId);
         }
 
-        // Créer et enregistrer la réservation après la confirmation du paiement
         $booking = new Booking();
         $booking->setCourse($course);
-        $booking->setUserName($this->getUser()->getUserIdentifier()); // Utiliser getUserIdentifier() pour obtenir l'email de l'utilisateur
+        $booking->setUserName($this->getUser()->getUserIdentifier());
         $booking->setNumOccurrences($numOccurrences);
 
         $em->persist($booking);
@@ -132,17 +133,14 @@ class BookingController extends AbstractController
     {
         $course = $booking->getCourse();
         $startTime = $course->getStartTime();
-
-        // Assurez-vous que $startTime est une instance de DateTime
-        if (!$startTime instanceof \DateTimeInterface) {
-            $startTime = new \DateTime($startTime);
-        }
+        $startTime = $this->ensureDateTime($startTime);
 
         $recurrenceDuration = $course->getRecurrenceDuration();
         $recurrenceInterval = $course->getRecurrenceInterval();
 
         for ($i = 1; $i < $numOccurrences; $i++) {
-            $nextCourseDate = (clone $startTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
+            $nextCourseDate = new \DateTime();
+            $nextCourseDate->setTimestamp($startTime->getTimestamp() + ($i * $recurrenceInterval * 24 * 60 * 60));
 
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
                 'name' => $course->getName(),
@@ -179,5 +177,18 @@ class BookingController extends AbstractController
             default:
                 return 4;
         }
+    }
+
+    private function ensureDateTime($startTime): \DateTimeInterface
+    {
+        if ($startTime instanceof \DateTimeInterface) {
+            return $startTime;
+        }
+
+        if (is_string($startTime)) {
+            return new \DateTime($startTime);
+        }
+
+        return new \DateTime('now');
     }
 }

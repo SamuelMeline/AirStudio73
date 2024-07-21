@@ -19,6 +19,27 @@
 
     {% block body %}{% endblock %}
     
-    {% block javascripts %}{% endblock %}
+    {% block javascripts %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
+                const numOccurrencesContainer = document.getElementById('num-occurrences-container');
+
+                function toggleNumOccurrences() {
+                    if (recurrentCheckbox.checked) {
+                        numOccurrencesContainer.style.display = 'block';
+                    } else {
+                        numOccurrencesContainer.style.display = 'none';
+                    }
+                }
+
+                // Initial state
+                toggleNumOccurrences();
+
+                // Event listener
+                recurrentCheckbox.addEventListener('change', toggleNumOccurrences);
+            });
+        </script>
+    {% endblock %}
 </body>
 </html>
