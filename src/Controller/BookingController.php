@@ -14,9 +14,32 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
+use Stripe\PromotionCode;
 
 class BookingController extends AbstractController
 {
+    private $courses = [
+        'Pole Dance' => [
+            'name' => 'Pole Dance',
+            'durations' => [
+                'annuel_classique' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Pf53cKVs2gnspmUvqqnQngR'],
+                'annuel_classique_3x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Pf77fKVs2gnspmUj9U3cD4T'],
+                'annuel_classique_4x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Pf79rKVs2gnspmUGQ5S9Uhl'],
+                'annuel_classique_10x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Pf7AMKVs2gnspmUF6o09Vz0'],
+                'annuel_classique_12x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Pf7AtKVs2gnspmUjkQuYmHT'],
+                'annuel_classique_activite' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Pf7BUKVs2gnspmUisiEbRuJ'],
+                'annuel_classique_activite_3x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'annuel_classique_activite_4x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'annuel_classique_activite_10x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'annuel_classique_activite_12x' => ['duration' => '1 an', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'souple' => ['duration' => '3 mois', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'souple_2x' => ['duration' => '3 mois', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'cours_classique_et_essaie' => ['duration' => '1 jour', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+                'cours_particulier' => ['duration' => '1 jour', 'stripe_price_id' => 'price_1Hh1XyFGWjZ1xP8dP4f6Q7Rz'],
+            ],
+        ],
+    ];
+
     #[Route('/booking/new/{courseId}', name: 'booking_new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, EntityManagerInterface $em, int $courseId): Response
@@ -34,40 +57,40 @@ class BookingController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
-            $isRecurrent = $booking->isRecurrent();
-            $numOccurrences = $booking->getNumOccurrences();
-            
-            if ($isRecurrent) {
-                $startTime = $course->getStartTime();
-                $startTime = $this->ensureDateTime($startTime);
-                $totalOccurrences = $this->calculateOccurrences($course->getRecurrenceDuration(), $startTime);
+            $paymentMode = $form->get('paymentMode')->getData();
+            $isRecurrent = $form->get('isRecurrent')->getData();
+            $numOccurrences = $form->get('numOccurrences')->getData() ?? 1;
+            $promoCode = $form->get('promoCode')->getData();
 
-                // Si le nombre d'occurrences n'est pas spécifié, réserver tous les cours disponibles
-                if (!$numOccurrences) {
-                    $numOccurrences = $totalOccurrences;
+            $stripePriceId = $this->courses[$course->getName()]['durations'][$paymentMode]['stripe_price_id'];
+
+            $discounts = [];
+            if ($promoCode) {
+                $promotionCodeId = $this->validatePromoCode($promoCode);
+                if ($promotionCodeId) {
+                    $discounts = [['promotion_code' => $promotionCodeId]];
+                } else {
+                    $this->addFlash('error', 'Invalid promo code.');
+                    return $this->redirectToRoute('booking_new', ['courseId' => $courseId]);
                 }
-
-                $numOccurrences = min($numOccurrences, $totalOccurrences);
-            } else {
-                $numOccurrences = 1; // Si non récurrent, une seule occurrence
             }
 
-            $totalAmount = $course->getPrice() * 100 * $numOccurrences;
+            // Toujours une quantité de 1 pour éviter la multiplication des prix
+            $lineItem = [
+                'price' => $stripePriceId,
+                'quantity' => 1,
+            ];
 
             $session = StripeSession::create([
                 'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => 'eur',
-                        'product_data' => [
-                            'name' => $course->getName(),
-                        ],
-                        'unit_amount' => $course->getPrice() * 100,
-                    ],
-                    'quantity' => $numOccurrences,
-                ]],
-                'mode' => 'payment',
-                'client_reference_id' => json_encode(['courseId' => $courseId, 'isRecurrent' => $isRecurrent, 'numOccurrences' => $numOccurrences]),
+                'line_items' => [$lineItem],
+                'mode' => 'subscription',
+                'discounts' => $discounts,
+                'client_reference_id' => json_encode([
+                    'courseId' => $courseId,
+                    'isRecurrent' => $isRecurrent,
+                    'numOccurrences' => $numOccurrences,
+                ]),
                 'success_url' => $this->generateUrl('booking_success', [
                     'courseId' => $courseId,
                     'isRecurrent' => $isRecurrent,
@@ -103,12 +126,13 @@ class BookingController extends AbstractController
         $booking = new Booking();
         $booking->setCourse($course);
         $booking->setUserName($this->getUser()->getUserIdentifier());
+        $booking->setIsRecurrent($isRecurrent);
         $booking->setNumOccurrences($numOccurrences);
 
         $em->persist($booking);
         $em->flush();
 
-        if ($isRecurrent && $course->isRecurrent()) {
+        if ($isRecurrent) {
             $this->createRecurrentBookings($booking, $em, $numOccurrences);
         }
 
@@ -117,30 +141,16 @@ class BookingController extends AbstractController
         return $this->redirectToRoute('calendar');
     }
 
-    #[Route('/booking/cancel', name: 'booking_cancel')]
-    public function cancel(): Response
-    {
-        $this->addFlash('error', 'The payment was canceled.');
-        return $this->redirectToRoute('calendar');
-    }
-
-    private function canBook(Course $course): bool
-    {
-        return count($course->getBookings()) < $course->getCapacity();
-    }
-
     private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences): void
     {
         $course = $booking->getCourse();
         $startTime = $course->getStartTime();
         $startTime = $this->ensureDateTime($startTime);
 
-        $recurrenceDuration = $course->getRecurrenceDuration();
         $recurrenceInterval = $course->getRecurrenceInterval();
 
         for ($i = 1; $i < $numOccurrences; $i++) {
-            $nextCourseDate = new \DateTime();
-            $nextCourseDate->setTimestamp($startTime->getTimestamp() + ($i * $recurrenceInterval * 24 * 60 * 60));
+            $nextCourseDate = (clone $startTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
 
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
                 'name' => $course->getName(),
@@ -159,26 +169,6 @@ class BookingController extends AbstractController
         $em->flush();
     }
 
-    private function calculateOccurrences(string $recurrenceDuration, \DateTimeInterface $startDate): int
-    {
-        switch ($recurrenceDuration) {
-            case '1_month':
-                return 4;
-            case '3_months':
-                return 12;
-            case '6_months':
-                return 24;
-            case '1_year':
-                return 52;
-            case '2_years':
-                return 104;
-            case '3_years':
-                return 156;
-            default:
-                return 4;
-        }
-    }
-
     private function ensureDateTime($startTime): \DateTimeInterface
     {
         if ($startTime instanceof \DateTimeInterface) {
@@ -190,5 +180,36 @@ class BookingController extends AbstractController
         }
 
         return new \DateTime('now');
+    }
+
+    private function canBook(Course $course): bool
+    {
+        return count($course->getBookings()) < $course->getCapacity();
+    }
+
+    private function validatePromoCode(string $promoCode): ?string
+    {
+        try {
+            $promotionCodes = PromotionCode::all([
+                'code' => $promoCode,
+                'active' => true,
+                'limit' => 1,
+            ]);
+            foreach ($promotionCodes->data as $promotionCode) {
+                if ($promotionCode->coupon->valid) {
+                    return $promotionCode->id;
+                }
+            }
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    #[Route('/booking/cancel', name: 'booking_cancel')]
+    public function cancel(): Response
+    {
+        $this->addFlash('error', 'The payment was canceled.');
+        return $this->redirectToRoute('calendar');
     }
 }
