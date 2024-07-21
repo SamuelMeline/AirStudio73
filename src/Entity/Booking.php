@@ -1,7 +1,5 @@
 <?php
 
-// src/Entity/Booking.php
-
 namespace App\Entity;
 
 use App\Repository\BookingRepository;
@@ -24,6 +22,9 @@ class Booking
 
     #[ORM\Column(type: 'boolean')]
     private bool $isRecurrent = false;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $numOccurrences = null;
 
     public function getId(): ?int
     {
@@ -65,5 +66,16 @@ class Booking
 
         return $this;
     }
-}
 
+    public function getNumOccurrences(): ?int
+    {
+        return $this->numOccurrences;
+    }
+
+    public function setNumOccurrences(?int $numOccurrences): self
+    {
+        $this->numOccurrences = $numOccurrences;
+
+        return $this;
+    }
+}

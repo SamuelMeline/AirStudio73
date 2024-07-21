@@ -1,13 +1,35 @@
-{# templates/booking/new.html.twig #}
-
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Réserver un cours</h1>
+    <h1>Reserve Course: {{ course.name }}</h1>
 
     {{ form_start(form) }}
-        {{ form_row(form.userName) }}
         {{ form_row(form.isRecurrent) }}
-        <button class="btn btn-primary">Réserver</button>
+        <div id="num-occurrences-container" style="display: none;">
+            {{ form_row(form.numOccurrences) }}
+        </div>
+        {{ form_rest(form) }}
+        <button type="submit" class="btn btn-primary">Reserve and Pay</button>
     {{ form_end(form) }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
+            const numOccurrencesContainer = document.getElementById('num-occurrences-container');
+
+            function toggleNumOccurrences() {
+                if (recurrentCheckbox.checked) {
+                    numOccurrencesContainer.style.display = 'block';
+                } else {
+                    numOccurrencesContainer.style.display = 'none';
+                }
+            }
+
+            // Initial state
+            toggleNumOccurrences();
+
+            // Event listener
+            recurrentCheckbox.addEventListener('change', toggleNumOccurrences);
+        });
+    </script>
 {% endblock %}
