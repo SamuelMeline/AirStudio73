@@ -42,7 +42,8 @@ security:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
         # - { path: ^/reserve, roles: ROLE_USER }
-        # - { path: ^/calendar, roles: ROLE_USER }
+        - { path: ^/booking, roles: ROLE_USER }
+        - { path: ^/course/new, roles: ROLE_ADMIN }
 
 when@test:
     security:

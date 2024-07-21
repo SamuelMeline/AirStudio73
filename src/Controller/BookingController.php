@@ -1,7 +1,5 @@
 <?php
 
-// src/Controller/BookingController.php
-
 namespace App\Controller;
 
 use App\Entity\Booking;
@@ -12,9 +10,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class BookingController extends AbstractController
 {
+    #[IsGranted('ROLE_USER')] // Cette ligne garantit que seul un utilisateur authentifié peut accéder à cette route
     #[Route('/booking/new/{courseId}', name: 'booking_new')]
     public function new(Request $request, EntityManagerInterface $em, int $courseId): Response
     {
