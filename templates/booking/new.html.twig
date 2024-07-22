@@ -1,66 +1,31 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<h1>Réserver le cours :
-		{{ course.name }}</h1>
+    <h1>Réserver le cours : {{ course.name }}</h1>
 
-	{{ form_start(form) }}
-	<div class="form-group">
-		{{ form_label(form.paymentMode) }}
-		{{ form_widget(form.paymentMode, {'attr': {'class': 'form-control js-payment-mode'}}) }}
-	</div>
-	<div class="form-group">
-		{{ form_row(form.isRecurrent) }}
-		<div id="num-occurrences-container" style="display: none;">
-			{{ form_row(form.numOccurrences) }}
-		</div>
-	</div>
-	<div class="form-group">
-		{{ form_label(form.promoCode) }}
-		{{ form_widget(form.promoCode, {'attr': {'class': 'form-control'}}) }}
-	</div>
-	{{ form_rest(form) }}
-	<button type="submit" class="btn btn-primary">Réserver et payer</button>
-	{{ form_end(form) }}
+    {{ form_start(form) }}
+    <div class="form-group">
+        {{ form_row(form.isRecurrent) }}
+        <div id="num-occurrences-container" style="display: none;">
+            {{ form_row(form.numOccurrences) }}
+        </div>
+    </div>
+    {{ form_rest(form) }}
+    <button type="submit" class="btn btn-primary">Réserver</button>
+    {{ form_end(form) }}
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
-const numOccurrencesContainer = document.getElementById('num-occurrences-container');
-const paymentModeSelect = document.querySelector('.js-payment-mode');
-const numOccurrencesInput = document.querySelector('.js-num-occurrences');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
+            const numOccurrencesContainer = document.getElementById('num-occurrences-container');
 
-function toggleRecurrentOptions() {
-const paymentMode = paymentModeSelect.value;
-if ([
-'annuel_classique',
-'annuel_classique_3x',
-'annuel_classique_4x',
-'annuel_classique_10x',
-'annuel_classique_12x',
-'annuel_classique_activite',
-'annuel_classique_activite_3x',
-'annuel_classique_activite_4x',
-'annuel_classique_activite_10x',
-'annuel_classique_activite_12x',
-'souple',
-'souple_2x'
-].includes(paymentMode)) {
-recurrentCheckbox.closest('.form-group').style.display = 'block';
-numOccurrencesContainer.style.display = recurrentCheckbox.checked ? 'block' : 'none';
-numOccurrencesInput.setAttribute('max', paymentMode.startsWith('souple') ? 10 : 52);
-} else {
-recurrentCheckbox.closest('.form-group').style.display = 'none';
-numOccurrencesContainer.style.display = 'none';
-}
-}
-
-// Initial state
-toggleRecurrentOptions();
-
-// Event listeners
-paymentModeSelect.addEventListener('change', toggleRecurrentOptions);
-recurrentCheckbox.addEventListener('change', toggleRecurrentOptions);
-});
-	</script>
+            recurrentCheckbox.addEventListener('change', function () {
+                if (recurrentCheckbox.checked) {
+                    numOccurrencesContainer.style.display = 'block';
+                } else {
+                    numOccurrencesContainer.style.display = 'none';
+                }
+            });
+        });
+    </script>
 {% endblock %}

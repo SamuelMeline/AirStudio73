@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<h1>Sélectionner votre forfait</h1>
+
+	{{ form_start(form) }}
+	<div class="form-group">
+		{{ form_label(form.forfait) }}
+		{{ form_widget(form.forfait) }}
+	</div>
+
+	<div class="form-group">
+		{{ form_label(form.promoCode) }}
+		{{ form_widget(form.promoCode, {'attr': {'class': 'form-control'}}) }}
+	</div>
+	{{ form_rest(form) }}
+	<button type="submit" class="btn btn-primary">Réserver et payer</button>
+	{{ form_end(form) }}
+{% endblock %}

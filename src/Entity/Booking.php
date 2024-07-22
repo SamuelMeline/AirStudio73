@@ -26,12 +26,6 @@ class Booking
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $numOccurrences = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $paymentMode = null;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $promoCode;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -81,30 +75,6 @@ class Booking
     public function setNumOccurrences(?int $numOccurrences): self
     {
         $this->numOccurrences = $numOccurrences;
-
-        return $this;
-    }
-
-    public function getPaymentMode(): ?string
-    {
-        return $this->paymentMode;
-    }
-
-    public function setPaymentMode(?string $paymentMode): self
-    {
-        $this->paymentMode = $paymentMode;
-
-        return $this;
-    }
-
-    public function getPromoCode(): ?string
-    {
-        return $this->promoCode;
-    }
-
-    public function setPromoCode(?string $promoCode): self
-    {
-        $this->promoCode = $promoCode;
 
         return $this;
     }
