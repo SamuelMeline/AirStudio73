@@ -46,6 +46,11 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
+        if ($validSubscription->getRemainingCourses() <= 0) {
+            $this->addFlash('error', 'You do not have any remaining courses. Please purchase a new subscription.');
+            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+        }
+
         $booking = new Booking();
         $form = $this->createForm(BookingType::class, $booking, ['remaining_courses' => $validSubscription->getRemainingCourses()]);
         $form->handleRequest($request);
@@ -56,7 +61,7 @@ class BookingController extends AbstractController
 
             if ($numOccurrences > $validSubscription->getRemainingCourses()) {
                 $this->addFlash('error', 'You do not have enough remaining courses for this booking.');
-                return $this->redirectToRoute('booking_new', ['courseId' => $courseId]);
+                return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
             }
 
             $booking->setCourse($course);
