@@ -1,3 +1,5 @@
+{# booking/new.html.twig #}
+
 {% extends 'base.html.twig' %}
 
 {% block body %}
@@ -8,6 +10,7 @@
         {{ form_row(form.isRecurrent) }}
         <div id="num-occurrences-container" style="display: none;">
             {{ form_row(form.numOccurrences) }}
+            <button type="button" class="btn btn-secondary" id="max-occurrences-button">Max ({{ remaining_courses }})</button>
         </div>
     </div>
     {{ form_rest(form) }}
@@ -18,14 +21,28 @@
         document.addEventListener('DOMContentLoaded', function () {
             const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
             const numOccurrencesContainer = document.getElementById('num-occurrences-container');
+            const numOccurrencesInput = document.querySelector('.js-num-occurrences');
+            const maxOccurrencesButton = document.getElementById('max-occurrences-button');
 
             recurrentCheckbox.addEventListener('change', function () {
                 if (recurrentCheckbox.checked) {
                     numOccurrencesContainer.style.display = 'block';
+                    numOccurrencesInput.required = true;
                 } else {
                     numOccurrencesContainer.style.display = 'none';
+                    numOccurrencesInput.required = false;
+                    numOccurrencesInput.value = '';
                 }
             });
+
+            maxOccurrencesButton.addEventListener('click', function () {
+                numOccurrencesInput.value = {{ remaining_courses }};
+            });
+
+            if (recurrentCheckbox.checked) {
+                numOccurrencesContainer.style.display = 'block';
+                numOccurrencesInput.required = true;
+            }
         });
     </script>
 {% endblock %}

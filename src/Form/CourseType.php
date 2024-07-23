@@ -28,9 +28,6 @@ class CourseType extends AbstractType
                 'widget' => 'single_text',
             ])
             ->add('capacity', IntegerType::class)
-            ->add('price', MoneyType::class, [
-                'currency' => 'EUR',
-            ])
             ->add('isRecurrent', CheckboxType::class, [
                 'label'    => 'Cours récurrent',
                 'required' => false,

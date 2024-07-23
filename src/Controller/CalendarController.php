@@ -1,7 +1,5 @@
 <?php
 
-// src/Controller/CalendarController.php
-
 namespace App\Controller;
 
 use App\Entity\Course;
@@ -15,14 +13,16 @@ class CalendarController extends AbstractController
     #[Route('/calendar/{year?}/{week?}', name: 'calendar')]
     public function index(EntityManagerInterface $em, int $year = null, int $week = null): Response
     {
-        $currentDate = new \DateTime();
+        $today = new \DateTime();
 
         if ($year && $week) {
+            $currentDate = new \DateTime();
             $currentDate->setISODate($year, $week);
+        } else {
+            $currentDate = $today;
+            $year = (int) $currentDate->format('Y');
+            $week = (int) $currentDate->format('W');
         }
-
-        $week = $currentDate->format('W');
-        $year = $currentDate->format('Y');
 
         $startOfWeek = (clone $currentDate)->modify('monday this week');
         $endOfWeek = (clone $startOfWeek)->modify('sunday this week');
@@ -44,6 +44,3 @@ class CalendarController extends AbstractController
         ]);
     }
 }
-
-
-

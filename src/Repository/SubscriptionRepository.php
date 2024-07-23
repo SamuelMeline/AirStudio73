@@ -16,28 +16,18 @@ class SubscriptionRepository extends ServiceEntityRepository
         parent::__construct($registry, Subscription::class);
     }
 
-    //    /**
-    //     * @return Subscription[] Returns an array of Subscription objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @return Subscription[] Returns an array of Subscription objects
+     */
+    public function findByUserName(string $userName): array
+    {
+        // Ajout de débogage pour vérifier la requête
+        error_log('Finding subscriptions for user: ' . $userName);
 
-    //    public function findOneBySomeField($value): ?Subscription
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.userName = :userName')
+            ->setParameter('userName', $userName)
+            ->getQuery()
+            ->getResult();
+    }
 }
