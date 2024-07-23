@@ -17,8 +17,9 @@ class Booking
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $userName = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     #[ORM\Column(type: 'boolean')]
     private ?bool $isRecurrent = null;
@@ -43,14 +44,14 @@ class Booking
         return $this;
     }
 
-    public function getUserName(): ?string
+    public function getUser(): ?User
     {
-        return $this->userName;
+        return $this->user;
     }
 
-    public function setUserName(string $userName): self
+    public function setUser(User $user): self
     {
-        $this->userName = $userName;
+        $this->user = $user;
 
         return $this;
     }
