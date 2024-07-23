@@ -6,7 +6,6 @@ use App\Entity\Booking;
 use App\Entity\Course;
 use App\Entity\Subscription;
 use App\Form\BookingType;
-use App\Repository\BookingRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +17,7 @@ class BookingController extends AbstractController
 {
     #[Route('/booking/new/{courseId}', name: 'booking_new')]
     #[IsGranted('ROLE_USER')]
-    public function new(Request $request, EntityManagerInterface $em, BookingRepository $bookingRepository, int $courseId): Response
+    public function new(Request $request, EntityManagerInterface $em, int $courseId): Response
     {
         $course = $em->getRepository(Course::class)->find($courseId);
 
@@ -62,27 +61,25 @@ class BookingController extends AbstractController
             $isRecurrent = $form->get('isRecurrent')->getData();
             $numOccurrences = $form->get('numOccurrences')->getData() ?? 1;
 
-            $validOccurrences = $this->calculateValidOccurrences($course, $numOccurrences, $em);
-
-            if ($validOccurrences > $remainingCourses) {
+            if ($numOccurrences > $remainingCourses) {
                 $this->addFlash('error', 'You do not have enough remaining courses for this booking.');
                 return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
             }
 
             $booking->setCourse($course);
-            $booking->setUserName($user->getUserIdentifier());
+            $booking->setUser($user);
             $booking->setIsRecurrent($isRecurrent);
-            $booking->setNumOccurrences($validOccurrences);
+            $booking->setNumOccurrences($numOccurrences);
 
             $em->persist($booking);
             $em->flush();
 
-            $validSubscription->decrementRemainingCourses($validOccurrences);
+            $validSubscription->decrementRemainingCourses(1); // Décrémenter pour la réservation initiale
             $em->persist($validSubscription);
             $em->flush();
 
             if ($isRecurrent) {
-                $this->createRecurrentBookings($booking, $em, $validOccurrences);
+                $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscription);
             }
 
             $this->addFlash('success', 'Your booking has been successfully created.');
@@ -103,6 +100,7 @@ class BookingController extends AbstractController
         $plan = $subscription->getPlan();
         $planName = $plan->getName();
 
+        // Logique simplifiée : vérifier si le nom du plan contient le nom du cours
         if (strpos(strtolower($planName), strtolower($courseName)) !== false) {
             return true;
         }
@@ -110,7 +108,7 @@ class BookingController extends AbstractController
         return false;
     }
 
-    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences): void
+    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, Subscription $subscription): void
     {
         $course = $booking->getCourse();
         $startTime = $course->getStartTime();
@@ -118,7 +116,7 @@ class BookingController extends AbstractController
 
         $recurrenceInterval = $course->getRecurrenceInterval();
 
-        for ($i = 1; $i < $numOccurrences; $i++) {
+        for ($i = 1; $i <= $numOccurrences && $subscription->getRemainingCourses() > 0; $i++) {
             $nextCourseDate = (clone $startTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
 
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
@@ -128,11 +126,14 @@ class BookingController extends AbstractController
 
             if ($recurrentCourse && $this->canBook($recurrentCourse, $em)) {
                 $newBooking = new Booking();
-                $newBooking->setUserName($booking->getUserName());
+                $newBooking->setUser($booking->getUser());
                 $newBooking->setCourse($recurrentCourse);
                 $newBooking->setIsRecurrent(true);
                 $newBooking->setNumOccurrences(1); // Définir numOccurrences à 1 pour chaque réservation récurrente
                 $em->persist($newBooking);
+
+                $subscription->decrementRemainingCourses(1);
+                $em->persist($subscription);
             }
         }
 
@@ -156,27 +157,5 @@ class BookingController extends AbstractController
     {
         $bookings = $em->getRepository(Booking::class)->findBy(['course' => $course]);
         return count($bookings) < $course->getCapacity();
-    }
-
-    private function calculateValidOccurrences(Course $course, int $numOccurrences, EntityManagerInterface $em): int
-    {
-        $validOccurrences = 0;
-        $startTime = $course->getStartTime();
-        $recurrenceInterval = $course->getRecurrenceInterval();
-
-        for ($i = 0; $i < $numOccurrences; $i++) {
-            $nextCourseDate = (clone $startTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
-
-            $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
-                'name' => $course->getName(),
-                'startTime' => $nextCourseDate,
-            ]);
-
-            if ($recurrentCourse && $this->canBook($recurrentCourse, $em)) {
-                $validOccurrences++;
-            }
-        }
-
-        return $validOccurrences;
     }
 }
