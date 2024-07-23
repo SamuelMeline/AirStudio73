@@ -67,12 +67,13 @@ class BookingController extends AbstractController
             $em->persist($booking);
             $em->flush();
 
+            // Déduire le nombre total de cours sélectionnés
+            $validSubscription->decrementRemainingCourses($numOccurrences);
+            $em->persist($validSubscription);
+            $em->flush();
+
             if ($isRecurrent) {
-                $this->createRecurrentBookings($booking, $em, $numOccurrences, $validSubscription);
-            } else {
-                $validSubscription->decrementRemainingCourses($numOccurrences);
-                $em->persist($validSubscription);
-                $em->flush();
+                $this->createRecurrentBookings($booking, $em, $numOccurrences);
             }
 
             $this->addFlash('success', 'Your booking has been successfully created.');
@@ -99,7 +100,7 @@ class BookingController extends AbstractController
         return false;
     }
 
-    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, Subscription $subscription): void
+    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences): void
     {
         $course = $booking->getCourse();
         $startTime = $course->getStartTime();
@@ -121,9 +122,6 @@ class BookingController extends AbstractController
                 $newBooking->setCourse($recurrentCourse);
                 $newBooking->setIsRecurrent(true);
                 $em->persist($newBooking);
-
-                $subscription->decrementRemainingCourses(1);  // Décrémente par 1 pour chaque réservation récurrente
-                $em->persist($subscription);
             }
         }
 
