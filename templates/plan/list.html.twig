@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Forfaits</h1>
+    <a href="{{ path('plan_new') }}">Ajouter un nouveau forfait</a>
+    <ul>
+        {% for plan in plans %}
+            <li>
+                {{ plan.name }} - {{ plan.course.name }} - {{ plan.courses }} cours - {{ plan.duration }}
+                <a href="{{ path('plan_edit', {'id': plan.id}) }}">Modifier</a>
+                <a href="{{ path('plan_delete', {'id': plan.id}) }}">Supprimer</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

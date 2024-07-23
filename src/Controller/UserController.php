@@ -16,11 +16,8 @@ class UserController extends AbstractController
     public function userSubscriptions(EntityManagerInterface $em): Response
     {
         $user = $this->getUser();
-        $userName = $user->getUserIdentifier();
+        $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user]);
 
-        $subscriptions = $em->getRepository(Subscription::class)->findBy(['userName' => $userName]);
-
-        // Filtrer les abonnements avec des crédits restants égaux à 0
         $activeSubscriptions = array_filter($subscriptions, function ($subscription) {
             return $subscription->getRemainingCourses() > 0;
         });
@@ -30,4 +27,3 @@ class UserController extends AbstractController
         ]);
     }
 }
-

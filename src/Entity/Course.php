@@ -1,13 +1,8 @@
 <?php
 
-// src/Entity/Course.php
-
 namespace App\Entity;
 
 use App\Repository\CourseRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
@@ -21,31 +16,23 @@ class Course
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $startTime = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $endTime = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $capacity = null;
 
     #[ORM\Column(type: 'boolean')]
-    private $isRecurrent = false;
+    private ?bool $isRecurrent = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $recurrenceInterval = 7; // Default to 7 days
+    private ?int $recurrenceInterval = 7;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $recurrenceDuration = null; // Duration of recurrence
-
-    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Booking::class, orphanRemoval: true)]
-    private Collection $bookings;
-
-    public function __construct()
-    {
-        $this->bookings = new ArrayCollection();
-    }
+    private ?string $recurrenceDuration  = null;
 
     public function getId(): ?int
     {
@@ -60,6 +47,7 @@ class Course
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -71,6 +59,7 @@ class Course
     public function setStartTime(\DateTimeInterface $startTime): self
     {
         $this->startTime = $startTime;
+
         return $this;
     }
 
@@ -82,6 +71,7 @@ class Course
     public function setEndTime(\DateTimeInterface $endTime): self
     {
         $this->endTime = $endTime;
+
         return $this;
     }
 
@@ -93,10 +83,11 @@ class Course
     public function setCapacity(int $capacity): self
     {
         $this->capacity = $capacity;
+
         return $this;
     }
 
-    public function isRecurrent(): bool
+    public function getIsRecurrent(): ?bool
     {
         return $this->isRecurrent;
     }
@@ -104,6 +95,7 @@ class Course
     public function setIsRecurrent(bool $isRecurrent): self
     {
         $this->isRecurrent = $isRecurrent;
+
         return $this;
     }
 
@@ -115,46 +107,18 @@ class Course
     public function setRecurrenceInterval(?int $recurrenceInterval): self
     {
         $this->recurrenceInterval = $recurrenceInterval;
+
         return $this;
     }
 
     public function getRecurrenceDuration(): ?string
     {
-        return $this->recurrenceDuration;
+        return $this->recurrenceDuration ;
     }
 
-    public function setRecurrenceDuration(?string $recurrenceDuration): self
+    public function setRecurrenceDuration(?string $recurrenceDuration ): self
     {
-        $this->recurrenceDuration = $recurrenceDuration;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Booking>
-     */
-    public function getBookings(): Collection
-    {
-        return $this->bookings;
-    }
-
-    public function addBooking(Booking $booking): self
-    {
-        if (!$this->bookings->contains($booking)) {
-            $this->bookings->add($booking);
-            $booking->setCourse($this);
-        }
-
-        return $this;
-    }
-
-    public function removeBooking(Booking $booking): self
-    {
-        if ($this->bookings->removeElement($booking)) {
-            // set the owning side to null (unless already changed)
-            if ($booking->getCourse() === $this) {
-                $booking->setCourse(null);
-            }
-        }
+        $this->recurrenceDuration  = $recurrenceDuration ;
 
         return $this;
     }

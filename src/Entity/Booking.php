@@ -13,22 +13,34 @@ class Booking
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $userName = null;
-
-    #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'bookings')]
+    #[ORM\ManyToOne(targetEntity: Course::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $isRecurrent = false;
+    #[ORM\Column(length: 255)]
+    private ?string $userName = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $isRecurrent = null;
+
+    #[ORM\Column(type: 'integer')]
     private ?int $numOccurrences = null;
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
+
+    public function setCourse(Course $course): self
+    {
+        $this->course = $course;
+
+        return $this;
     }
 
     public function getUserName(): ?string
@@ -43,19 +55,7 @@ class Booking
         return $this;
     }
 
-    public function getCourse(): ?Course
-    {
-        return $this->course;
-    }
-
-    public function setCourse(?Course $course): self
-    {
-        $this->course = $course;
-
-        return $this;
-    }
-
-    public function isRecurrent(): bool
+    public function getIsRecurrent(): ?bool
     {
         return $this->isRecurrent;
     }
@@ -72,7 +72,7 @@ class Booking
         return $this->numOccurrences;
     }
 
-    public function setNumOccurrences(?int $numOccurrences): self
+    public function setNumOccurrences(int $numOccurrences): self
     {
         $this->numOccurrences = $numOccurrences;
 
