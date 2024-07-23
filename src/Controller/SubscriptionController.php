@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Stripe\Stripe;
 use Stripe\PromotionCode;
+use App\Entity\Course;
 use App\Entity\Subscription;
 use App\Form\SubscriptionType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -66,12 +67,25 @@ class SubscriptionController extends AbstractController
                 return $this->redirectToRoute('subscription_new');
             }
 
-            $courseName = $courseId == 1 ? 'Pole Dance' : 'Souplesse ou Renfo';
+            // Récupérer le nom du cours à partir de l'ID du cours
+            $course = $em->getRepository(Course::class)->find($courseId);
+
+            if (!$course) {
+                $this->addFlash('error', 'Invalid course ID.');
+                return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+            }
+
+            $courseName = $course->getName();
+
+            // Debugging info
+            $this->addFlash('info', 'Course ID: ' . $courseId);
+            $this->addFlash('info', 'Course Name: ' . $courseName);
+            $this->addFlash('info', 'Forfait: ' . $forfait);
 
             // Assurez-vous que la clé existe dans le tableau avant de l'utiliser
             if (!isset($this->courses[$courseName]['durations'][$forfait])) {
                 $this->addFlash('error', 'Invalid forfait selected.');
-                return $this->redirectToRoute('subscription_new');
+                return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
             }
 
             $stripePriceId = $this->courses[$courseName]['durations'][$forfait]['stripe_price_id'];
@@ -84,7 +98,7 @@ class SubscriptionController extends AbstractController
                     $discounts = [['promotion_code' => $promotionCodeId]];
                 } else {
                     $this->addFlash('error', 'Invalid promo code.');
-                    return $this->redirectToRoute('subscription_new');
+                    return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
                 }
             }
 
@@ -150,12 +164,25 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
-        $courseName = $courseId == 1 ? 'Pole Dance' : 'Souplesse ou Renfo';
+        // Récupérer le nom du cours à partir de l'ID du cours
+        $course = $em->getRepository(Course::class)->find($courseId);
+
+        if (!$course) {
+            $this->addFlash('error', 'Invalid course ID.');
+            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+        }
+
+        $courseName = $course->getName();
+
+        // Debugging info
+        $this->addFlash('info', 'Course ID: ' . $courseId);
+        $this->addFlash('info', 'Course Name: ' . $courseName);
+        $this->addFlash('info', 'Forfait: ' . $forfait);
 
         // Assurez-vous que la clé existe dans le tableau avant de l'utiliser
         if (!isset($this->courses[$courseName]['durations'][$forfait])) {
             $this->addFlash('error', 'Invalid forfait selected.');
-            return $this->redirectToRoute('subscription_new');
+            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
         $subscription = new Subscription();
