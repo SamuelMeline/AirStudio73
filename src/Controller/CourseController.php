@@ -1,7 +1,5 @@
 <?php
 
-// src/Controller/CourseController.php
-
 namespace App\Controller;
 
 use App\Entity\Course;
@@ -24,21 +22,25 @@ class CourseController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($course);
 
-            if ($course->isRecurrent() && $course->getRecurrenceInterval()) {
+            if ($course->getisRecurrent() && $course->getRecurrenceInterval()) {
                 $occurrenceCount = $this->calculateOccurrences($course->getRecurrenceDuration(), $course->getStartTime());
 
                 for ($i = 1; $i < $occurrenceCount; $i++) {
-                    /** @var \DateTime $startTime */
                     $startTime = clone $course->getStartTime();
                     $startTime->add(new \DateInterval('P' . ($i * $course->getRecurrenceInterval()) . 'D'));
 
-                    /** @var \DateTime $endTime */
                     $endTime = clone $course->getEndTime();
                     $endTime->add(new \DateInterval('P' . ($i * $course->getRecurrenceInterval()) . 'D'));
 
-                    $recurrentCourse = clone $course;
+                    $recurrentCourse = new Course();
+                    $recurrentCourse->setName($course->getName());
                     $recurrentCourse->setStartTime($startTime);
                     $recurrentCourse->setEndTime($endTime);
+                    $recurrentCourse->setCapacity($course->getCapacity());
+                    $recurrentCourse->setIsRecurrent(false); // Set to false to avoid infinite recursion
+                    $recurrentCourse->setRecurrenceInterval($course->getRecurrenceInterval());
+                    $recurrentCourse->setRecurrenceDuration($course->getRecurrenceDuration());
+
                     $em->persist($recurrentCourse);
                 }
             }
@@ -63,13 +65,6 @@ class CourseController extends AbstractController
         ]);
     }
 
-    /**
-     * Calculate the number of occurrences based on the recurrence duration and start date.
-     *
-     * @param string $recurrenceDuration The duration of recurrence.
-     * @param \DateTimeInterface $startDate The start date of the course.
-     * @return int The number of occurrences.
-     */
     private function calculateOccurrences(string $recurrenceDuration, \DateTimeInterface $startDate): int
     {
         switch ($recurrenceDuration) {

@@ -13,11 +13,13 @@ class Subscription
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $userName = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $forfait = null;
+    #[ORM\ManyToOne(targetEntity: Plan::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Plan $plan = null;
 
     #[ORM\Column(type: 'integer')]
     private int $remainingCourses = 0;
@@ -39,26 +41,26 @@ class Subscription
         return $this->id;
     }
 
-    public function getUserName(): ?string
+    public function getUser(): ?User
     {
-        return $this->userName;
+        return $this->user;
     }
 
-    public function setUserName(string $userName): self
+    public function setUser(User $user): self
     {
-        $this->userName = $userName;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getForfait(): ?string
+    public function getPlan(): ?Plan
     {
-        return $this->forfait;
+        return $this->plan;
     }
 
-    public function setForfait(string $forfait): self
+    public function setPlan(Plan $plan): self
     {
-        $this->forfait = $forfait;
+        $this->plan = $plan;
 
         return $this;
     }

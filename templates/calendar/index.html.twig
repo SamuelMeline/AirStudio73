@@ -66,8 +66,9 @@
                                 {% set course_end_time = course.endTime|date('H:i') %}
                                 {% set course_day_of_week = course.startTime|date('N') %}
                                 {% set course_capacity = course.capacity %}
-                                {% set bookings = course.bookings|length %}
-                                {% set available_spots = course_capacity - bookings %}
+                                {% set course_bookings = bookings[course.id] %}
+                                {% set bookings_count = course_bookings|length %}
+                                {% set available_spots = course_capacity - bookings_count %}
 
                                 {% if course_day_of_week == dow and course_start_time == timeslot %}
                                     {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
@@ -127,8 +128,9 @@
                             {% set course_end_time = course.endTime|date('H:i') %}
                             {% set course_day_of_week = course.startTime|date('N') %}
                             {% set course_capacity = course.capacity %}
-                            {% set bookings = course.bookings|length %}
-                            {% set available_spots = course_capacity - bookings %}
+                            {% set course_bookings = bookings[course.id] %}
+                            {% set bookings_count = course_bookings|length %}
+                            {% set available_spots = course_capacity - bookings_count %}
 
                             {% if course_day_of_week == 6 and course_start_time == timeslot %}
                                 {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}

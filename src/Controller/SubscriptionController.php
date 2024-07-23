@@ -6,6 +6,9 @@ use Stripe\Stripe;
 use Stripe\PromotionCode;
 use App\Entity\Course;
 use App\Entity\Subscription;
+use App\Entity\Plan;
+use App\Entity\PromoCodeUsage;
+use App\Entity\User;
 use App\Form\SubscriptionType;
 use Doctrine\ORM\EntityManagerInterface;
 use Stripe\Checkout\Session as StripeSession;
@@ -18,35 +21,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SubscriptionController extends AbstractController
 {
-    private $courses = [
-        'Pole Dance' => [
-            'name' => 'Pole Dance',
-            'durations' => [
-                'pole_annuel_classique' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf53cKVs2gnspmUvqqnQngR', 'courses' => 43],
-                'pole_annuel_classique_3x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf77fKVs2gnspmUj9U3cD4T', 'courses' => 43],
-                'pole_annuel_classique_4x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf79rKVs2gnspmUGQ5S9Uhl', 'courses' => 43],
-                'pole_annuel_classique_10x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7AMKVs2gnspmUF6o09Vz0', 'courses' => 43],
-                'pole_annuel_classique_12x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7AtKVs2gnspmUjkQuYmHT', 'courses' => 43],
-                'pole_annuel_classique_activite' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7BUKVs2gnspmUisiEbRuJ', 'courses' => 43],
-                'pole_annuel_classique_activite_3x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLNwKVs2gnspmU2qTTwR7s', 'courses' => 43],
-                'pole_annuel_classique_activite_4x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLOdKVs2gnspmUsxC6FyQe', 'courses' => 43],
-                'pole_annuel_classique_activite_10x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLP0KVs2gnspmUSp2SrroS', 'courses' => 43],
-                'pole_annuel_classique_activite_12x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLPjKVs2gnspmUmTvysIwF', 'courses' => 43],
-                'pole_souple' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfLSIKVs2gnspmUl66eE8DY', 'courses' => 10],
-                'pole_souple_2x' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfLSmKVs2gnspmUQjYu5OT6', 'courses' => 10],
-                'pole_cours_classique_et_essaie' => ['duration' => 'P1D', 'stripe_price_id' => 'price_1PfLQgKVs2gnspmUi7vsHkah', 'courses' => 1],
-                'pole_cours_particulier' => ['duration' => 'P1D', 'stripe_price_id' => 'price_1PfLR2KVs2gnspmUKtqO0QNQ', 'courses' => 1],
-            ],
-        ],
-        'Souplesse ou Renfo' => [
-            'name' => 'Souplesse ou Renfo',
-            'durations' => [
-                'souplesse_annuel_classique' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfPDiKVs2gnspmUn0NJAjrR', 'courses' => 43],
-                'souplesse_souple' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfRLIKVs2gnspmUK9SNEKyo', 'courses' => 10],
-            ],
-        ],
-    ];
-
     #[Route('/subscription/new', name: 'subscription_new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, EntityManagerInterface $em): Response
@@ -58,38 +32,21 @@ class SubscriptionController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
-            $forfait = $form->get('forfait')->getData();
+            $plan = $subscription->getPlan();
             $promoCode = $form->get('promoCode')->getData();
-            $courseId = $request->query->get('courseId');
+            $user = $this->getUser();
 
-            if (!$courseId) {
-                $this->addFlash('error', 'Course ID is missing.');
+            // Vérifier si l'utilisateur a déjà utilisé ce code promo
+            $existingUsage = $em->getRepository(PromoCodeUsage::class)
+                ->findOneBy(['user' => $user, 'promoCode' => $promoCode]);
+
+            if ($existingUsage) {
+                $this->addFlash('error', 'You have already used this promo code.');
                 return $this->redirectToRoute('subscription_new');
             }
 
-            // Récupérer le nom du cours à partir de l'ID du cours
-            $course = $em->getRepository(Course::class)->find($courseId);
-
-            if (!$course) {
-                $this->addFlash('error', 'Invalid course ID.');
-                return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
-            }
-
-            $courseName = $course->getName();
-
-            // Debugging info
-            $this->addFlash('info', 'Course ID: ' . $courseId);
-            $this->addFlash('info', 'Course Name: ' . $courseName);
-            $this->addFlash('info', 'Forfait: ' . $forfait);
-
-            // Assurez-vous que la clé existe dans le tableau avant de l'utiliser
-            if (!isset($this->courses[$courseName]['durations'][$forfait])) {
-                $this->addFlash('error', 'Invalid forfait selected.');
-                return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
-            }
-
-            $stripePriceId = $this->courses[$courseName]['durations'][$forfait]['stripe_price_id'];
-            $numCourses = $this->courses[$courseName]['durations'][$forfait]['courses'];
+            $stripePriceId = $plan->getStripePriceId();
+            $numCourses = $plan->getCourses();
 
             $discounts = [];
             if ($promoCode) {
@@ -98,7 +55,7 @@ class SubscriptionController extends AbstractController
                     $discounts = [['promotion_code' => $promotionCodeId]];
                 } else {
                     $this->addFlash('error', 'Invalid promo code.');
-                    return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+                    return $this->redirectToRoute('subscription_new');
                 }
             }
 
@@ -113,10 +70,9 @@ class SubscriptionController extends AbstractController
                 'mode' => 'subscription',
                 'discounts' => $discounts,
                 'client_reference_id' => json_encode([
-                    'forfait' => $forfait,
-                    'userName' => $this->getUser()->getUserIdentifier(),
+                    'planId' => $plan->getId(),
+                    'userId' => $user->getUserIdentifier(),
                     'promoCode' => $promoCode,
-                    'courseId' => $courseId,
                 ]),
                 'success_url' => $this->generateUrl('subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => $this->generateUrl('subscription_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
@@ -154,42 +110,35 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
-        $forfait = $sessionData['forfait'] ?? null;
-        $userName = $sessionData['userName'] ?? null;
+        $planId = $sessionData['planId'] ?? null;
+        $userId = $sessionData['userId'] ?? null;
         $promoCode = $sessionData['promoCode'] ?? null;
-        $courseId = $sessionData['courseId'] ?? null;
 
-        if (!$forfait || !$userName || !$courseId) {
+        if (!$planId || !$userId) {
             $this->addFlash('error', 'Invalid session data.');
             return $this->redirectToRoute('subscription_new');
         }
 
-        $course = $em->getRepository(Course::class)->find($courseId);
-        if (!$course) {
-            $this->addFlash('error', 'Invalid course ID.');
-            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+        $plan = $em->getRepository(Plan::class)->find($planId);
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $userId]); // Assuming 'email' is unique and used as identifier
+
+        if (!$plan || !$user) {
+            $this->addFlash('error', 'Invalid plan or user.');
+            return $this->redirectToRoute('subscription_new');
         }
 
-        $courseName = $course->getName();
-        if (!isset($this->courses[$courseName]['durations'][$forfait])) {
-            $this->addFlash('error', 'Invalid forfait selected.');
-            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
-        }
+        $expiryDate = (new \DateTime())->add(new \DateInterval($plan->getDuration()));
 
         $existingSubscription = $em->getRepository(Subscription::class)->findOneBy([
-            'userName' => $userName,
-            'forfait' => $forfait
+            'user' => $user,
+            'plan' => $plan,
         ]);
 
-        $expiryDate = (new \DateTime())->add(new \DateInterval($this->courses[$courseName]['durations'][$forfait]['duration']));
-
         if ($existingSubscription) {
-            // Incrémenter les crédits de l'abonnement existant
             $existingSubscription->setRemainingCourses(
-                $existingSubscription->getRemainingCourses() + $this->courses[$courseName]['durations'][$forfait]['courses']
+                $existingSubscription->getRemainingCourses() + $plan->getCourses()
             );
 
-            // Mettre à jour la date d'expiration si elle est plus tardive
             if ($existingSubscription->getExpiryDate() < $expiryDate) {
                 $existingSubscription->setExpiryDate($expiryDate);
             }
@@ -197,55 +146,59 @@ class SubscriptionController extends AbstractController
             $em->persist($existingSubscription);
         } else {
             $subscription = new Subscription();
-            $subscription->setUserName($userName);
-            $subscription->setForfait($forfait);
-            $subscription->setRemainingCourses($this->courses[$courseName]['durations'][$forfait]['courses']);
+            $subscription->setUser($user);
+            $subscription->setPlan($plan);
+            $subscription->setRemainingCourses($plan->getCourses());
             $subscription->setPurchaseDate(new \DateTime());
             $subscription->setExpiryDate($expiryDate);
             $subscription->setPromoCode($promoCode);
-            $subscription->setPaymentMode($forfait);
+            $subscription->setPaymentMode($plan->getName());
 
             $em->persist($subscription);
         }
 
-        if (strpos($forfait, 'pole_annuel_classique_activite') !== false) {
-            $existingSouplesseSubscription = $em->getRepository(Subscription::class)->findOneBy([
-                'userName' => $userName,
-                'forfait' => 'souplesse_annuel_classique'
-            ]);
+        if (strpos($plan->getName(), 'pole_annuel_classique_activite') !== false) {
+            $souplessePlan = $em->getRepository(Plan::class)->findOneBy(['name' => 'souplesse_annuel_classique']);
 
-            if ($existingSouplesseSubscription) {
-                $existingSouplesseSubscription->setRemainingCourses(
-                    $existingSouplesseSubscription->getRemainingCourses() + 43
-                );
+            if ($souplessePlan) {
+                $existingSouplesseSubscription = $em->getRepository(Subscription::class)->findOneBy([
+                    'user' => $user,
+                    'plan' => $souplessePlan,
+                ]);
 
-                if ($existingSouplesseSubscription->getExpiryDate() < $expiryDate) {
-                    $existingSouplesseSubscription->setExpiryDate($expiryDate);
+                if ($existingSouplesseSubscription) {
+                    $existingSouplesseSubscription->setRemainingCourses(
+                        $existingSouplesseSubscription->getRemainingCourses() + 43
+                    );
+
+                    if ($existingSouplesseSubscription->getExpiryDate() < $expiryDate) {
+                        $existingSouplesseSubscription->setExpiryDate($expiryDate);
+                    }
+
+                    $em->persist($existingSouplesseSubscription);
+                } else {
+                    $souplesseSubscription = new Subscription();
+                    $souplesseSubscription->setUser($user);
+                    $souplesseSubscription->setPlan($souplessePlan);
+                    $souplesseSubscription->setRemainingCourses(43);
+                    $souplesseSubscription->setPurchaseDate(new \DateTime());
+                    $souplesseSubscription->setExpiryDate($expiryDate);
+                    $souplesseSubscription->setPromoCode($promoCode);
+                    $souplesseSubscription->setPaymentMode('souplesse_annuel_classique');
+
+                    $em->persist($souplesseSubscription);
                 }
-
-                $em->persist($existingSouplesseSubscription);
-            } else {
-                $subscriptionSouplesse = new Subscription();
-                $subscriptionSouplesse->setUserName($userName);
-                $subscriptionSouplesse->setForfait('souplesse_annuel_classique');
-                $subscriptionSouplesse->setRemainingCourses(43);
-                $subscriptionSouplesse->setPurchaseDate(new \DateTime());
-                $subscriptionSouplesse->setExpiryDate($expiryDate);
-                $subscriptionSouplesse->setPromoCode($promoCode);
-                $subscriptionSouplesse->setPaymentMode('souplesse_annuel_classique');
-
-                $em->persist($subscriptionSouplesse);
             }
         }
 
-        $em->flush();
+        // Enregistrer l'utilisation du code promo
+        if ($promoCode) {
+            $promoCodeUsage = new PromoCodeUsage();
+            $promoCodeUsage->setUser($user);
+            $promoCodeUsage->setPromoCode($promoCode);
+            $promoCodeUsage->setUsedAt(new \DateTime());
 
-        // Supprimer les abonnements avec des crédits restants égaux à 0
-        $subscriptions = $em->getRepository(Subscription::class)->findBy(['userName' => $userName]);
-        foreach ($subscriptions as $subscription) {
-            if ($subscription->getRemainingCourses() == 0) {
-                $em->remove($subscription);
-            }
+            $em->persist($promoCodeUsage);
         }
 
         $em->flush();
