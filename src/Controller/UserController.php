@@ -20,8 +20,14 @@ class UserController extends AbstractController
 
         $subscriptions = $em->getRepository(Subscription::class)->findBy(['userName' => $userName]);
 
+        // Filtrer les abonnements avec des crédits restants égaux à 0
+        $activeSubscriptions = array_filter($subscriptions, function ($subscription) {
+            return $subscription->getRemainingCourses() > 0;
+        });
+
         return $this->render('user/subscription.html.twig', [
-            'subscriptions' => $subscriptions,
+            'subscriptions' => $activeSubscriptions,
         ]);
     }
 }
+
