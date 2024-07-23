@@ -1,19 +1,19 @@
-<?php
+<?php 
 
 namespace App\Controller;
 
+use Stripe\Stripe;
+use Stripe\PromotionCode;
 use App\Entity\Subscription;
 use App\Form\SubscriptionType;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Stripe\Checkout\Session as StripeSession;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Stripe\Stripe;
-use Stripe\Checkout\Session as StripeSession;
-use Stripe\PromotionCode;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class SubscriptionController extends AbstractController
 {
@@ -21,20 +21,27 @@ class SubscriptionController extends AbstractController
         'Pole Dance' => [
             'name' => 'Pole Dance',
             'durations' => [
-                'annuel_classique' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf53cKVs2gnspmUvqqnQngR', 'courses' => 43],
-                'annuel_classique_3x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf77fKVs2gnspmUj9U3cD4T', 'courses' => 43],
-                'annuel_classique_4x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf79rKVs2gnspmUGQ5S9Uhl', 'courses' => 43],
-                'annuel_classique_10x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7AMKVs2gnspmUF6o09Vz0', 'courses' => 43],
-                'annuel_classique_12x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7AtKVs2gnspmUjkQuYmHT', 'courses' => 43],
-                'annuel_classique_activite' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7BUKVs2gnspmUisiEbRuJ', 'courses' => 43],
-                'annuel_classique_activite_3x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLNwKVs2gnspmU2qTTwR7s', 'courses' => 43],
-                'annuel_classique_activite_4x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLOdKVs2gnspmUsxC6FyQe', 'courses' => 43],
-                'annuel_classique_activite_10x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLP0KVs2gnspmUSp2SrroS', 'courses' => 43],
-                'annuel_classique_activite_12x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLPjKVs2gnspmUmTvysIwF', 'courses' => 43],
-                'souple' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfLSIKVs2gnspmUl66eE8DY', 'courses' => 10],
-                'souple_2x' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfLSmKVs2gnspmUQjYu5OT6', 'courses' => 10],
-                'cours_classique_et_essaie' => ['duration' => 'P1D', 'stripe_price_id' => 'price_1PfLQgKVs2gnspmUi7vsHkah', 'courses' => 1],
-                'cours_particulier' => ['duration' => 'P1D', 'stripe_price_id' => 'price_1PfLR2KVs2gnspmUKtqO0QNQ', 'courses' => 1],
+                'pole_annuel_classique' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf53cKVs2gnspmUvqqnQngR', 'courses' => 43],
+                'pole_annuel_classique_3x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf77fKVs2gnspmUj9U3cD4T', 'courses' => 43],
+                'pole_annuel_classique_4x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf79rKVs2gnspmUGQ5S9Uhl', 'courses' => 43],
+                'pole_annuel_classique_10x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7AMKVs2gnspmUF6o09Vz0', 'courses' => 43],
+                'pole_annuel_classique_12x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7AtKVs2gnspmUjkQuYmHT', 'courses' => 43],
+                'pole_annuel_classique_activite' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1Pf7BUKVs2gnspmUisiEbRuJ', 'courses' => 43],
+                'pole_annuel_classique_activite_3x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLNwKVs2gnspmU2qTTwR7s', 'courses' => 43],
+                'pole_annuel_classique_activite_4x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLOdKVs2gnspmUsxC6FyQe', 'courses' => 43],
+                'pole_annuel_classique_activite_10x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLP0KVs2gnspmUSp2SrroS', 'courses' => 43],
+                'pole_annuel_classique_activite_12x' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfLPjKVs2gnspmUmTvysIwF', 'courses' => 43],
+                'pole_souple' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfLSIKVs2gnspmUl66eE8DY', 'courses' => 10],
+                'pole_souple_2x' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfLSmKVs2gnspmUQjYu5OT6', 'courses' => 10],
+                'pole_cours_classique_et_essaie' => ['duration' => 'P1D', 'stripe_price_id' => 'price_1PfLQgKVs2gnspmUi7vsHkah', 'courses' => 1],
+                'pole_cours_particulier' => ['duration' => 'P1D', 'stripe_price_id' => 'price_1PfLR2KVs2gnspmUKtqO0QNQ', 'courses' => 1],
+            ],
+        ],
+        'Souplesse ou Renfo' => [
+            'name' => 'Souplesse ou Renfo',
+            'durations' => [
+                'souplesse_annuel_classique' => ['duration' => 'P1Y', 'stripe_price_id' => 'price_1PfPDiKVs2gnspmUn0NJAjrR', 'courses' => 43],
+                'souplesse_souple' => ['duration' => 'P3M', 'stripe_price_id' => 'price_1PfRLIKVs2gnspmUK9SNEKyo', 'courses' => 10],
             ],
         ],
     ];
@@ -59,7 +66,16 @@ class SubscriptionController extends AbstractController
                 return $this->redirectToRoute('subscription_new');
             }
 
-            $stripePriceId = $this->courses['Pole Dance']['durations'][$forfait]['stripe_price_id'];
+            $courseName = $courseId == 1 ? 'Pole Dance' : 'Souplesse ou Renfo';
+
+            // Assurez-vous que la clé existe dans le tableau avant de l'utiliser
+            if (!isset($this->courses[$courseName]['durations'][$forfait])) {
+                $this->addFlash('error', 'Invalid forfait selected.');
+                return $this->redirectToRoute('subscription_new');
+            }
+
+            $stripePriceId = $this->courses[$courseName]['durations'][$forfait]['stripe_price_id'];
+            $numCourses = $this->courses[$courseName]['durations'][$forfait]['courses'];
 
             $discounts = [];
             if ($promoCode) {
@@ -86,7 +102,7 @@ class SubscriptionController extends AbstractController
                     'forfait' => $forfait,
                     'userName' => $this->getUser()->getUserIdentifier(),
                     'promoCode' => $promoCode,
-                    'courseId' => $courseId,  // Ajouter courseId ici
+                    'courseId' => $courseId,
                 ]),
                 'success_url' => $this->generateUrl('subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => $this->generateUrl('subscription_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
@@ -134,12 +150,20 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
+        $courseName = $courseId == 1 ? 'Pole Dance' : 'Souplesse ou Renfo';
+
+        // Assurez-vous que la clé existe dans le tableau avant de l'utiliser
+        if (!isset($this->courses[$courseName]['durations'][$forfait])) {
+            $this->addFlash('error', 'Invalid forfait selected.');
+            return $this->redirectToRoute('subscription_new');
+        }
+
         $subscription = new Subscription();
         $subscription->setUserName($userName);
         $subscription->setForfait($forfait);
-        $subscription->setRemainingCourses($this->courses['Pole Dance']['durations'][$forfait]['courses']);
+        $subscription->setRemainingCourses($this->courses[$courseName]['durations'][$forfait]['courses']);
         $subscription->setPurchaseDate(new \DateTime());
-        $expiryDate = (new \DateTime())->add(new \DateInterval($this->courses['Pole Dance']['durations'][$forfait]['duration']));
+        $expiryDate = (new \DateTime())->add(new \DateInterval($this->courses[$courseName]['durations'][$forfait]['duration']));
         $subscription->setExpiryDate($expiryDate);
         $subscription->setPromoCode($promoCode);
         $subscription->setPaymentMode($forfait);
@@ -149,7 +173,7 @@ class SubscriptionController extends AbstractController
 
         $this->addFlash('success', 'Your subscription has been successfully created.');
 
-        return $this->redirectToRoute('booking_new', ['courseId' => $courseId]);  // Passer courseId ici
+        return $this->redirectToRoute('user_subscription');
     }
 
     private function validatePromoCode(string $promoCode): ?string

@@ -13,13 +13,15 @@ class UserController extends AbstractController
 {
     #[Route('/user/subscription', name: 'user_subscription')]
     #[IsGranted('ROLE_USER')]
-    public function subscription(EntityManagerInterface $em): Response
+    public function userSubscriptions(EntityManagerInterface $em): Response
     {
-        $userName = $this->getUser()->getUserIdentifier();
-        $subscription = $em->getRepository(Subscription::class)->findOneBy(['userName' => $userName]);
+        $user = $this->getUser();
+        $userName = $user->getUserIdentifier();
+
+        $subscriptions = $em->getRepository(Subscription::class)->findBy(['userName' => $userName]);
 
         return $this->render('user/subscription.html.twig', [
-            'subscription' => $subscription,
+            'subscriptions' => $subscriptions,
         ]);
     }
 }
