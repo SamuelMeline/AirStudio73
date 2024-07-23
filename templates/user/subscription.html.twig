@@ -21,21 +21,6 @@
 {% else %}
     <p>Vous n'avez pas de forfait actif.</p>
 {% endif %}
-
-<!-- Formulaire pour choisir le type de forfait -->
-<h2>Choisissez un forfait à acheter :</h2>
-<form action="{{ path('subscription_new') }}" method="get">
-    <div class="form-group">
-        <label for="courseId">Type de cours :</label>
-        <select name="courseId" id="courseId" class="form-control">
-            <option value="1">Pole Dance</option>
-            <option value="2">Souplesse ou Renfo</option>
-            <!-- Ajoutez d'autres options de cours ici si nécessaire -->
-        </select>
-    </div>
-    <button type="submit" class="btn btn-primary">Acheter plus de cours</button>
-</form>
-
 <br>
 <a href="{{ path('app_calendar') }}">Réserver</a>
 {% endblock %}

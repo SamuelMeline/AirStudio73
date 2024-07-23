@@ -46,20 +46,22 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        if ($validSubscription->getRemainingCourses() <= 0) {
+        $remainingCourses = $validSubscription->getRemainingCourses();
+
+        if ($remainingCourses <= 0) {
             $this->addFlash('error', 'You do not have any remaining courses. Please purchase a new subscription.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
         $booking = new Booking();
-        $form = $this->createForm(BookingType::class, $booking, ['remaining_courses' => $validSubscription->getRemainingCourses()]);
+        $form = $this->createForm(BookingType::class, $booking, ['remaining_courses' => $remainingCourses]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $isRecurrent = $form->get('isRecurrent')->getData();
             $numOccurrences = $form->get('numOccurrences')->getData() ?? 1;
 
-            if ($numOccurrences > $validSubscription->getRemainingCourses()) {
+            if ($numOccurrences > $remainingCourses) {
                 $this->addFlash('error', 'You do not have enough remaining courses for this booking.');
                 return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
             }
@@ -72,7 +74,6 @@ class BookingController extends AbstractController
             $em->persist($booking);
             $em->flush();
 
-            // Déduire le nombre total de cours sélectionnés
             $validSubscription->decrementRemainingCourses($numOccurrences);
             $em->persist($validSubscription);
             $em->flush();
@@ -89,9 +90,10 @@ class BookingController extends AbstractController
         return $this->render('booking/new.html.twig', [
             'form' => $form->createView(),
             'course' => $course,
-            'remaining_courses' => $validSubscription->getRemainingCourses(),
+            'remaining_courses' => $remainingCourses,
         ]);
     }
+
 
     private function isSubscriptionValidForCourse(Subscription $subscription, Course $course): bool
     {

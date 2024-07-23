@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Controller;
 
@@ -164,38 +164,90 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
-        // Récupérer le nom du cours à partir de l'ID du cours
         $course = $em->getRepository(Course::class)->find($courseId);
-
         if (!$course) {
             $this->addFlash('error', 'Invalid course ID.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
         $courseName = $course->getName();
-
-        // Debugging info
-        $this->addFlash('info', 'Course ID: ' . $courseId);
-        $this->addFlash('info', 'Course Name: ' . $courseName);
-        $this->addFlash('info', 'Forfait: ' . $forfait);
-
-        // Assurez-vous que la clé existe dans le tableau avant de l'utiliser
         if (!isset($this->courses[$courseName]['durations'][$forfait])) {
             $this->addFlash('error', 'Invalid forfait selected.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        $subscription = new Subscription();
-        $subscription->setUserName($userName);
-        $subscription->setForfait($forfait);
-        $subscription->setRemainingCourses($this->courses[$courseName]['durations'][$forfait]['courses']);
-        $subscription->setPurchaseDate(new \DateTime());
-        $expiryDate = (new \DateTime())->add(new \DateInterval($this->courses[$courseName]['durations'][$forfait]['duration']));
-        $subscription->setExpiryDate($expiryDate);
-        $subscription->setPromoCode($promoCode);
-        $subscription->setPaymentMode($forfait);
+        $existingSubscription = $em->getRepository(Subscription::class)->findOneBy([
+            'userName' => $userName,
+            'forfait' => $forfait
+        ]);
 
-        $em->persist($subscription);
+        $expiryDate = (new \DateTime())->add(new \DateInterval($this->courses[$courseName]['durations'][$forfait]['duration']));
+
+        if ($existingSubscription) {
+            // Incrémenter les crédits de l'abonnement existant
+            $existingSubscription->setRemainingCourses(
+                $existingSubscription->getRemainingCourses() + $this->courses[$courseName]['durations'][$forfait]['courses']
+            );
+
+            // Mettre à jour la date d'expiration si elle est plus tardive
+            if ($existingSubscription->getExpiryDate() < $expiryDate) {
+                $existingSubscription->setExpiryDate($expiryDate);
+            }
+
+            $em->persist($existingSubscription);
+        } else {
+            $subscription = new Subscription();
+            $subscription->setUserName($userName);
+            $subscription->setForfait($forfait);
+            $subscription->setRemainingCourses($this->courses[$courseName]['durations'][$forfait]['courses']);
+            $subscription->setPurchaseDate(new \DateTime());
+            $subscription->setExpiryDate($expiryDate);
+            $subscription->setPromoCode($promoCode);
+            $subscription->setPaymentMode($forfait);
+
+            $em->persist($subscription);
+        }
+
+        if (strpos($forfait, 'pole_annuel_classique_activite') !== false) {
+            $existingSouplesseSubscription = $em->getRepository(Subscription::class)->findOneBy([
+                'userName' => $userName,
+                'forfait' => 'souplesse_annuel_classique'
+            ]);
+
+            if ($existingSouplesseSubscription) {
+                $existingSouplesseSubscription->setRemainingCourses(
+                    $existingSouplesseSubscription->getRemainingCourses() + 43
+                );
+
+                if ($existingSouplesseSubscription->getExpiryDate() < $expiryDate) {
+                    $existingSouplesseSubscription->setExpiryDate($expiryDate);
+                }
+
+                $em->persist($existingSouplesseSubscription);
+            } else {
+                $subscriptionSouplesse = new Subscription();
+                $subscriptionSouplesse->setUserName($userName);
+                $subscriptionSouplesse->setForfait('souplesse_annuel_classique');
+                $subscriptionSouplesse->setRemainingCourses(43);
+                $subscriptionSouplesse->setPurchaseDate(new \DateTime());
+                $subscriptionSouplesse->setExpiryDate($expiryDate);
+                $subscriptionSouplesse->setPromoCode($promoCode);
+                $subscriptionSouplesse->setPaymentMode('souplesse_annuel_classique');
+
+                $em->persist($subscriptionSouplesse);
+            }
+        }
+
+        $em->flush();
+
+        // Supprimer les abonnements avec des crédits restants égaux à 0
+        $subscriptions = $em->getRepository(Subscription::class)->findBy(['userName' => $userName]);
+        foreach ($subscriptions as $subscription) {
+            if ($subscription->getRemainingCourses() == 0) {
+                $em->remove($subscription);
+            }
+        }
+
         $em->flush();
 
         $this->addFlash('success', 'Your subscription has been successfully created.');
