@@ -1,26 +1,24 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
+<div class="container">
     <h1>Mes Forfaits</h1>
-
-    {% if subscriptions is defined and subscriptions|length > 0 %}
+    <div class="list-group">
         {% for subscription in subscriptions %}
-            <h2>
-                {% if subscription.plan.name starts with 'Pole Dance' %}
-                    Pole Dance
-                {% elseif subscription.plan.name starts with 'Souplesse' %}
-                    Souplesse ou Renfo
-                {% else %}
-                    {{ subscription.plan.name }}
-                {% endif %}
-            </h2>
-            <p>Nombre de cours restants: {{ subscription.remainingCourses }}</p>
-            <p>Date d'expiration: {{ subscription.expiryDate|date('d-m-Y') }}</p>
-            <p>Mode de paiement: {{ subscription.paymentMode }}</p>
+        <div class="list-group-item">
+            <h5 class="mb-1">{{ subscription.plan.name }}</h5>
+            <ul class="list-unstyled">
+                {% for subscriptionCourse in subscription.subscriptionCourses %}
+                <li>
+                    {{ subscriptionCourse.course.name }} - {{ subscriptionCourse.remainingCredits }} crédits
+                </li>
+                {% endfor %}
+            </ul>
+            <p class="mb-1">Date d'expiration: {{ subscription.expiryDate|date('d-m-Y') }}</p>
+            <p class="mb-1">Mode de paiement: {{ subscription.paymentMode }}</p>
+            <a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
+        </div>
         {% endfor %}
-    {% else %}
-        <p>Vous n'avez pas de forfait actif.</p>
-    {% endif %}
-    <br>
-    <a href="{{ path('app_calendar') }}">Réserver</a>
+    </div>
+</div>
 {% endblock %}

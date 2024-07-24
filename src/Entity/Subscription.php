@@ -2,15 +2,17 @@
 
 namespace App\Entity;
 
-use App\Repository\SubscriptionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\SubscriptionRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: SubscriptionRepository::class)]
 class Subscription
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -20,9 +22,6 @@ class Subscription
     #[ORM\ManyToOne(targetEntity: Plan::class)]
     #[ORM\JoinColumn(nullable: false)]
     private ?Plan $plan = null;
-
-    #[ORM\Column(type: 'integer')]
-    private int $remainingCourses = 0;
 
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $purchaseDate = null;
@@ -35,6 +34,14 @@ class Subscription
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $promoCode = null;
+
+    #[ORM\OneToMany(targetEntity: SubscriptionCourse::class, mappedBy: 'subscription', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $subscriptionCourses;
+
+    public function __construct()
+    {
+        $this->subscriptionCourses = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -61,18 +68,6 @@ class Subscription
     public function setPlan(Plan $plan): self
     {
         $this->plan = $plan;
-
-        return $this;
-    }
-
-    public function getRemainingCourses(): int
-    {
-        return $this->remainingCourses;
-    }
-
-    public function setRemainingCourses(int $remainingCourses): self
-    {
-        $this->remainingCourses = $remainingCourses;
 
         return $this;
     }
@@ -125,12 +120,57 @@ class Subscription
         return $this;
     }
 
-    public function decrementRemainingCourses(int $numCourses): self
+    /**
+     * @return Collection|SubscriptionCourse[]
+     */
+    public function getSubscriptionCourses(): Collection
     {
-        if ($this->remainingCourses >= $numCourses) {
-            $this->remainingCourses -= $numCourses;
-        } else {
-            throw new \Exception("Not enough remaining courses.");
+        return $this->subscriptionCourses;
+    }
+
+    public function addSubscriptionCourse(SubscriptionCourse $subscriptionCourse): self
+    {
+        if (!$this->subscriptionCourses->contains($subscriptionCourse)) {
+            $this->subscriptionCourses[] = $subscriptionCourse;
+            $subscriptionCourse->setSubscription($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscriptionCourse(SubscriptionCourse $subscriptionCourse): self
+    {
+        if ($this->subscriptionCourses->removeElement($subscriptionCourse)) {
+            // set the owning side to null (unless already changed)
+            if ($subscriptionCourse->getSubscription() === $this) {
+                $subscriptionCourse->setSubscription(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCourseCredits(Course $course): ?int
+    {
+        foreach ($this->subscriptionCourses as $subscriptionCourse) {
+            if ($subscriptionCourse->getCourse() === $course) {
+                return $subscriptionCourse->getRemainingCredits();
+            }
+        }
+        return null;
+    }
+
+    public function decrementCourseCredits(Course $course, int $credits): self
+    {
+        foreach ($this->subscriptionCourses as $subscriptionCourse) {
+            if ($subscriptionCourse->getCourse() === $course) {
+                if ($subscriptionCourse->getRemainingCredits() >= $credits) {
+                    $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() - $credits);
+                } else {
+                    throw new \Exception("Not enough credits for this course.");
+                }
+                break;
+            }
         }
 
         return $this;

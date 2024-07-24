@@ -3,13 +3,14 @@
 namespace App\Controller;
 
 use Stripe\Stripe;
-use Stripe\PromotionCode;
-use App\Entity\Course;
-use App\Entity\Subscription;
 use App\Entity\Plan;
-use App\Entity\PromoCodeUsage;
 use App\Entity\User;
+use App\Entity\Course;
+use Stripe\PromotionCode;
+use App\Entity\Subscription;
+use App\Entity\PromoCodeUsage;
 use App\Form\SubscriptionType;
+use App\Entity\SubscriptionCourse;
 use Doctrine\ORM\EntityManagerInterface;
 use Stripe\Checkout\Session as StripeSession;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,7 +47,6 @@ class SubscriptionController extends AbstractController
             }
 
             $stripePriceId = $plan->getStripePriceId();
-            $numCourses = $plan->getCourses();
 
             $discounts = [];
             if ($promoCode) {
@@ -129,15 +129,29 @@ class SubscriptionController extends AbstractController
 
         $expiryDate = (new \DateTime())->add(new \DateInterval($plan->getDuration()));
 
+        // Cumuler les crédits des cours si l'abonnement existe déjà
         $existingSubscription = $em->getRepository(Subscription::class)->findOneBy([
             'user' => $user,
             'plan' => $plan,
         ]);
 
         if ($existingSubscription) {
-            $existingSubscription->setRemainingCourses(
-                $existingSubscription->getRemainingCourses() + $plan->getCourses()
-            );
+            foreach ($plan->getPlanCourses() as $planCourse) {
+                // Créer ou mettre à jour SubscriptionCourse pour chaque cours du plan
+                $subscriptionCourse = $existingSubscription->getSubscriptionCourses()->filter(function ($sc) use ($planCourse) {
+                    return $sc->getCourse()->getId() === $planCourse->getCourse()->getId();
+                })->first();
+
+                if ($subscriptionCourse) {
+                    $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + $planCourse->getCredits());
+                } else {
+                    $subscriptionCourse = new SubscriptionCourse();
+                    $subscriptionCourse->setSubscription($existingSubscription);
+                    $subscriptionCourse->setCourse($planCourse->getCourse());
+                    $subscriptionCourse->setRemainingCredits($planCourse->getCredits());
+                    $existingSubscription->addSubscriptionCourse($subscriptionCourse);
+                }
+            }
 
             if ($existingSubscription->getExpiryDate() < $expiryDate) {
                 $existingSubscription->setExpiryDate($expiryDate);
@@ -148,7 +162,16 @@ class SubscriptionController extends AbstractController
             $subscription = new Subscription();
             $subscription->setUser($user);
             $subscription->setPlan($plan);
-            $subscription->setRemainingCourses($plan->getCourses());
+
+            foreach ($plan->getPlanCourses() as $planCourse) {
+                // Créer SubscriptionCourse pour chaque cours du plan
+                $subscriptionCourse = new SubscriptionCourse();
+                $subscriptionCourse->setSubscription($subscription);
+                $subscriptionCourse->setCourse($planCourse->getCourse());
+                $subscriptionCourse->setRemainingCredits($planCourse->getCredits());
+                $subscription->addSubscriptionCourse($subscriptionCourse);
+            }
+
             $subscription->setPurchaseDate(new \DateTime());
             $subscription->setExpiryDate($expiryDate);
             $subscription->setPromoCode($promoCode);
@@ -167,9 +190,19 @@ class SubscriptionController extends AbstractController
                 ]);
 
                 if ($existingSouplesseSubscription) {
-                    $existingSouplesseSubscription->setRemainingCourses(
-                        $existingSouplesseSubscription->getRemainingCourses() + 43
-                    );
+                    $souplesseCourse = $existingSouplesseSubscription->getSubscriptionCourses()->filter(function ($sc) {
+                        return $sc->getCourse()->getName() === 'Souplesse';
+                    })->first();
+
+                    if ($souplesseCourse) {
+                        $souplesseCourse->setRemainingCredits($souplesseCourse->getRemainingCredits() + 43);
+                    } else {
+                        $souplesseCourse = new SubscriptionCourse();
+                        $souplesseCourse->setSubscription($existingSouplesseSubscription);
+                        $souplesseCourse->setCourse($em->getRepository(Course::class)->findOneBy(['name' => 'Souplesse']));
+                        $souplesseCourse->setRemainingCredits(43);
+                        $existingSouplesseSubscription->addSubscriptionCourse($souplesseCourse);
+                    }
 
                     if ($existingSouplesseSubscription->getExpiryDate() < $expiryDate) {
                         $existingSouplesseSubscription->setExpiryDate($expiryDate);
@@ -180,11 +213,17 @@ class SubscriptionController extends AbstractController
                     $souplesseSubscription = new Subscription();
                     $souplesseSubscription->setUser($user);
                     $souplesseSubscription->setPlan($souplessePlan);
-                    $souplesseSubscription->setRemainingCourses(43);
                     $souplesseSubscription->setPurchaseDate(new \DateTime());
                     $souplesseSubscription->setExpiryDate($expiryDate);
                     $souplesseSubscription->setPromoCode($promoCode);
                     $souplesseSubscription->setPaymentMode('souplesse_annuel_classique');
+
+                    // Créer SubscriptionCourse pour Souplesse
+                    $souplesseCourse = new SubscriptionCourse();
+                    $souplesseCourse->setSubscription($souplesseSubscription);
+                    $souplesseCourse->setCourse($em->getRepository(Course::class)->findOneBy(['name' => 'Souplesse']));
+                    $souplesseCourse->setRemainingCredits(43);
+                    $souplesseSubscription->addSubscriptionCourse($souplesseCourse);
 
                     $em->persist($souplesseSubscription);
                 }
@@ -201,7 +240,7 @@ class SubscriptionController extends AbstractController
             $em->persist($promoCodeUsage);
         }
 
-        $em->flush();
+        $em.flush();
 
         $this->addFlash('success', 'Your subscription has been successfully created.');
 

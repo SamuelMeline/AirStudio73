@@ -1,15 +1,35 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
+<div class="container mt-5">
     <h1>Créer un nouveau cours</h1>
 
     {{ form_start(form) }}
-        {{ form_row(form.name) }}
-        {{ form_row(form.startTime) }}
-        {{ form_row(form.endTime) }}
-        {{ form_row(form.capacity) }}
-        {{ form_row(form.isRecurrent) }}
-        {{ form_row(form.recurrenceDuration) }}
-        <button class="btn btn-primary">Enregistrer</button>
+    <div class="form-group">
+        {{ form_label(form.name, null, {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.startTime, null, {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.startTime, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.endTime, null, {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.endTime, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.capacity, null, {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.capacity, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <div class="form-group form-check">
+        {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input'}}) }}
+        {{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.recurrenceDuration, null, {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(form.recurrenceDuration, {'attr': {'class': 'form-control'}}) }}
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
     {{ form_end(form) }}
+</div>
 {% endblock %}
