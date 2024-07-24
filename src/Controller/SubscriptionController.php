@@ -240,7 +240,7 @@ class SubscriptionController extends AbstractController
             $em->persist($promoCodeUsage);
         }
 
-        $em.flush();
+        $em->flush();
 
         $this->addFlash('success', 'Your subscription has been successfully created.');
 

@@ -33,25 +33,27 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        $validSubscription = null;
-        foreach ($subscriptions as $sub) {
-            if ($this->isSubscriptionValidForCourse($sub, $course)) {
-                $validSubscription = $sub;
-                break;
-            }
-        }
+        // Filter valid subscriptions
+        $validSubscriptions = array_filter($subscriptions, function ($subscription) use ($course) {
+            return $this->isSubscriptionValidForCourse($subscription, $course) && $subscription->getCourseCredits($course) > 0;
+        });
 
-        if (!$validSubscription) {
-            $this->addFlash('error', 'You do not have a valid subscription for this course.');
-            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
-        }
-
-        $remainingCourseCredits = $validSubscription->getCourseCredits($course);
-
-        if ($remainingCourseCredits <= 0) {
+        if (count($validSubscriptions) === 0) {
             $this->addFlash('error', 'You do not have any remaining credits for this course. Please purchase a new subscription.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
+
+        // Select the subscription with the earliest expiry date and least credits
+        usort($validSubscriptions, function ($a, $b) use ($course) {
+            $dateComparison = $a->getExpiryDate() <=> $b->getExpiryDate();
+            if ($dateComparison === 0) {
+                return $a->getCourseCredits($course) <=> $b->getCourseCredits($course);
+            }
+            return $dateComparison;
+        });
+
+        $validSubscription = reset($validSubscriptions);
+        $remainingCourseCredits = $validSubscription->getCourseCredits($course);
 
         $booking = new Booking();
         $form = $this->createForm(BookingType::class, $booking, ['remaining_courses' => $remainingCourseCredits]);
@@ -96,8 +98,8 @@ class BookingController extends AbstractController
 
     private function isSubscriptionValidForCourse(Subscription $subscription, Course $course): bool
     {
-        foreach ($subscription->getSubscriptionCourses() as $subscriptionCourse) {
-            if ($subscriptionCourse->getCourse()->getId() === $course->getId() && $subscriptionCourse->getRemainingCredits() > 0) {
+        foreach ($subscription->getPlan()->getPlanCourses() as $planCourse) {
+            if ($planCourse->getCourse()->getId() === $course->getId()) {
                 return true;
             }
         }
