@@ -18,12 +18,8 @@ class UserController extends AbstractController
         $user = $this->getUser();
         $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user]);
 
-        $activeSubscriptions = array_filter($subscriptions, function ($subscription) {
-            return $subscription->getRemainingCourses() > 0;
-        });
-
         return $this->render('user/subscription.html.twig', [
-            'subscriptions' => $activeSubscriptions,
+            'subscriptions' => $subscriptions,
         ]);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Plan;
-use App\Entity\Course;
 use App\Form\PlanType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,16 +16,21 @@ class PlanController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $plan = new Plan();
-        $form = $this->createForm(PlanType::class, $plan, [
-            'courses' => $em->getRepository(Course::class)->findAll(),
-        ]);
+        $form = $this->createForm(PlanType::class, $plan);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($plan->getPlanCourses() as $planCourse) {
+                $planCourse->setPlan($plan);
+            }
+
             $em->persist($plan);
             $em->flush();
 
-            return $this->redirectToRoute('plan_list');
+            $this->addFlash('success', 'Plan created successfully!');
+
+            return $this->redirectToRoute('plan_list'); // Assuming you have a route to list plans
         }
 
         return $this->render('plan/new.html.twig', [
