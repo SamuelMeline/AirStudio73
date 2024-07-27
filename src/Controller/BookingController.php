@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Booking;
 use App\Entity\Course;
 use App\Entity\Subscription;
+use App\Entity\SubscriptionCourse;
 use App\Form\BookingType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,29 +34,31 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        // Filter valid subscriptions
-        $validSubscriptions = array_filter($subscriptions, function ($subscription) use ($course) {
-            return $this->isSubscriptionValidForCourse($subscription, $course) && $subscription->getCourseCredits($course) > 0;
-        });
+        $validSubscriptionCourse = null;
+        foreach ($subscriptions as $sub) {
+            foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
+                // Vérifiez si l'abonnement inclut le type de cours, pas seulement l'ID du cours
+                if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
+                    $validSubscriptionCourse = $subscriptionCourse;
+                    break 2;
+                }
+            }
+        }
 
-        if (count($validSubscriptions) === 0) {
+        if (!$validSubscriptionCourse) {
+            $this->addFlash('error', 'You do not have a valid subscription for this course.');
+            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+        }
+
+        $remainingCourseCredits = $validSubscriptionCourse->getRemainingCredits();
+
+        if ($remainingCourseCredits <= 0) {
             $this->addFlash('error', 'You do not have any remaining credits for this course. Please purchase a new subscription.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        // Select the subscription with the earliest expiry date and least credits
-        usort($validSubscriptions, function ($a, $b) use ($course) {
-            $dateComparison = $a->getExpiryDate() <=> $b->getExpiryDate();
-            if ($dateComparison === 0) {
-                return $a->getCourseCredits($course) <=> $b->getCourseCredits($course);
-            }
-            return $dateComparison;
-        });
-
-        $validSubscription = reset($validSubscriptions);
-        $remainingCourseCredits = $validSubscription->getCourseCredits($course);
-
         $booking = new Booking();
+        $booking->setSubscriptionCourse($validSubscriptionCourse);
         $form = $this->createForm(BookingType::class, $booking, ['remaining_courses' => $remainingCourseCredits]);
         $form->handleRequest($request);
 
@@ -76,15 +79,15 @@ class BookingController extends AbstractController
             $em->persist($booking);
             $em->flush();
 
-            $validSubscription->decrementCourseCredits($course, 1); // Décrémenter pour la réservation initiale
-            $em->persist($validSubscription);
+            $validSubscriptionCourse->setRemainingCredits($remainingCourseCredits - 1); // Décrémenter pour la réservation initiale
+            $em->persist($validSubscriptionCourse);
             $em->flush();
 
             if ($isRecurrent) {
-                $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscription, $course);
+                $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscriptionCourse, $course);
             }
 
-            $this->addFlash('success', 'Your booking has been successfully created.');
+            $this->addFlash('success', 'Votre réservation a été prise en compte.');
 
             return $this->redirectToRoute('calendar');
         }
@@ -96,24 +99,42 @@ class BookingController extends AbstractController
         ]);
     }
 
-    private function isSubscriptionValidForCourse(Subscription $subscription, Course $course): bool
+    #[Route('/booking/cancel/{bookingId}', name: 'booking_cancel')]
+    #[IsGranted('ROLE_USER')]
+    public function cancel(EntityManagerInterface $em, int $bookingId): Response
     {
-        foreach ($subscription->getPlan()->getPlanCourses() as $planCourse) {
-            if ($planCourse->getCourse()->getId() === $course->getId()) {
-                return true;
-            }
+        $booking = $em->getRepository(Booking::class)->find($bookingId);
+
+        if (!$booking) {
+            $this->addFlash('error', 'Booking not found.');
+            return $this->redirectToRoute('calendar');
         }
-        return false;
+
+        if ($booking->getUser() !== $this->getUser()) {
+            $this->addFlash('error', 'You are not authorized to cancel this booking.');
+            return $this->redirectToRoute('calendar');
+        }
+
+        $subscriptionCourse = $booking->getSubscriptionCourse();
+        $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + 1);
+
+        $em->persist($subscriptionCourse);
+        $em->remove($booking);
+        $em->flush();
+
+        $this->addFlash('success', 'Réservation annulée, vous avez récupéré votre crédit.');
+
+        return $this->redirectToRoute('calendar');
     }
 
-    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, Subscription $subscription, Course $course): void
+    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, SubscriptionCourse $subscriptionCourse, Course $course): void
     {
         $startTime = $course->getStartTime();
         $startTime = $this->ensureDateTime($startTime);
 
         $recurrenceInterval = $course->getRecurrenceInterval();
 
-        for ($i = 1; $i <= $numOccurrences && $subscription->getCourseCredits($course) > 0; $i++) {
+        for ($i = 1; $i <= $numOccurrences && $subscriptionCourse->getRemainingCredits() > 0; $i++) {
             $nextCourseDate = (clone $startTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
 
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
@@ -127,10 +148,11 @@ class BookingController extends AbstractController
                 $newBooking->setCourse($recurrentCourse);
                 $newBooking->setIsRecurrent(true);
                 $newBooking->setNumOccurrences(1); // Définir numOccurrences à 1 pour chaque réservation récurrente
+                $newBooking->setSubscriptionCourse($subscriptionCourse);
                 $em->persist($newBooking);
 
-                $subscription->decrementCourseCredits($course, 1);
-                $em->persist($subscription);
+                $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() - 1);
+                $em->persist($subscriptionCourse);
             }
         }
 

@@ -63,4 +63,14 @@ class SubscriptionCourse
 
         return $this;
     }
+
+    public function incrementCredits(int $credits): void
+    {
+        $this->setRemainingCredits($this->getRemainingCredits() + $credits);
+    }
+
+    public function decrementCredits(int $credits): void
+    {
+        $this->setRemainingCredits($this->getRemainingCredits() - $credits);
+    }
 }

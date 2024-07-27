@@ -27,6 +27,10 @@ class Booking
     #[ORM\Column(type: 'integer')]
     private ?int $numOccurrences = null;
 
+    #[ORM\ManyToOne(targetEntity: SubscriptionCourse::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private $subscriptionCourse;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -76,6 +80,18 @@ class Booking
     public function setNumOccurrences(int $numOccurrences): self
     {
         $this->numOccurrences = $numOccurrences;
+
+        return $this;
+    }
+
+    public function getSubscriptionCourse(): ?SubscriptionCourse
+    {
+        return $this->subscriptionCourse;
+    }
+
+    public function setSubscriptionCourse(?SubscriptionCourse $subscriptionCourse): self
+    {
+        $this->subscriptionCourse = $subscriptionCourse;
 
         return $this;
     }
