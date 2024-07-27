@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="container">
+		<h1>Gérer mes réservations</h1>
+		{% if bookings is empty %}
+			<p>Aucune réservation en cours.</p>
+            <a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
+		{% else %}
+			<form method="post" action="{{ path('booking_cancel_multiple') }}">
+				<table class="table table-bordered">
+					<thead class="thead-light">
+						<tr>
+							<th></th>
+							<th>Cours</th>
+							<th>Date et Heure de Début</th>
+							<th>Date et Heure de Fin</th>
+							<th>Récurrent</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for booking in bookings %}
+							<tr>
+								<td><input type="checkbox" name="bookingIds[]" value="{{ booking.id }}"></td>
+								<td>{{ booking.course.name }}</td>
+								<td>{{ booking.course.startTime|date('d/m/Y H:i') }}</td>
+								<td>{{ booking.course.endTime|date('d/m/Y H:i') }}</td>
+								<td>{{ booking.isRecurrent ? 'Oui' : 'Non' }}</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				<button type="submit" class="btn btn-danger">Annuler les réservations sélectionnées</button>
+			</form>
+		{% endif %}
+	</div>
+{% endblock %}

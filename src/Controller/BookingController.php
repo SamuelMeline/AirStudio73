@@ -127,6 +127,50 @@ class BookingController extends AbstractController
         return $this->redirectToRoute('calendar');
     }
 
+    #[Route('/booking/manage', name: 'booking_manage')]
+    #[IsGranted('ROLE_USER')]
+    public function manage(EntityManagerInterface $em): Response
+    {
+        $user = $this->getUser();
+        $bookings = $em->getRepository(Booking::class)->findBy(['user' => $user]);
+
+        return $this->render('booking/manage.html.twig', [
+            'bookings' => $bookings,
+        ]);
+    }
+
+    #[Route('/booking/cancel-multiple', name: 'booking_cancel_multiple', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function cancelMultiple(Request $request, EntityManagerInterface $em): Response
+{
+    $bookingIds = $request->request->all('bookingIds');
+    
+    if (empty($bookingIds)) {
+        $this->addFlash('error', 'Aucune réservation sélectionnée.');
+        return $this->redirectToRoute('booking_manage');
+    }
+
+    $bookings = $em->getRepository(Booking::class)->findBy(['id' => $bookingIds]);
+
+    foreach ($bookings as $booking) {
+        if ($booking->getUser() !== $this->getUser()) {
+            $this->addFlash('error', 'Vous n\'êtes pas autorisé à annuler cette réservation.');
+            return $this->redirectToRoute('booking_manage');
+        }
+
+        $subscriptionCourse = $booking->getSubscriptionCourse();
+        $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + 1);
+
+        $em->persist($subscriptionCourse);
+        $em->remove($booking);
+    }
+
+    $em->flush();
+
+    $this->addFlash('success', 'Les réservations sélectionnées ont été annulées.');
+    return $this->redirectToRoute('user_subscription'); // Redirection vers la page des abonnements
+}
+
     private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, SubscriptionCourse $subscriptionCourse, Course $course): void
     {
         $startTime = $course->getStartTime();
