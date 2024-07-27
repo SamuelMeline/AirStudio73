@@ -1,22 +1,34 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Réserver le cours{% endblock %}
+
 {% block body %}
 <div class="container mt-5">
-    <h1>Réserver le cours : {{ course.name }}</h1>
-
-    {{ form_start(form) }}
-    <div class="form-group form-check">
-        {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input js-recurrent-checkbox'}}) }}
-        {{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">Réserver le cours : {{ course.name }}</h1>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="form-group form-check">
+                        {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input js-recurrent-checkbox'}}) }}
+                        {{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    </div>
+                    <div id="num-occurrences-container" class="form-group" style="display: none;">
+                        {{ form_label(form.numOccurrences, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.numOccurrences, {'attr': {'class': 'form-control js-num-occurrences'}}) }}
+                        <button type="button" class="btn btn-secondary mt-2" id="max-occurrences-button">Max ({{ remaining_courses }})</button>
+                    </div>
+                    {{ form_rest(form) }}
+                    <button type="submit" class="btn btn-primary btn-block">Réserver</button>
+                    {{ form_end(form) }}
+                    <a href="{{ path('calendar') }}" class="btn btn-secondary btn-block mt-3">Retour au calendrier</a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="num-occurrences-container" class="form-group" style="display: none;">
-        {{ form_label(form.numOccurrences, null, {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.numOccurrences, {'attr': {'class': 'form-control js-num-occurrences'}}) }}
-        <button type="button" class="btn btn-secondary mt-2" id="max-occurrences-button">Max ({{ remaining_courses }})</button>
-    </div>
-    {{ form_rest(form) }}
-    <button type="submit" class="btn btn-primary">Réserver</button>
-    {{ form_end(form) }}
 </div>
 
 <script>
