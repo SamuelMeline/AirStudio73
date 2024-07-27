@@ -1,8 +1,9 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="p-3">
+	<div class="container">
 		<h1>Calendrier des Cours</h1>
+		{# <p>Du {{ startOfWeek|date('d/m/Y') }} au {{ endOfWeek|date('d/m/Y') }}</p> #}
 		<div class="mb-3">
 			{% set prevWeek = currentWeek - 1 %}
 			{% set nextWeek = currentWeek + 1 %}
@@ -20,17 +21,15 @@
 			{% endif %}
 
 			{% set now = "now"|date('Y-m-d') %}
-			{% set prevDate = startOfWeek|date_modify('-7 days') %}
-			{% set prevDateFormatted = prevDate|date('Y-m-d') %}
+			{% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
 
-			{% if prevDateFormatted >= now %}
+			{% if prevDate >= now %}
 				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo; Semaine précédente</a>
 			{% else %}
 				<button class="btn btn-secondary" disabled>&laquo; Semaine précédente</button>
 			{% endif %}
 			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-primary">Semaine suivante &raquo;</a>
 			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
-
 			<a href="{{ path('course_new') }}" class="btn btn-success">Créer un cours</a>
 			<a href="{{ path('user_subscription') }}" class="btn btn-info">Mes forfaits</a>
 		</div>
@@ -76,6 +75,7 @@
 											{% set course_bookings = bookings[course.id] %}
 											{% set bookings_count = course_bookings|length %}
 											{% set available_spots = course_capacity - bookings_count %}
+											{% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
 
 											{% if course_day_of_week == dow and course_start_time == timeslot %}
 												{% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
@@ -85,12 +85,17 @@
 															{{ course.name }}
 														</a>
 														<br>
-														{% if available_spots > 0 %}
-															{{ available_spots }}
-															places restantes
-															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+														{% if user_booking %}
+															<span class="badge badge-success">Réservé</span>
+															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
 														{% else %}
-															<span class="badge badge-danger">Complet</span>
+															{% if available_spots > 0 %}
+																{{ available_spots }}
+																places restantes
+																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+															{% else %}
+																<span class="badge badge-danger">Complet</span>
+															{% endif %}
 														{% endif %}
 													</td>
 													{% set course_found = true %}
@@ -142,6 +147,7 @@
 										{% set course_bookings = bookings[course.id] %}
 										{% set bookings_count = course_bookings|length %}
 										{% set available_spots = course_capacity - bookings_count %}
+										{% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
 
 										{% if course_day_of_week == 6 and course_start_time == timeslot %}
 											{% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
@@ -151,12 +157,17 @@
 														{{ course.name }}
 													</a>
 													<br>
-													{% if available_spots > 0 %}
-														{{ available_spots }}
-														places restantes
-														<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+													{% if user_booking %}
+														<span class="badge badge-success">Réservé</span>
+														<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
 													{% else %}
-														<span class="badge badge-danger">Complet</span>
+														{% if available_spots > 0 %}
+															{{ available_spots }}
+															places restantes
+															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+														{% else %}
+															<span class="badge badge-danger">Complet</span>
+														{% endif %}
 													{% endif %}
 												</td>
 												{% set course_found = true %}

@@ -1,29 +1,44 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container">
-		<h1>Mes Forfaits</h1>
-		<div class="list-group">
-			{% for subscription in subscriptions %}
-				<div class="list-group-item">
-					<h5 class="mb-1">{{ subscription.plan.name }}</h5>
-					<ul class="list-unstyled">
-						{% for subscriptionCourse in subscription.subscriptionCourses %}
-							<li>
-								{{ subscriptionCourse.course.name }}
-								-
-								{{ subscriptionCourse.remainingCredits }}
-								crédits
-							</li>
-						{% endfor %}
-					</ul>
-					<p class="mb-1">Date d'expiration:
-						{{ subscription.expiryDate|date('d-m-Y') }}</p>
-					<p class="mb-1">Mode de paiement:
-						{{ subscription.paymentMode }}</p>
-					<a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
-				</div>
-			{% endfor %}
-		</div>
-	</div>
+    <div class="container">
+        <h1>Mes Forfaits</h1>
+        <div class="list-group">
+            {% set allSubscriptionsEmpty = true %}
+            {% for subscription in subscriptions %}
+                {% set hasCredits = false %}
+                {% for subscriptionCourse in subscription.subscriptionCourses %}
+                    {% if subscriptionCourse.remainingCredits > 0 %}
+                        {% set hasCredits = true %}
+                        {% set allSubscriptionsEmpty = false %}
+                    {% endif %}
+                {% endfor %}
+                
+                <div class="list-group-item">
+                    <h5 class="mb-1">{{ subscription.plan.name }}</h5>
+                    <ul class="list-unstyled">
+                        {% for subscriptionCourse in subscription.subscriptionCourses %}
+                            <li>
+                                {{ subscriptionCourse.course.name }} - {{ subscriptionCourse.remainingCredits }} crédits
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <p class="mb-1">Date d'expiration: {{ subscription.expiryDate|date('d-m-Y') }}</p>
+                    <p class="mb-1">Mode de paiement: {{ subscription.paymentMode }}</p>
+                    {% if hasCredits %}
+                        <a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
+                    {% else %}
+                        <p class="text-danger">Pas de crédits restants</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            {% if allSubscriptionsEmpty %}
+                <div class="alert alert-warning mt-3" role="alert">
+                    Vous n'avez aucun crédit restant sur vos forfaits.
+                </div>
+                <a href="{{ path('subscription_new') }}" class="btn btn-success btn-sm">Acheter un nouveau forfait</a>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
