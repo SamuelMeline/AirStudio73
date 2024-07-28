@@ -1,7 +1,5 @@
 <?php
 
-// src/Controller/BookingController.php
-
 namespace App\Controller;
 
 use App\Entity\User;
@@ -16,7 +14,6 @@ use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -24,6 +21,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class BookingController extends AbstractController
 {
+    private const ADMIN_EMAIL = 'smelinepro@gmail.com';
+    private const SENDER_EMAIL = 'contactAirstudio73@gmail.com';
+
     #[Route('/booking/new/{courseId}', name: 'booking_new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, EntityManagerInterface $em, LoggerInterface $logger, int $courseId): Response
@@ -47,15 +47,7 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        $validSubscriptionCourse = null;
-        foreach ($subscriptions as $sub) {
-            foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
-                if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
-                    $validSubscriptionCourse = $subscriptionCourse;
-                    break 2;
-                }
-            }
-        }
+        $validSubscriptionCourse = $this->getValidSubscriptionCourse($subscriptions, $course);
 
         if (!$validSubscriptionCourse) {
             $this->addFlash('error', 'You do not have a valid subscription for this course.');
@@ -99,33 +91,24 @@ class BookingController extends AbstractController
                 $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscriptionCourse, $course);
             }
 
-            // Envoi d'un email de confirmation de réservation
-            $userEmail = $user->getEmail();
-            $courseDate = $course->getStartTime()->format('d/m/Y');
-            $courseTime = $course->getStartTime()->format('H:i');
-            $userEmailMessage = sprintf(
-                'Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.',
-                $course->getName(),
-                $courseDate,
-                $courseTime
+            $this->sendEmail(
+                $user->getEmail(),
+                'Confirmation de Réservation',
+                sprintf(
+                'Bonjour,
+
+Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
+À très vite !
+
+Cordialement,
+Airstudio73
+                ',
+                    $course->getName(),
+                    $course->getStartTime()->format('d/m/Y'),
+                    $course->getStartTime()->format('H:i')
+                ),
+                $logger
             );
-
-            $emailToUser = (new Email())
-                ->from('contactAirstudio73@gmail.com')
-                ->replyTo('contactAirstudio73@gmail.com')
-                ->to($userEmail)
-                ->subject('Confirmation de Réservation')
-                ->text($userEmailMessage);
-
-            try {
-                $logger->info('Sending booking confirmation email to user: ' . $userEmail);
-                $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
-                $mailer = new Mailer($transport);
-                $mailer->send($emailToUser);
-                $logger->info('Booking confirmation email sent successfully.');
-            } catch (\Exception $e) {
-                $logger->error('Failed to send booking confirmation email: ' . $e->getMessage());
-            }
 
             $this->addFlash('success', 'Votre réservation a été prise en compte.');
 
@@ -170,56 +153,41 @@ class BookingController extends AbstractController
 
         $this->addFlash('success', 'Réservation annulée, vous avez récupéré votre crédit.');
 
-        // Envoi de l'email de notification à l'utilisateur
-        $userEmail = $user->getEmail();
-        $courseName = $booking->getCourse()->getName();
         $courseDate = $booking->getCourse()->getStartTime()->format('d/m/Y');
         $courseTime = $booking->getCourse()->getStartTime()->format('H:i');
-        $userEmailMessage = sprintf(
-            'Votre réservation pour le cours "%s" prévu le %s à %s a été annulée.',
-            $courseName,
-            $courseDate,
-            $courseTime
+        $courseName = $booking->getCourse()->getName();
+
+        $this->sendEmail(
+            $user->getEmail(),
+            'Annulation de Réservation',
+            sprintf(
+                'Bonjour,
+
+Votre réservation pour le cours "%s" prévu le %s à %s a été annulée.
+En espérant vous revoir prochainement !
+
+Cordialement,
+Airstudio73
+                ',
+                $courseName,
+                $courseDate,
+                $courseTime
+            ),
+            $logger
         );
 
-        $emailToUser = (new Email())
-            ->from('contactAirstudio73@gmail.com')
-            ->replyTo('contactAirstudio73@gmail.com')
-            ->to($userEmail)
-            ->subject('Annulation de Réservation')
-            ->text($userEmailMessage);
-
-        // Envoi de l'email de notification à la professeure
-        $profEmail = 'smelinepro@gmail.com';
-        $profEmailMessage = sprintf(
-            'La réservation pour le cours "%s" prévu le %s par l\'utilisateur "%s" a été annulée.',
-            $courseName,
-            $courseDate,
-            $courseTime,
-            $user->getEmail()
+        $this->sendEmail(
+            self::ADMIN_EMAIL,
+            'Annulation de Réservation par un Utilisateur',
+            sprintf(
+                'La réservation pour le cours "%s" prévu le %s à %s par l\'utilisateur "%s" a été annulée.',
+                $courseName,
+                $courseDate,
+                $courseTime,
+                $user->getEmail()
+            ),
+            $logger
         );
-
-        $emailToProf = (new Email())
-            ->from('contactAirstudio73@gmail.com')
-            ->replyTo('contactAirstudio73@gmail.com')
-            ->to($profEmail)
-            ->subject('Annulation de Réservation par un Utilisateur')
-            ->text($profEmailMessage);
-
-        try {
-            $logger->info('Sending email to user: ' . $userEmail);
-            $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
-            $mailer = new Mailer($transport);
-
-            $mailer->send($emailToUser);
-            $logger->info('Email to user sent successfully.');
-
-            $logger->info('Sending email to professor: ' . $profEmail);
-            $mailer->send($emailToProf);
-            $logger->info('Email to professor sent successfully.');
-        } catch (\Exception $e) {
-            $logger->error('Failed to send cancellation emails: ' . $e->getMessage());
-        }
 
         return $this->redirectToRoute('calendar');
     }
@@ -269,9 +237,7 @@ class BookingController extends AbstractController
 
         $em->flush();
 
-        // Envoi de l'email de notification à l'utilisateur et à la professeure pour chaque réservation annulée
-        $userEmail = $user->getEmail();
-        $profEmail = 'smelinepro@gmail.com';
+        $profEmail = self::ADMIN_EMAIL;
         $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
         $mailer = new Mailer($transport);
 
@@ -280,7 +246,14 @@ class BookingController extends AbstractController
             $courseDate = $booking->getCourse()->getStartTime()->format('d/m/Y');
             $courseTime = $booking->getCourse()->getStartTime()->format('H:i');
             $userEmailMessage = sprintf(
-                'Votre réservation pour le cours "%s" prévu le %s à %s a été annulée.',
+                'Bonjour,
+
+Votre réservation pour le cours "%s" prévu le %s à %s a été annulée.
+En espérant vous revoir prochainement !
+
+Cordialement,
+Airstudio73
+                ',
                 $courseName,
                 $courseDate,
                 $courseTime
@@ -294,15 +267,15 @@ class BookingController extends AbstractController
             );
 
             $emailToUser = (new Email())
-                ->from('contactAirstudio73@gmail.com')
-                ->replyTo('contactAirstudio73@gmail.com')
-                ->to($userEmail)
+                ->from(self::SENDER_EMAIL)
+                ->replyTo(self::SENDER_EMAIL)
+                ->to($user->getEmail())
                 ->subject('Annulation de Réservation')
                 ->text($userEmailMessage);
 
             $emailToProf = (new Email())
-                ->from('contactAirstudio73@gmail.com')
-                ->replyTo('contactAirstudio73@gmail.com')
+                ->from(self::SENDER_EMAIL)
+                ->replyTo(self::SENDER_EMAIL)
                 ->to($profEmail)
                 ->subject('Annulation de Réservation par un Utilisateur')
                 ->text($profEmailMessage);
@@ -319,7 +292,19 @@ class BookingController extends AbstractController
         }
 
         $this->addFlash('success', 'Les réservations sélectionnées ont été annulées.');
-        return $this->redirectToRoute('user_subscription'); // Redirection vers la page des abonnements
+        return $this->redirectToRoute('user_subscription');
+    }
+
+    private function getValidSubscriptionCourse(array $subscriptions, Course $course): ?SubscriptionCourse
+    {
+        foreach ($subscriptions as $sub) {
+            foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
+                if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
+                    return $subscriptionCourse;
+                }
+            }
+        }
+        return null;
     }
 
     private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, SubscriptionCourse $subscriptionCourse, Course $course): void
@@ -371,5 +356,25 @@ class BookingController extends AbstractController
     {
         $bookings = $em->getRepository(Booking::class)->findBy(['course' => $course]);
         return count($bookings) < $course->getCapacity();
+    }
+
+    private function sendEmail(string $to, string $subject, string $message, LoggerInterface $logger): void
+    {
+        $email = (new Email())
+            ->from(self::SENDER_EMAIL)
+            ->replyTo(self::SENDER_EMAIL)
+            ->to($to)
+            ->subject($subject)
+            ->text($message);
+
+        try {
+            $logger->info('Sending email to: ' . $to);
+            $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
+            $mailer = new Mailer($transport);
+            $mailer->send($email);
+            $logger->info('Email sent successfully to: ' . $to);
+        } catch (\Exception $e) {
+            $logger->error('Failed to send email to ' . $to . ': ' . $e->getMessage());
+        }
     }
 }
