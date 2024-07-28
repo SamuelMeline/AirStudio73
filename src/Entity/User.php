@@ -19,7 +19,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     #[ORM\Column(type: 'json')]
-    private array $roles = [];
+    private array $roles = ["ROLE_USER"];
 
     #[ORM\Column(type: 'string')]
     private ?string $password = null;
