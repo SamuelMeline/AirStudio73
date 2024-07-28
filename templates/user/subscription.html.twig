@@ -32,12 +32,12 @@
 						{{ subscription.paymentMode }}</p>
 					{% if hasCredits %}
 						<a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
+						<a class="btn btn-success btn-sm" href="{{ path('subscription_new') }}" class="btn btn-success btn-sm">Acheter un nouveau forfait</a>
 					{% else %}
 						<p class="text-danger">Pas de crédits restants</p>
 					{% endif %}
 				</div>
 			{% endfor %}
-			<a class="btn btn-success btn-sm mt-3 w-50" href="{{ path('subscription_new') }}" class="btn btn-success btn-sm">Acheter un nouveau forfait</a>
 
 			{% if allSubscriptionsEmpty %}
 				<div class="alert alert-warning mt-3" role="alert">

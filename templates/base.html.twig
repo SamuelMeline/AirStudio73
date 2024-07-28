@@ -1,35 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>
-        {% block title %}Bienvenue !{% endblock %}
-    </title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    {% block stylesheets %}{% endblock %}
-</head>
-<body>
-    <nav>
-        <!-- Votre menu de navigation -->
-    </nav>
+	<head>
+		<meta charset="UTF-8">
+		<title>
+			{% block title %}Bienvenue !
+			{% endblock %}
+		</title>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> {% block stylesheets %}{% endblock %}
+		</head>
+		<body>
+			<nav>
+				<!-- Votre menu de navigation -->
+				<a class="mr-4" href="/">ACCUEIL</a>
+				<a class="mr-4" href="/login">SE CONNECTER</a>
+				<a class="mr-4" href="/logout">DECONNEXION</a>
+			</nav>
 
-    <div class="container p-2">
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% endfor %}
-        {% for message in app.flashes('error') %}
-            <div class="alert alert-danger">
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
+			<div class="container p-2">
+				{% for message in app.flashes('success') %}
+					<div class="alert alert-success">
+						{{ message }}
+					</div>
+				{% endfor %}
+				{% for message in app.flashes('error') %}
+					<div class="alert alert-danger">
+						{{ message }}
+					</div>
+				{% endfor %}
+			</div>
 
-    {% block body %}{% endblock %}
+			{% block body %}{% endblock %}
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    {% block javascripts %}{% endblock %}
-</body>
-</html>
+			<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+			{% block javascripts %}{% endblock %}
+		</body>
+	</html>
