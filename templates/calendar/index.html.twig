@@ -1,193 +1,207 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
-        <h1>Calendrier des Cours</h1>
-        {# <p>Du {{ startOfWeek|date('d/m/Y') }} au {{ endOfWeek|date('d/m/Y') }}</p> #}
-        <div class="mb-3">
-            {% set prevWeek = currentWeek - 1 %}
-            {% set nextWeek = currentWeek + 1 %}
-            {% set prevYear = currentYear %}
-            {% set nextYear = currentYear %}
+	<div class="container">
+		<h1>Calendrier des Cours</h1>
+		{# <p>Du {{ startOfWeek|date('d/m/Y') }} au {{ endOfWeek|date('d/m/Y') }}</p> #}
+		<div class="mb-3">
+			{% set prevWeek = currentWeek - 1 %}
+			{% set nextWeek = currentWeek + 1 %}
+			{% set prevYear = currentYear %}
+			{% set nextYear = currentYear %}
 
-            {% if prevWeek < 1 %}
-                {% set prevWeek = 52 %}
-                {% set prevYear = currentYear - 1 %}
-            {% endif %}
+			{% if prevWeek < 1 %}
+				{% set prevWeek = 52 %}
+				{% set prevYear = currentYear - 1 %}
+			{% endif %}
 
-            {% if nextWeek > 52 %}
-                {% set nextWeek = 1 %}
-                {% set nextYear = currentYear + 1 %}
-            {% endif %}
+			{% if nextWeek > 52 %}
+				{% set nextWeek = 1 %}
+				{% set nextYear = currentYear + 1 %}
+			{% endif %}
 
-            {% set now = "now"|date('Y-m-d') %}
-            {% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
+			{% set now = "now"|date('Y-m-d') %}
+			{% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
 
-            {% if prevDate >= now %}
-                <a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo; Semaine précédente</a>
-            {% else %}
-                <button class="btn btn-secondary" disabled>&laquo; Semaine précédente</button>
-            {% endif %}
-            <a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-primary">Semaine suivante &raquo;</a>
-            <a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
-            <a href="{{ path('course_new') }}" class="btn btn-success">Créer un cours</a>
-            <a href="{{ path('user_subscription') }}" class="btn btn-info">Mes forfaits</a>
-            <a href="{{ path('booking_manage') }}" class="btn btn-warning">Gérer mes réservations</a>
-        </div>
+			{% if prevDate >= now %}
+				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo; Semaine précédente</a>
+			{% else %}
+				<button class="btn btn-secondary" disabled>&laquo; Semaine précédente</button>
+			{% endif %}
+			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-primary">Semaine suivante &raquo;</a>
+			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-secondary">Semaine actuelle</a>
+			<a href="{{ path('course_new') }}" class="btn btn-success">Créer un cours</a>
+			<a href="{{ path('user_subscription') }}" class="btn btn-info">Mes forfaits</a>
+			<a href="{{ path('booking_manage') }}" class="btn btn-warning">Gérer mes réservations</a>
+		</div>
 
-        <div class="row">
-            <div class="col-md-8">
-                <table class="table table-bordered">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Heures</th>
-                            <th>Lundi {{ startOfWeek|date('d/m/Y') }}</th>
-                            <th>Mardi {{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
-                            <th>Mercredi {{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
-                            <th>Jeudi {{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
-                            <th>Vendredi {{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set weekday_timeslots = [
+		<div class="row">
+			<div class="col-md-8">
+				<table class="table table-bordered">
+					<thead class="thead-light">
+						<tr>
+							<th>Heures</th>
+							<th>Lundi
+								{{ startOfWeek|date('d/m/Y') }}</th>
+							<th>Mardi
+								{{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
+							<th>Mercredi
+								{{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
+							<th>Jeudi
+								{{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
+							<th>Vendredi
+								{{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% set weekday_timeslots = [
                         '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00',
                         '19:30', '20:00', '20:30', '21:00'
                         ] %}
 
-                        {% set merged_slots = {} %}
+						{% set merged_slots = {} %}
 
-                        {% for timeslot in weekday_timeslots %}
-                            <tr>
-                                <td>{{ timeslot }}</td>
-                                {% for dow in 1..5 %}
-                                    {% set key = dow ~ '-' ~ timeslot %}
-                                    {% if merged_slots[key] is not defined %}
-                                        {% set course_found = false %}
-                                        {% for course in courses %}
-                                            {% set course_start_time = course.startTime|date('H:i') %}
-                                            {% set course_end_time = course.endTime|date('H:i') %}
-                                            {% set course_day_of_week = course.startTime|date('N') %}
-                                            {% set course_capacity = course.capacity %}
-                                            {% set course_bookings = bookings[course.id] %}
-                                            {% set bookings_count = course_bookings|length %}
-                                            {% set available_spots = course_capacity - bookings_count %}
-                                            {% if app.user is not null %}
-                                                {% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
-                                            {% else %}
-                                                {% set user_booking = null %}
-                                            {% endif %}
+						{% for timeslot in weekday_timeslots %}
+							<tr>
+								<td>{{ timeslot }}</td>
+								{% for dow in 1..5 %}
+									{% set key = dow ~ '-' ~ timeslot %}
+									{% if merged_slots[key] is not defined %}
+										{% set course_found = false %}
+										{% for course in courses %}
+											{% set course_start_time = course.startTime|date('H:i') %}
+											{% set course_end_time = course.endTime|date('H:i') %}
+											{% set course_day_of_week = course.startTime|date('N') %}
+											{% set course_capacity = course.capacity %}
+											{% set course_bookings = bookings[course.id] %}
+											{% set bookings_count = course_bookings|length %}
+											{% set available_spots = course_capacity - bookings_count %}
+											{% if app.user is not null %}
+												{% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
+											{% else %}
+												{% set user_booking = null %}
+											{% endif %}
 
-                                            {% if course_day_of_week == dow and course_start_time == timeslot %}
-                                                {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
-                                                {% if not course_found %}
-                                                    <td rowspan="{{ duration }}">
-                                                        <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
-                                                            {{ course.name }}
-                                                        </a>
-                                                        <br>
-                                                        {% if user_booking %}
-                                                            <span class="badge badge-success">Réservé</span>
-                                                            <a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
-                                                        {% else %}
-                                                            {% if available_spots > 0 %}
-                                                                {{ available_spots }} places restantes
-                                                                <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
-                                                            {% else %}
-                                                                <span class="badge badge-danger">Complet</span>
-                                                            {% endif %}
-                                                        {% endif %}
-                                                    </td>
-                                                    {% set course_found = true %}
-                                                    {% for i in 0..duration-1 %}
-                                                        {% set merged_key = dow ~ '-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
-                                                        {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
-                                                    {% endfor %}
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if not course_found %}
-                                            <td>&nbsp;</td>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+											{% if course_day_of_week == dow and course_start_time == timeslot %}
+												{% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
+												{% if not course_found %}
+													<td rowspan="{{ duration }}">
+														<a href="{{ path('booking_new', { 'courseId': course.id }) }}">
+															{{ course.name }}
+														</a>
+														<br>
+														{% if user_booking %}
+															{% if available_spots > 0 %}
+																{{ available_spots }}
+																places restantes
+															{% else %}
+																<span class="badge badge-danger">Complet</span>
+															{% endif %}
+															<span class="badge badge-success">Réservé</span>
+															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
+														{% else %}
+															{% if available_spots > 0 %}
+																{{ available_spots }}
+																places restantes
+																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+															{% else %}
+																<span class="badge badge-danger">Complet</span>
+															{% endif %}
+														{% endif %}
+													</td>
+													{% set course_found = true %}
+													{% for i in 0..duration-1 %}
+														{% set merged_key = dow ~ '-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
+														{% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+													{% endfor %}
+												{% endif %}
+											{% endif %}
+										{% endfor %}
+										{% if not course_found %}
+											<td>&nbsp;</td>
+										{% endif %}
+									{% endif %}
+								{% endfor %}
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
 
-            <div class="col-md-4">
-                <table class="table table-bordered">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Heures (Samedi)</th>
-                            <th>Samedi {{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set saturday_timeslots = [
+			<div class="col-md-4">
+				<table class="table table-bordered">
+					<thead class="thead-light">
+						<tr>
+							<th>Heures (Samedi)</th>
+							<th>Samedi
+								{{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% set saturday_timeslots = [
                         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'
                         ] %}
 
-                        {% set merged_slots = {} %}
+						{% set merged_slots = {} %}
 
-                        {% for timeslot in saturday_timeslots %}
-                            <tr>
-                                <td>{{ timeslot }}</td>
-                                {% set key = '6-' ~ timeslot %}
-                                {% if merged_slots[key] is not defined %}
-                                    {% set course_found = false %}
-                                    {% for course in courses %}
-                                        {% set course_start_time = course.startTime|date('H:i') %}
-                                        {% set course_end_time = course.endTime|date('H:i') %}
-                                        {% set course_day_of_week = course.startTime|date('N') %}
-                                        {% set course_capacity = course.capacity %}
-                                        {% set course_bookings = bookings[course.id] %}
-                                        {% set bookings_count = course_bookings|length %}
-                                        {% set available_spots = course_capacity - bookings_count %}
-                                        {% if app.user is not null %}
-                                            {% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
-                                        {% else %}
-                                            {% set user_booking = null %}
-                                        {% endif %}
+						{% for timeslot in saturday_timeslots %}
+							<tr>
+								<td>{{ timeslot }}</td>
+								{% set key = '6-' ~ timeslot %}
+								{% if merged_slots[key] is not defined %}
+									{% set course_found = false %}
+									{% for course in courses %}
+										{% set course_start_time = course.startTime|date('H:i') %}
+										{% set course_end_time = course.endTime|date('H:i') %}
+										{% set course_day_of_week = course.startTime|date('N') %}
+										{% set course_capacity = course.capacity %}
+										{% set course_bookings = bookings[course.id] %}
+										{% set bookings_count = course_bookings|length %}
+										{% set available_spots = course_capacity - bookings_count %}
+										{% if app.user is not null %}
+											{% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
+										{% else %}
+											{% set user_booking = null %}
+										{% endif %}
 
-                                        {% if course_day_of_week == 6 and course_start_time == timeslot %}
-                                            {% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
-                                            {% if not course_found %}
-                                                <td rowspan="{{ duration }}">
-                                                    <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
-                                                        {{ course.name }}
-                                                    </a>
-                                                    <br>
-                                                    {% if user_booking %}
-                                                        <span class="badge badge-success">Réservé</span>
-                                                        <a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
-                                                    {% else %}
-                                                        {% if available_spots > 0 %}
-                                                            {{ available_spots }} places restantes
-                                                            <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
-                                                        {% else %}
-                                                            <span class="badge badge-danger">Complet</span>
-                                                        {% endif %}
-                                                    {% endif %}
-                                                </td>
-                                                {% set course_found = true %}
-                                                {% for i in 0..duration-1 %}
-                                                    {% set merged_key = '6-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
-                                                    {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
-                                                {% endfor %}
-                                            {% endif %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {% if not course_found %}
-                                        <td>&nbsp;</td>
-                                    {% endif %}
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+										{% if course_day_of_week == 6 and course_start_time == timeslot %}
+											{% set duration = (course.endTime|date('U') - course.startTime|date('U')) // 1800 %}
+											{% if not course_found %}
+												<td rowspan="{{ duration }}">
+													<a href="{{ path('booking_new', { 'courseId': course.id }) }}">
+														{{ course.name }}
+													</a>
+													<br>
+													{% if user_booking %}
+														<span class="badge badge-success">Réservé</span>
+														<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
+													{% else %}
+														{% if available_spots > 0 %}
+															{{ available_spots }}
+															places restantes
+															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+														{% else %}
+															<span class="badge badge-danger">Complet</span>
+														{% endif %}
+													{% endif %}
+												</td>
+												{% set course_found = true %}
+												{% for i in 0..duration-1 %}
+													{% set merged_key = '6-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
+													{% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+												{% endfor %}
+											{% endif %}
+										{% endif %}
+									{% endfor %}
+									{% if not course_found %}
+										<td>&nbsp;</td>
+									{% endif %}
+								{% endif %}
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 {% endblock %}

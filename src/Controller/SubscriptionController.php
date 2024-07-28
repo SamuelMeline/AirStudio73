@@ -19,9 +19,16 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mime\Email;
 
 class SubscriptionController extends AbstractController
 {
+    private const SENDER_EMAIL = 'contactAirstudio73@gmail.com';
+
     #[Route('/subscription/new', name: 'subscription_new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, EntityManagerInterface $em): Response
@@ -88,7 +95,7 @@ class SubscriptionController extends AbstractController
 
     #[Route('/subscription/success', name: 'subscription_success')]
     #[IsGranted('ROLE_USER')]
-    public function success(Request $request, EntityManagerInterface $em): Response
+    public function success(Request $request, EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         $sessionId = $request->query->get('session_id');
         if (!$sessionId) {
@@ -120,7 +127,7 @@ class SubscriptionController extends AbstractController
         }
 
         $plan = $em->getRepository(Plan::class)->find($planId);
-        $user = $em->getRepository(User::class)->findOneBy(['email' => $userId]); // Assuming 'email' is unique and used as identifier
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $userId]);
 
         if (!$plan || !$user) {
             $this->addFlash('error', 'Invalid plan or user.');
@@ -244,6 +251,25 @@ class SubscriptionController extends AbstractController
 
         $this->addFlash('success', 'Your subscription has been successfully created.');
 
+        // Envoi d'un email de confirmation d'achat de forfait
+        $userEmail = $user->getEmail();
+        $planName = $plan->getName();
+        $expiryDateFormatted = $expiryDate->format('d/m/Y');
+        $userEmailMessage = sprintf(
+            'Bonjour,
+            
+Votre achat concernant l\'abonnement du forfait "%s" a bien été pris en compte et expirera le %s.
+Nous vous remercions et vous souhaitons une très bonne journée.
+
+Cordialement,
+AirStudio73
+            ',
+            $planName,
+            $expiryDateFormatted
+        );
+
+        $this->sendEmail($userEmail, 'Confirmation d\'Achat de Forfait', $userEmailMessage, $logger);
+
         return $this->redirectToRoute('user_subscription');
     }
 
@@ -271,5 +297,25 @@ class SubscriptionController extends AbstractController
     {
         $this->addFlash('error', 'The payment was canceled.');
         return $this->redirectToRoute('subscription_new');
+    }
+
+    private function sendEmail(string $to, string $subject, string $message, LoggerInterface $logger): void
+    {
+        $email = (new Email())
+            ->from(self::SENDER_EMAIL)
+            ->replyTo(self::SENDER_EMAIL)
+            ->to($to)
+            ->subject($subject)
+            ->text($message);
+
+        try {
+            $logger->info('Sending email to: ' . $to);
+            $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
+            $mailer = new Mailer($transport);
+            $mailer->send($email);
+            $logger->info('Email sent successfully to: ' . $to);
+        } catch (\Exception $e) {
+            $logger->error('Failed to send email to ' . $to . ': ' . $e->getMessage());
+        }
     }
 }
