@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le Planning{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Modifier le Planning</h1>
+
+        {{ form_start(form) }}
+            <div class="form-group">
+                {{ form_label(form.day) }}
+                {{ form_widget(form.day, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.startTime) }}
+                {{ form_widget(form.startTime, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.endTime) }}
+                {{ form_widget(form.endTime, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.courseName) }}
+                {{ form_widget(form.courseName, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="form-group">
+                {{ form_label(form.instructor) }}
+                {{ form_widget(form.instructor, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        {{ form_end(form) }}
+
+        <a href="{{ path('planning') }}" class="btn btn-secondary mt-3">Annuler</a>
+    </div>
+{% endblock %}
