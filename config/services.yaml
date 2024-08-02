@@ -6,6 +6,8 @@
 parameters:
     stripe.secret_key: '%env(STRIPE_SECRET_KEY)%'
     stripe.public_key: '%env(STRIPE_PUBLIC_KEY)%'
+    uploads_directory: '%kernel.project_dir%/public/uploads'
+    photos_directory: '%kernel.project_dir%/public/uploads/photos'
 
 services:
     # default configuration for services in *this* file

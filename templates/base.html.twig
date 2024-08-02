@@ -7,12 +7,13 @@
         {% endblock %}
     </title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ asset('styles/style.css') }}">
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">MonSite</a>
+            <a class="navbar-brand" href="/">AirStudio73</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -22,13 +23,13 @@
                         <a class="nav-link" href="/">Accueil</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Coach</a>
+                        <a class="nav-link" href="{{ path('coach_list') }}">Coach</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Cours</a>
+                        <a class="nav-link" href="{{ path('course_details_list') }}">Cours</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Événements</a>
+                        <a class="nav-link" href="{{ path('event_list') }}">Événements</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('calendar') }}">Calendrier</a>
@@ -37,7 +38,7 @@
                         <a class="nav-link" href="{{ path('planning') }}">Planning</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Tarifs</a>
+                        <a class="nav-link" href="/tarifs">Tarifs</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('contact') }}">Contact</a>

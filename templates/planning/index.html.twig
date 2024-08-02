@@ -3,105 +3,50 @@
 {% block title %}Planning{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <h1>Planning</h1>
+<div class="container">
+    <h1>Planning</h1>
 
-        {% if is_granted('ROLE_ADMIN') %}
-            <a href="{{ path('planning_edit') }}" class="btn btn-primary mb-3">Ajouter une session</a>
-        {% endif %}
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('planning_edit') }}" class="btn btn-primary mb-3">Ajouter une session</a>
+    {% endif %}
 
-        <div class="row">
-            <div class="col-md-8">
-                <h2>Week Schedule</h2>
-                <table class="table table-bordered">
-                    <thead>
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Week Schedule</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Horaires</th>
+                        <th>Lundi</th>
+                        <th>Mardi</th>
+                        <th>Mercredi</th>
+                        <th>Jeudi</th>
+                        <th>Vendredi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set weekday_timeslots = [
+                        '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00',
+                        '19:30', '20:00', '20:30', '21:00'
+                    ] %}
+
+                    {% set merged_slots = {} %}
+
+                    {% for timeslot in weekday_timeslots %}
                         <tr>
-                            <th>Horaires</th>
-                            <th>Lundi</th>
-                            <th>Mardi</th>
-                            <th>Mercredi</th>
-                            <th>Jeudi</th>
-                            <th>Vendredi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set timeSlots = [
-                            '14:30 - 15:00', '15:00 - 15:30', '15:30 - 16:00', '16:00 - 16:30', '16:30 - 17:00',
-                            '17:00 - 17:30', '17:30 - 18:00', '18:00 - 18:30', '18:30 - 19:00', '19:00 - 19:30',
-                            '19:30 - 20:00', '20:00 - 20:30', '20:30 - 21:00'
-                        ] %}
-
-                        {% set merged_slots = {} %}
-
-                        {% for slot in timeSlots %}
-                            <tr>
-                                <td>{{ slot }}</td>
-                                {% for day in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] %}
-                                    {% set key = day ~ '-' ~ slot %}
-                                    {% if merged_slots[key] is not defined %}
-                                        {% set course_found = false %}
-                                        {% for schedule in schedules %}
-                                            {% set start_time = schedule.startTime|date('H:i') %}
-                                            {% set end_time = schedule.endTime|date('H:i') %}
-                                            {% set start_slot = slot|split(' - ')[0] %}
-                                            {% set end_slot = slot|split(' - ')[1] %}
-                                            {% set duration = (schedule.endTime|date('U') - schedule.startTime|date('U')) // 1800 %}
-
-                                            {% if schedule.day == day and start_time == start_slot %}
-                                                <td rowspan="{{ duration }}">
-                                                    {{ schedule.courseName }} ({{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }})
-                                                    {% if is_granted('ROLE_ADMIN') %}
-                                                        <br>
-                                                        <a href="{{ path('planning_edit', {id: schedule.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
-                                                        <a href="{{ path('planning_delete', {id: schedule.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">Supprimer</a>
-                                                    {% endif %}
-                                                </td>
-                                                {% set course_found = true %}
-                                                {% for i in 0..(duration - 1) %}
-                                                    {% set merged_key = day ~ '-' ~ (start_slot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
-                                                    {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
-                                                {% endfor %}
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if not course_found %}
-                                            <td>&nbsp;</td>
-                                        {% endif %}
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="col-md-4">
-                <h2>Saturday Schedule</h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Horaires</th>
-                            <th>Samedi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set timeSlotsSaturday = [
-                            '09:00 - 09:30', '09:30 - 10:00', '10:00 - 10:30', '10:30 - 11:00', '11:00 - 11:30',
-                            '11:30 - 12:00'
-                        ] %}
-
-                        {% for slot in timeSlotsSaturday %}
-                            <tr>
-                                <td>{{ slot }}</td>
-                                {% set key = 'Samedi-' ~ slot %}
+                            <td>{{ timeslot }}</td>
+                            {% for dow in ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'] %}
+                                {% set key = dow ~ '-' ~ timeslot %}
                                 {% if merged_slots[key] is not defined %}
                                     {% set course_found = false %}
                                     {% for schedule in schedules %}
                                         {% set start_time = schedule.startTime|date('H:i') %}
                                         {% set end_time = schedule.endTime|date('H:i') %}
-                                        {% set start_slot = slot|split(' - ')[0] %}
+                                        {% set start_slot = timeslot %}
                                         {% set duration = (schedule.endTime|date('U') - schedule.startTime|date('U')) // 1800 %}
+                                        {% set slots_covered = duration - 1 %}
 
-                                        {% if schedule.day == 'Samedi' and start_time == start_slot %}
+                                        {% if schedule.day == dow and start_time == start_slot %}
                                             <td rowspan="{{ duration }}">
                                                 {{ schedule.courseName }} ({{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }})
                                                 {% if is_granted('ROLE_ADMIN') %}
@@ -111,8 +56,8 @@
                                                 {% endif %}
                                             </td>
                                             {% set course_found = true %}
-                                            {% for i in 0..(duration - 1) %}
-                                                {% set merged_key = 'Samedi-' ~ (start_slot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
+                                            {% for i in 0..slots_covered %}
+                                                {% set merged_key = dow ~ '-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
                                                 {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
                                             {% endfor %}
                                         {% endif %}
@@ -121,11 +66,65 @@
                                         <td>&nbsp;</td>
                                     {% endif %}
                                 {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-4">
+            <h2>Saturday Schedule</h2>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Horaires</th>
+                        <th>Samedi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set saturday_timeslots = [
+                        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'
+                    ] %}
+
+                    {% for timeslot in saturday_timeslots %}
+                        <tr>
+                            <td>{{ timeslot }}</td>
+                            {% set key = 'Samedi-' ~ timeslot %}
+                            {% if merged_slots[key] is not defined %}
+                                {% set course_found = false %}
+                                {% for schedule in schedules %}
+                                    {% set start_time = schedule.startTime|date('H:i') %}
+                                    {% set end_time = schedule.endTime|date('H:i') %}
+                                    {% set start_slot = timeslot %}
+                                    {% set duration = (schedule.endTime|date('U') - schedule.startTime|date('U')) // 1800 %}
+                                    {% set slots_covered = duration - 1 %}
+
+                                    {% if schedule.day == 'Samedi' and start_time == start_slot %}
+                                        <td rowspan="{{ duration }}">
+                                            {{ schedule.courseName }} ({{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }})
+                                            {% if is_granted('ROLE_ADMIN') %}
+                                                <br>
+                                                <a href="{{ path('planning_edit', {id: schedule.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
+                                                <a href="{{ path('planning_delete', {id: schedule.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">Supprimer</a>
+                                            {% endif %}
+                                        </td>
+                                        {% set course_found = true %}
+                                        {% for i in 0..slots_covered %}
+                                            {% set merged_key = 'Samedi-' ~ (timeslot|date_modify('+' ~ (i * 30) ~ ' minutes')|date('H:i')) %}
+                                            {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not course_found %}
+                                    <td>&nbsp;</td>
+                                {% endif %}
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 {% endblock %}

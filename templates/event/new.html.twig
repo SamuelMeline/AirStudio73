@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ form.vars.value.id ? 'Modifier' : 'Créer' }} un Événement{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>{{ form.vars.value.id ? 'Modifier' : 'Créer' }} un Événement</h1>
+
+        {{ form_start(form) }}
+        <div class="form-group">
+            {{ form_label(form.title) }}
+            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.title) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.description) }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.startTime) }}
+            {{ form_widget(form.startTime, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.startTime) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.endTime) }}
+            {{ form_widget(form.endTime, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.endTime) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.location) }}
+            {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.location) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.image) }}
+            {{ form_widget(form.image, {'attr': {'class': 'form-control-file'}}) }}
+            {{ form_errors(form.image) }}
+        </div>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        {{ form_end(form) }}
+
+        <a href="{{ path('event_list') }}" class="btn btn-secondary mt-3">Annuler</a>
+    </div>
+{% endblock %}
