@@ -5,10 +5,11 @@ namespace App\Controller;
 use App\Entity\Course;
 use App\Form\CourseType;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class CourseController extends AbstractController
 {
@@ -64,6 +65,32 @@ class CourseController extends AbstractController
             'courses' => $courses,
         ]);
     }
+
+    #[Route('/course/capacity/{id}', name: 'course_update_capacity', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')] // Seul l'administrateur peut gérer la capacité
+    public function updateCapacity(Request $request, Course $course, EntityManagerInterface $em): Response
+    {
+        $action = $request->request->get('action');
+
+        if ($action === 'increase') {
+            $course->setCapacity($course->getCapacity() + 1);
+        } elseif ($action === 'decrease') {
+            if ($course->getCapacity() > 0) {
+                $course->setCapacity($course->getCapacity() - 1);
+            } else {
+                $this->addFlash('error', 'La capacité ne peut pas être inférieure à zéro.');
+            }
+        }
+
+        $em->persist($course);
+        $em->flush();
+
+        return $this->redirectToRoute('calendar', [
+            'year' => $request->query->get('year'),
+            'week' => $request->query->get('week'),
+        ]);
+    }
+
 
     private function calculateOccurrences(string $recurrenceDuration, \DateTimeInterface $startDate): int
     {

@@ -19,6 +19,14 @@ class CalendarController extends AbstractController
         if ($year && $week) {
             $currentDate = new \DateTime();
             $currentDate->setISODate($year, $week);
+            // Vérifier si la semaine sélectionnée est dans le passé
+            if ($currentDate < $today->modify('monday this week')) {
+                $this->addFlash('error', 'Vous ne pouvez pas accéder à une semaine passée.');
+                return $this->redirectToRoute('calendar', [
+                    'year' => $today->format('Y'),
+                    'week' => $today->format('W')
+                ]);
+            }
         } else {
             $currentDate = $today;
             $year = (int) $currentDate->format('Y');

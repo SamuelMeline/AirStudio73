@@ -95,7 +95,7 @@ class BookingController extends AbstractController
                 $user->getEmail(),
                 'Confirmation de Réservation',
                 sprintf(
-                'Bonjour,
+                    'Bonjour,
 
 Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
 À très vite !
@@ -141,6 +141,17 @@ Airstudio73
 
         if ($booking->getUser() !== $user) {
             $this->addFlash('error', 'You are not authorized to cancel this booking.');
+            return $this->redirectToRoute('calendar');
+        }
+
+        // Vérification si le cours est dans moins de 3 jours
+        $courseStartTime = $booking->getCourse()->getStartTime();
+        $currentDate = new \DateTime();
+        $interval = $currentDate->diff($courseStartTime);
+        $daysUntilCourse = (int) $interval->format('%a');
+
+        if ($daysUntilCourse < 3) {
+            $this->addFlash('error', 'You cannot cancel a booking less than 3 days before the course.');
             return $this->redirectToRoute('calendar');
         }
 
@@ -225,6 +236,22 @@ Airstudio73
         foreach ($bookings as $booking) {
             if ($booking->getUser() !== $this->getUser()) {
                 $this->addFlash('error', 'Vous n\'êtes pas autorisé à annuler cette réservation.');
+                return $this->redirectToRoute('booking_manage');
+            }
+
+            // Vérification si le cours est dans moins de 3 jours
+            $courseStartTime = $booking->getCourse()->getStartTime();
+            $currentDate = new \DateTime();
+            $interval = $currentDate->diff($courseStartTime);
+            $daysUntilCourse = (int) $interval->format('%a');
+
+            if ($daysUntilCourse < 3) {
+                $this->addFlash('error', sprintf(
+                    'Vous ne pouvez pas annuler la réservation pour le cours "%s" prévu le %s à %s car il commence dans moins de 3 jours.',
+                    $booking->getCourse()->getName(),
+                    $courseStartTime->format('d/m/Y'),
+                    $courseStartTime->format('H:i')
+                ));
                 return $this->redirectToRoute('booking_manage');
             }
 

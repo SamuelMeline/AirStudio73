@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Liste des Clients</h1>
+        <a href="{{ path('admin_client_new') }}" class="btn btn-primary mb-3">Ajouter un nouveau client</a>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Numéro de téléphone</th>
+                    <th>Notes</th>
+                    <th>Rôles</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.firstName }}</td>
+                        <td>{{ user.lastName }}</td>
+                        <td>{{ user.phoneNumber }}</td>
+                        <td>{{ user.notes }}</td>
+                        <td>{{ user.roles|join(', ') }}</td>
+                        <td>
+                            <a href="{{ path('admin_client_edit', {'id': user.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
+                            <a href="{{ path('admin_client_delete', {'id': user.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">Supprimer</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8">Aucun client trouvé.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
