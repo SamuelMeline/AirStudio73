@@ -152,6 +152,18 @@ span.badge.badge-success.mt-2.p-2.text-uppercase {
 	margin-left: 5px;
 }
 
+.register ul {
+    padding-left: 0;
+    margin: 0;
+}
+
+.register li {
+    color: red;
+    list-style: none;
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
 @media screen and (max-width: 1500px) {
 	.col {
 		width: 100%;
@@ -182,3 +194,4 @@ span.badge.badge-success.mt-2.p-2.text-uppercase {
 		font-size: 8px;
 	}
 }
+

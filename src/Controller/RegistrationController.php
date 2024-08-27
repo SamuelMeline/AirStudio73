@@ -43,7 +43,7 @@ class RegistrationController extends AbstractController
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
-            // Redirige vers la page d'accueil
+            // Redirige vers la page de connexion
             return $this->redirectToRoute('app_login');
         }
 

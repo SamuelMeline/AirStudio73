@@ -1,35 +1,69 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inscription{% endblock %}
+{% block title %}Inscription
+{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h1 class="card-title">Inscription</h1>
-                    </div>
-                    <div class="card-body">
-                        {{ form_start(registrationForm) }}
-                        <div class="form-group">
-                            {{ form_label(registrationForm.email) }}
-                            {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(registrationForm.email) }}
-                        </div>
-                        <div class="form-group">
-                            {{ form_label(registrationForm.plainPassword) }}
-                            {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(registrationForm.plainPassword) }}
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
-                        {{ form_end(registrationForm) }}
-                    </div>
-                </div>
-                <div class="text-center mt-3">
-                    <a href="{{ path('app_login') }}">Déjà inscrit ? Connecte-toi !</a>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="container register">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card shadow-sm">
+					<div class="card-header text-center bg-primary text-white">
+						<h1 class="card-title mb-0">Inscription</h1>
+					</div>
+					<div class="card-body">
+						{{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.email, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre adresse e-mail'}}) }}
+							{{ form_errors(registrationForm.email, {'attr': {'class': 'form-error'}}) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.plainPassword, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control', 'placeholder': 'Choisissez un mot de passe'}}) }}
+							{{ form_errors(registrationForm.plainPassword) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.confirmPassword, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.confirmPassword, {'attr': {'class': 'form-control', 'placeholder': 'Confirmez votre mot de passe'}}) }}
+							{{ form_errors(registrationForm.confirmPassword) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.firstName, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre prénom'}}) }}
+							{{ form_errors(registrationForm.firstName) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.lastName, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre nom'}}) }}
+							{{ form_errors(registrationForm.lastName) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.phoneNumber, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.phoneNumber, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre numéro de téléphone'}}) }}
+							{{ form_errors(registrationForm.phoneNumber) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.notes, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.notes, {'attr': {'class': 'form-control', 'placeholder': 'Notes supplémentaires (facultatif)'}}) }}
+							{{ form_errors(registrationForm.notes) }}
+						</div>
+
+						<button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
+						{{ form_end(registrationForm) }}
+					</div>
+				</div>
+				<div class="text-center mt-2">
+					<a href="{{ path('app_login') }}">Déjà inscrit ? Connecte-toi !</a>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

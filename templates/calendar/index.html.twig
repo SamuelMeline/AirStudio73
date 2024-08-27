@@ -28,9 +28,10 @@
 			{% endif %}
 
 			{% set now = "now"|date('Y-m-d') %}
+			{% set startOfCurrentWeek = "now"|date_modify(('Monday this week'))|date('Y-m-d') %}
 			{% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
 
-			{% if prevDate >= now %}
+			{% if prevDate >= startOfCurrentWeek %}
 				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo;</a>
 			{% else %}
 				<button class="btn btn-secondary" disabled>&laquo;</button>

@@ -1,39 +1,53 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container mt-5">
-		<h1>Modifier le Client</h1>
-
-		{{ form_start(form) }}
-		<div class="form-group">
-			{{ form_label(form.lastName) }}
-			{{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
+	<div class="container register">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card shadow-sm">
+					<div class="card-header text-center bg-primary text-white">
+						<h1>Modifier le Client</h1>
+					</div>
+					<div class="card-body">
+						{{ form_start(form) }}
+						<div class="form-group">
+							{{ form_label(form.lastName) }}
+							{{ form_widget(form.lastName, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
+							{{ form_label(form.firstName) }}
+							{{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
+							{{ form_label(form.email) }}
+							{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
+							{{ form_label(form.phoneNumber) }}
+							{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
+							{{ form_label(form.notes) }}
+							{{ form_widget(form.notes, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
+							{{ form_label(form.roles) }}
+							{{ form_widget(form.roles, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
+							{{ form_label(form.plainPassword) }}
+							{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group mb-3">
+							{{ form_label(form.confirmPassword, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.confirmPassword, {'attr': {'class': 'form-control', 'placeholder': 'Confirmez votre mot de passe'}}) }}
+							{{ form_errors(form.confirmPassword) }}
+						</div>
+						<button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+						{{ form_end(form) }}
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class="form-group">
-			{{ form_label(form.firstName) }}
-			{{ form_widget(form.firstName, {'attr': {'class': 'form-control'}}) }}
-		</div>
-		<div class="form-group">
-			{{ form_label(form.email) }}
-			{{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-		</div>
-		<div class="form-group">
-			{{ form_label(form.phoneNumber) }}
-			{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
-		</div>
-		<div class="form-group">
-			{{ form_label(form.notes) }}
-			{{ form_widget(form.notes, {'attr': {'class': 'form-control'}}) }}
-		</div>
-		<div class="form-group">
-			{{ form_label(form.roles) }}
-			{{ form_widget(form.roles, {'attr': {'class': 'form-control'}}) }}
-		</div>
-		<div class="form-group">
-			{{ form_label(form.plainPassword) }}
-			{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
-		</div>
-		<button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-		{{ form_end(form) }}
 	</div>
 {% endblock %}

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5186dce975c4cc0718b02657c76f48a",
+    "content-hash": "a2f2d5f33b5c88fcd90df135ef1cc201",
     "packages": [
         {
             "name": "composer/semver",
@@ -5809,16 +5809,16 @@
         },
         {
             "name": "symfony/security-core",
-            "version": "v7.1.2",
+            "version": "v7.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/security-core.git",
-                "reference": "d615960211a11913e70f8576e5c38cd05d90ec3f"
+                "reference": "aa4f432586a129017ce0ba34e2b1bfe6babfe8c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/security-core/zipball/d615960211a11913e70f8576e5c38cd05d90ec3f",
-                "reference": "d615960211a11913e70f8576e5c38cd05d90ec3f",
+                "url": "https://api.github.com/repos/symfony/security-core/zipball/aa4f432586a129017ce0ba34e2b1bfe6babfe8c7",
+                "reference": "aa4f432586a129017ce0ba34e2b1bfe6babfe8c7",
                 "shasum": ""
             },
             "require": {
@@ -5875,7 +5875,7 @@
             "description": "Symfony Security Component - Core Library",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/security-core/tree/v7.1.2"
+                "source": "https://github.com/symfony/security-core/tree/v7.1.3"
             },
             "funding": [
                 {
@@ -5891,7 +5891,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-06-28T08:00:31+00:00"
+            "time": "2024-07-26T12:41:01+00:00"
         },
         {
             "name": "symfony/security-csrf",

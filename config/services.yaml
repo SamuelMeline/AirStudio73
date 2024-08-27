@@ -8,6 +8,7 @@ parameters:
     stripe.public_key: '%env(STRIPE_PUBLIC_KEY)%'
     uploads_directory: '%kernel.project_dir%/public/uploads'
     photos_directory: '%kernel.project_dir%/public/uploads/photos'
+    images_directory: '%kernel.project_dir%/public/uploads/images'
 
 services:
     # default configuration for services in *this* file
