@@ -134,11 +134,21 @@
 															{% endif %}
 														{% endif %}
 														{% if is_granted('ROLE_ADMIN') %}
+															<div class="mt-2">
+																<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
+
+																<form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
+																	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+																	<button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+																</form>
+															</div>
+														{% endif %}
+														{% if is_granted('ROLE_ADMIN') %}
 															<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
 																<input type="hidden" name="year" value="{{ currentYear }}">
 																<input type="hidden" name="week" value="{{ currentWeek }}">
-																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
 																<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
+																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
 																<span>Capacité :
 																	{{ course_capacity }}</span>
 															</form>

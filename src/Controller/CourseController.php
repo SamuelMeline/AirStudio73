@@ -111,4 +111,38 @@ class CourseController extends AbstractController
                 return 4; // Default to 1 month if not specified
         }
     }
+
+    #[Route('/course/edit/{id}', name: 'course_edit')]
+    public function edit(Request $request, Course $course, EntityManagerInterface $em): Response
+    {
+        $form = $this->createForm(CourseType::class, $course);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush(); // Mettre à jour le cours avec les nouvelles informations
+
+            return $this->redirectToRoute('calendar'); // Redirige vers la liste des cours
+        }
+
+        return $this->render('course/edit.html.twig', [
+            'form' => $form->createView(),
+            'course' => $course,
+        ]);
+    }
+
+    #[Route('/course/delete/{id}', name: 'course_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(Request $request, Course $course, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('delete' . $course->getId(), $request->request->get('_token'))) {
+            $em->remove($course);
+            $em->flush();
+
+            $this->addFlash('success', 'Le cours a été supprimé avec succès.');
+        } else {
+            $this->addFlash('error', 'Le jeton CSRF est invalide.');
+        }
+
+        return $this->redirectToRoute('calendar');
+    }
 }

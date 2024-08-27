@@ -34,20 +34,11 @@ class EventType extends AbstractType
             ->add('location', TextType::class, [
                 'label' => 'Lieu',
             ])
-            ->add('image', FileType::class, [
-                'label' => 'Image de l\'événement (JPEG ou PNG)',
+            ->add('photo', FileType::class, [
+                'label' => 'Photo',
                 'required' => false,
-                'mapped' => false,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '5M',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                        ],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG ou PNG)',
-                    ])
-                ],
+                'mapped' => false, // Indicate that this field is not associated with any entity property
+                'attr' => ['class' => 'form-control-file']
             ]);
     }
 

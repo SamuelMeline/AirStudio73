@@ -1,14 +1,49 @@
+{# templates/course/list.html.twig #}
+
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Courses</h1>
-    <a href="{{ path('course_new') }}">Add new course</a>
-    <ul>
-        {% for course in courses %}
-            <li>
-                {{ course.name }} - {{ course.startTime|date('d/m/Y H:i') }} - {{ course.endTime|date('H:i') }}
-                <a href="{{ path('booking_new', {'courseId': course.id}) }}">Book</a>
-            </li>
-        {% endfor %}
-    </ul>
+	<div class="container mt-5">
+		<h1>Liste des cours</h1>
+		<a href="{{ path('course_new') }}" class="btn btn-primary mb-3">Ajouter un nouveau cours</a>
+
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Nom</th>
+					<th>Début</th>
+					<th>Fin</th>
+					<th>Capacité</th>
+					<th>Récurence</th>
+					<th>Interval</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for course in courses %}
+					<tr>
+						<td>{{ course.name }}</td>
+						<td>{{ course.startTime|date('d/m/Y H:i') }}</td>
+						<td>{{ course.endTime|date('d/m/Y H:i') }}</td>
+						<td>{{ course.capacity }}</td>
+						<td>{{ course.isRecurrent }}</td>
+						<td>{{ course.recurrenceDuration }}</td>
+						<td>
+							<a href="{{ path('course_edit', {'id': course.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
+
+							{# Formulaire de suppression pour protéger contre la CSRF #}
+							<form method="post" action="{{ path('course_delete', {'id': course.id}) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
+								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+								<button class="btn btn-danger btn-sm">Supprimer</button>
+							</form>
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="5">Aucun cours trouvé.</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
 {% endblock %}

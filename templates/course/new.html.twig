@@ -2,34 +2,64 @@
 
 {% block body %}
 <div class="container mt-5">
-    <h1>Créer un nouveau cours</h1>
+    <h1 class="mb-4">Créer un nouveau cours</h1>
 
-    {{ form_start(form) }}
-    <div class="form-group">
-        {{ form_label(form.name, null, {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {{ form_start(form) }}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.name, 'Nom du cours', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le nom du cours'}}) }}
+                        {{ form_errors(form.name) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.capacity, 'Capacité', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.capacity, {'attr': {'class': 'form-control', 'placeholder': 'Entrez la capacité'}}) }}
+                        {{ form_errors(form.capacity) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.startTime, 'Heure de début', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.startTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de début'}}) }}
+                        {{ form_errors(form.startTime) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.endTime, 'Heure de fin', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.endTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de fin'}}) }}
+                        {{ form_errors(form.endTime) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(form.isRecurrent, 'Ce cours est-il récurrent ?', {'label_attr': {'class': 'form-check-label'}}) }}
+                    {{ form_errors(form.isRecurrent) }}
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                {{ form_label(form.recurrenceDuration, 'Durée de la récurrence', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.recurrenceDuration, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.recurrenceDuration) }}
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+            {{ form_end(form) }}
+        </div>
     </div>
-    <div class="form-group">
-        {{ form_label(form.startTime, null, {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.startTime, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    <div class="form-group">
-        {{ form_label(form.endTime, null, {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.endTime, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    <div class="form-group">
-        {{ form_label(form.capacity, null, {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.capacity, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    <div class="form-group form-check">
-        {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input'}}) }}
-        {{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
-    </div>
-    <div class="form-group">
-        {{ form_label(form.recurrenceDuration, null, {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(form.recurrenceDuration, {'attr': {'class': 'form-control'}}) }}
-    </div>
-    <button type="submit" class="btn btn-primary">Enregistrer</button>
-    {{ form_end(form) }}
 </div>
 {% endblock %}

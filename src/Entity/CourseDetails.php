@@ -20,7 +20,7 @@ class CourseDetails
     private ?string $description = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
+    private ?string $photo = null;
 
     #[ORM\Column(type: 'integer')]
     private ?int $defaultCapacity = null;
@@ -55,15 +55,14 @@ class CourseDetails
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getPhoto(): ?string
     {
-        return $this->image;
+        return $this->photo;
     }
 
-    public function setImage(?string $image): self
+    public function setPhoto(?string $photo): self
     {
-        $this->image = $image;
-
+        $this->photo = $photo;
         return $this;
     }
 

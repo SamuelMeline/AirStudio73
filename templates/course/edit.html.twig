@@ -1,9 +1,68 @@
+{# templates/course/edit.html.twig #}
+
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <h1>Edit Course</h1>
-    {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">Save</button>
-    {{ form_end(form) }}
+<div class="container mt-5">
+    <h1 class="mb-4">Modifier le cours</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            {{ form_start(form) }}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.name, 'Nom du cours', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le nom du cours'}}) }}
+                        {{ form_errors(form.name) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.capacity, 'Capacité', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.capacity, {'attr': {'class': 'form-control', 'placeholder': 'Entrez la capacité'}}) }}
+                        {{ form_errors(form.capacity) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.startTime, 'Heure de début', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.startTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de début'}}) }}
+                        {{ form_errors(form.startTime) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        {{ form_label(form.endTime, 'Heure de fin', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.endTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de fin'}}) }}
+                        {{ form_errors(form.endTime) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(form.isRecurrent, 'Ce cours est-il récurrent ?', {'label_attr': {'class': 'form-check-label'}}) }}
+                    {{ form_errors(form.isRecurrent) }}
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                {{ form_label(form.recurrenceDuration, 'Durée de la récurrence', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.recurrenceDuration, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.recurrenceDuration) }}
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <a href="{{ path('course_list') }}" class="btn btn-secondary me-2">Annuler</a>
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
 {% endblock %}

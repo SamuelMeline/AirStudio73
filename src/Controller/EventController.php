@@ -6,12 +6,13 @@ use App\Entity\Event;
 use App\Form\EventType;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class EventController extends AbstractController
 {
@@ -27,28 +28,29 @@ class EventController extends AbstractController
 
     #[Route('/events/new', name: 'event_new')]
     #[IsGranted('ROLE_ADMIN')]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    public function new(Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $event = new Event();
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $imageFile = $form->get('image')->getData();
-
-            if ($imageFile) {
-                $newFilename = uniqid().'.'.$imageFile->guessExtension();
+            // Handle photo upload
+            $photoFile = $form->get('photo')->getData();
+            if ($photoFile) {
+                $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $photoFile->guessExtension();
 
                 try {
-                    $imageFile->move(
+                    $photoFile->move(
                         $this->getParameter('photos_directory'),
                         $newFilename
                     );
                 } catch (FileException $e) {
-                    // handle exception
+                    // Handle exception if something happens during file upload
                 }
-
-                $event->setImage($newFilename);
+                $event->setPhoto($newFilename);
             }
 
             $em->persist($event);
@@ -66,27 +68,28 @@ class EventController extends AbstractController
 
     #[Route('/events/edit/{id}', name: 'event_edit')]
     #[IsGranted('ROLE_ADMIN')]
-    public function edit(Request $request, EntityManagerInterface $em, Event $event): Response
+    public function edit(Request $request, EntityManagerInterface $em, Event $event, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(EventType::class, $event);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $imageFile = $form->get('image')->getData();
-
-            if ($imageFile) {
-                $newFilename = uniqid().'.'.$imageFile->guessExtension();
+            // Handle photo upload
+            $photoFile = $form->get('photo')->getData();
+            if ($photoFile) {
+                $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $photoFile->guessExtension();
 
                 try {
-                    $imageFile->move(
+                    $photoFile->move(
                         $this->getParameter('photos_directory'),
                         $newFilename
                     );
                 } catch (FileException $e) {
-                    // handle exception
+                    // Handle exception if something happens during file upload
                 }
-
-                $event->setImage($newFilename);
+                $event->setPhoto($newFilename);
             }
 
             $em->flush();

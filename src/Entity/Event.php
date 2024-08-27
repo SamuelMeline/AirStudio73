@@ -29,7 +29,7 @@ class Event
     private ?string $location = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $image = null;
+    private ?string $photo = null;
 
     // Getters and setters...
 
@@ -98,15 +98,14 @@ class Event
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getPhoto(): ?string
     {
-        return $this->image;
+        return $this->photo;
     }
 
-    public function setImage(?string $image): self
+    public function setPhoto(?string $photo): self
     {
-        $this->image = $image;
-
+        $this->photo = $photo;
         return $this;
     }
 }

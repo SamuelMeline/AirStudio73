@@ -164,6 +164,24 @@ span.badge.badge-success.mt-2.p-2.text-uppercase {
     margin-top: 5px;
 }
 
+.planning .table td {
+	vertical-align: middle;
+}
+
+h1 {
+	text-align: center;
+}
+
+img.card-img-top {
+    max-height: 500px;
+    object-fit: cover;
+}
+
+img.d-block.w-100 {
+    max-height: 700px;
+    object-fit: cover;
+}
+
 @media screen and (max-width: 1500px) {
 	.col {
 		width: 100%;

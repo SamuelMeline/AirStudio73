@@ -28,7 +28,7 @@
 								<a class="nav-link" href="{{ path('coach_list') }}">Coach</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link" href="{{ path('course_details_list') }}">Cours</a>
+								<a class="nav-link" href="{{ path('course_details_list') }}">Activités</a>
 							</li>
 							<li class="nav-item">
 								<a class="nav-link" href="{{ path('event_list') }}">Événements</a>
@@ -49,6 +49,9 @@
 								<a class="nav-link" href="{{ path('photo_gallery') }}">Gallerie</a>
 							</li>
 							{% if is_granted('ROLE_ADMIN') %}
+								<li class="nav-item">
+									<a class="nav-link" href="{{ path('course_list') }}">Cours</a>
+								</li>
 								<li class="nav-item">
 									<a class="nav-link" href="{{ path('admin_client_list') }}">Clients</a>
 								</li>

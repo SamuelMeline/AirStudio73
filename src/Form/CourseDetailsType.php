@@ -23,10 +23,11 @@ class CourseDetailsType extends AbstractType
                 'label' => 'Description',
                 'required' => false,
             ])
-            ->add('image', FileType::class, [
-                'label' => 'Image (JPEG ou PNG)',
+            ->add('photo', FileType::class, [
+                'label' => 'Photo',
                 'required' => false,
-                'mapped' => false,
+                'mapped' => false, // Indicate that this field is not associated with any entity property
+                'attr' => ['class' => 'form-control-file']
             ])
             ->add('defaultCapacity', IntegerType::class, [
                 'label' => 'Capacité par défaut',

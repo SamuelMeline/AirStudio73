@@ -1,48 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des Événements
-{% endblock %}
+{% block title %}Liste des Événements{% endblock %}
 
 {% block body %}
-	<div class="container mt-5">
-		<h1>Liste des Événements</h1>
-
-		{% if is_granted('ROLE_ADMIN') %}
-			<a href="{{ path('event_new') }}" class="btn btn-primary mb-3">Créer un nouvel événement</a>
-		{% endif %}
-
-		<table class="table table-striped">
-			<thead>
-				<tr>
-					<th>Titre</th>
-					<th>Lieu</th>
-					<th>Début</th>
-					<th>Fin</th>
-					{% if is_granted('ROLE_ADMIN') %}
-						<th>Actions</th>
-					{% endif %}
-				</tr>
-			</thead>
-			<tbody>
-				{% for event in events %}
-					<tr>
-						<td>{{ event.title }}</td>
-						<td>{{ event.location }}</td>
-						<td>{{ event.startTime|date('d/m/Y H:i') }}</td>
-						<td>{{ event.endTime|date('d/m/Y H:i') }}</td>
-						{% if is_granted('ROLE_ADMIN') %}
-							<td>
-								<a href="{{ path('event_edit', { id: event.id }) }}" class="btn btn-secondary btn-sm">Modifier</a>
-								<a href="{{ path('event_delete', { id: event.id }) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?');">Supprimer</a>
-							</td>
-						{% endif %}
-					</tr>
-				{% else %}
-					<tr>
-						<td colspan="5">Aucun événement trouvé.</td>
-					</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
+<div class="container">
+    <h1>Liste des Événements</h1>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('event_new') }}" class="btn btn-primary mb-3">Créer un événement</a>
+    {% endif %}
+    <div class="row">
+        {% for event in events %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    {% if event.photo %}
+                        <img src="{{ asset('uploads/photos/' ~ event.photo) }}" class="card-img-top" alt="{{ event.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text"><strong>Lieu:</strong> {{ event.location }}</p>
+                        <p class="card-text"><strong>Début:</strong> {{ event.startTime|date('d/m/Y H:i') }}</p>
+                        <p class="card-text"><strong>Fin:</strong> {{ event.endTime|date('d/m/Y H:i') }}</p>
+                        <p class="card-text"><strong>Description :</strong> {{ event.description }}</p>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('event_edit', {'id': event.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
+                            <a href="{{ path('event_delete', {'id': event.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet événement ?');">Supprimer</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <p>Aucun événement disponible pour le moment.</p>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

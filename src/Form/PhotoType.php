@@ -19,19 +19,9 @@ class PhotoType extends AbstractType
                 'label' => 'Titre',
             ])
             ->add('imagePath', FileType::class, [
-                'label' => 'Image (JPEG/PNG file)',
+                'label' => 'Image',
                 'mapped' => false,
                 'required' => true,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '1024k',
-                        'mimeTypes' => [
-                            'image/jpeg',
-                            'image/png',
-                        ],
-                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG ou PNG)',
-                    ])
-                ],
             ]);
     }
 

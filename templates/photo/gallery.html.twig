@@ -10,9 +10,7 @@
 					{% for photo in photos %}
 						<div class="carousel-item {% if loop.first %}active{% endif %}">
 							<img src="{{ asset('uploads/images/' ~ photo.imagePath) }}" class="d-block w-100" alt="{{ photo.title }}">
-							<div class="carousel-caption d-none d-md-block">
-								<h5>{{ photo.title }}</h5>
-							</div>
+							<div class="carousel-caption d-none d-md-block"></div>
 						</div>
 					{% endfor %}
 				</div>

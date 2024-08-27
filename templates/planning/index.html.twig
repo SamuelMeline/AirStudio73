@@ -3,7 +3,7 @@
 {% block title %}Planning{% endblock %}
 
 {% block body %}
-<div class="container">
+<div class="container planning">
     <h1>Planning</h1>
 
     {% if is_granted('ROLE_ADMIN') %}
@@ -12,7 +12,6 @@
 
     <div class="row">
         <div class="col-md-8">
-            <h2>Week Schedule</h2>
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -51,8 +50,8 @@
                                                 {{ schedule.courseName }} ({{ schedule.startTime|date('H:i') }} - {{ schedule.endTime|date('H:i') }})
                                                 {% if is_granted('ROLE_ADMIN') %}
                                                     <br>
-                                                    <a href="{{ path('planning_edit', {id: schedule.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
-                                                    <a href="{{ path('planning_delete', {id: schedule.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">Supprimer</a>
+                                                    <a href="{{ path('planning_edit', {id: schedule.id}) }}" class="btn btn-secondary btn-sm mt-2">Modifier</a>
+                                                    <a href="{{ path('planning_delete', {id: schedule.id}) }}" class="btn btn-danger btn-sm mt-2" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">Supprimer</a>
                                                 {% endif %}
                                             </td>
                                             {% set course_found = true %}
@@ -74,7 +73,6 @@
         </div>
 
         <div class="col-md-4">
-            <h2>Saturday Schedule</h2>
             <table class="table table-bordered">
                 <thead>
                     <tr>
