@@ -28,7 +28,7 @@ class PlanController extends AbstractController
             $em->persist($plan);
             $em->flush();
 
-            $this->addFlash('success', 'Plan created successfully!');
+            $this->addFlash('success', 'Le forfait a bien été ajouté !');
 
             return $this->redirectToRoute('plan_list'); // Assuming you have a route to list plans
         }

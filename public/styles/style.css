@@ -1,0 +1,249 @@
+/* Styles généraux */
+
+body {
+    background-image: url("../images/fondSITE.jpg"); /* Mise à jour du chemin */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: 40% 17%; /* Centre l'image horizontalement et la déplace vers le bas */
+}
+
+
+.container-fluid {
+    padding-left: 0;
+}
+
+.container {
+    max-width: 1650px;
+}
+
+/* Logo */
+.logo-img {
+    margin-left: 20px;
+}
+
+/* Navigation */
+.navbar.navbar-expand-lg.navbar-light.bg-white {
+    padding: 0;
+}
+
+a.navbar-brand {
+    padding: 0;
+}
+
+a.nav-link {
+    font-size: 20px;
+    align-items: end;
+    margin: 10px 10px 0 10px;
+    color: #2c7487 !important;
+    font-weight: 500;
+}
+
+.red a.nav-link {
+    color: red !important;
+}
+
+/* Jumbotron */
+.jumbotron {
+    background-color: #fff;
+    font-size: 22px;
+    width: 80%;
+    text-align: center;
+    margin: 0 auto;
+    border-radius: 20px;
+}
+
+.jumbotron h1 {
+    font-size: 45px;
+}
+
+.lead {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: red;
+}
+
+/* Calendriers */
+.calendars-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.calendar {
+    flex: 1;
+    margin: 10px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table a {
+    text-transform: uppercase;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    vertical-align: top;
+}
+
+th {
+    background-color: #f4f4f4;
+    min-width: 178px;
+}
+
+.planning .table td {
+    vertical-align: middle;
+}
+
+/* Boutons */
+.reserve-btn {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #4caf50;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.reserve-btn:hover {
+    background-color: #45a049;
+}
+
+button[disabled] {
+    background-color: #ccc;
+    color: #777;
+    cursor: not-allowed;
+}
+
+/* Navigation du calendrier */
+.calendar-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.calendar-navigation a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.calendar-navigation a:hover {
+    text-decoration: underline;
+}
+
+/* Alertes */
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+    border-radius: 3px;
+}
+
+/* Divers */
+.hsam {
+    max-width: 30% !important;
+}
+
+.session {
+    margin: 5px 0;
+}
+
+span.badge.badge-success.mt-2.p-2.text-uppercase {
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+.register ul {
+    padding-left: 0;
+    margin: 0;
+}
+
+.register li {
+    color: red;
+    list-style: none;
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
+/* Carousel */
+img.card-img-top {
+    max-height: 500px;
+    object-fit: cover;
+}
+
+img.d-block.w-100 {
+    max-height: 750px;
+    object-fit: contain;
+}
+
+.carousel-control-prev {
+    left: 260px;
+}
+
+.carousel-control-next {
+    right: 260px;
+}
+
+/* Background colors for specific classes */
+.bg-yoga-aerien {
+    background-color: darkseagreen !important;
+}
+
+.bg-pole-dance {
+    background-color: orange !important;
+}
+
+.bg-hammock {
+    background-color: lightblue !important;
+}
+
+.bg-souplesse {
+    background-color: magenta !important;
+}
+
+.bg-cours-demande {
+    background-color: yellowgreen !important;
+}
+
+/* Responsiveness */
+@media screen and (max-width: 1500px) {
+    .col {
+        width: 100%;
+        margin: 0 auto;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    th {
+        min-width: 100px;
+    }
+    table {
+        font-size: 14px;
+    }
+    button.btn, a.btn {
+        font-size: 10px;
+    }
+}
+
+@media screen and (max-width: 860px) {
+    th {
+        min-width: 50px;
+    }
+    table {
+        font-size: 12px;
+    }
+    button.btn, a.btn {
+        font-size: 8px;
+    }
+}
+
+/* Classes utilitaires */
+.dn {
+    display: none;
+}

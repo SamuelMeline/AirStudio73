@@ -5,7 +5,7 @@
 		<h1>Galerie Photos</h1>
 
 		{% if photos|length > 0 %}
-			<div id="photoCarousel" class="carousel slide mx-auto w-75" style="max-width: 1200px;">
+			<div id="photoCarousel" class="carousel mx-auto w-75" style="max-width: 1200px;">
 				<div class="carousel-inner">
 					{% for photo in photos %}
 						<div class="carousel-item {% if loop.first %}active{% endif %}">
