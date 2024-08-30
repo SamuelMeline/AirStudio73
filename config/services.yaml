@@ -6,6 +6,7 @@
 parameters:
     stripe.secret_key: '%env(STRIPE_SECRET_KEY)%'
     stripe.public_key: '%env(STRIPE_PUBLIC_KEY)%'
+    stripe.endpoint_secret: '%env(STRIPE_ENDPOINT_SECRET)%'
     uploads_directory: '%kernel.project_dir%/public/uploads'
     photos_directory: '%kernel.project_dir%/public/uploads/photos'
     images_directory: '%kernel.project_dir%/public/uploads/images'

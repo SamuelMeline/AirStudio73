@@ -21,11 +21,9 @@ class SubscriptionRepository extends ServiceEntityRepository
      */
     public function findByUserName(string $userName): array
     {
-        // Ajout de débogage pour vérifier la requête
-        error_log('Finding subscriptions for user: ' . $userName);
-
         return $this->createQueryBuilder('s')
-            ->andWhere('s.userName = :userName')
+            ->innerJoin('s.user', 'u')
+            ->andWhere('u.username = :userName') // Supposons que la propriété dans User s'appelle username
             ->setParameter('userName', $userName)
             ->getQuery()
             ->getResult();

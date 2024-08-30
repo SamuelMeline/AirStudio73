@@ -5,6 +5,7 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: 40% 17%; /* Centre l'image horizontalement et la déplace vers le bas */
+    height: 100vh;
 }
 
 

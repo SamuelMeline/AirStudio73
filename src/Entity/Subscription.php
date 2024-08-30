@@ -32,6 +32,18 @@ class Subscription
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $paymentMode = null;
 
+    #[ORM\Column(type: 'integer')]
+    private int $paymentsCount = 0;
+
+    #[ORM\Column(type: 'integer')]
+    private int $maxPayments = 0;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $isActive = true;
+
+    #[ORM\Column(name: 'stripe_subscription_id', type: 'string', length: 255, nullable: true)]
+    private ?string $stripeSubscriptionId = null;    
+
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $promoCode = null;
 
@@ -104,6 +116,57 @@ class Subscription
     public function setPaymentMode(?string $paymentMode): self
     {
         $this->paymentMode = $paymentMode;
+
+        return $this;
+    }
+
+    public function incrementPaymentsCount(): self
+    {
+        $this->paymentsCount++;
+        return $this;
+    }
+    
+    public function getPaymentsCount(): int
+    {
+        return $this->paymentsCount;
+    }
+
+    public function setPaymentsCount(int $paymentsCount): self
+    {
+        $this->paymentsCount = $paymentsCount;
+        return $this;
+    }
+
+    public function getMaxPayments(): int
+    {
+        return $this->maxPayments;
+    }
+
+    public function setMaxPayments(int $maxPayments): self
+    {
+        $this->maxPayments = $maxPayments;
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): self
+    {
+        $this->isActive = $isActive;
+        return $this;
+    }
+
+    public function getStripeSubscriptionId(): ?string
+    {
+        return $this->stripeSubscriptionId;
+    }
+
+    public function setStripeSubscriptionId(string $stripe_subscription_id): self
+    {
+        $this->stripeSubscriptionId = $stripe_subscription_id;
 
         return $this;
     }

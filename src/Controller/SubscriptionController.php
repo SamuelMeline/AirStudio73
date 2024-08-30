@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use Stripe\Stripe;
+use Stripe\Event;
 use App\Entity\Plan;
 use App\Entity\User;
 use App\Entity\Course;
+use Stripe\Webhook;
 use Stripe\PromotionCode;
 use App\Entity\Subscription;
 use App\Entity\PromoCodeUsage;
@@ -143,25 +145,13 @@ class SubscriptionController extends AbstractController
         ]);
 
         if ($existingSubscription) {
-            foreach ($plan->getPlanCourses() as $planCourse) {
-                // Créer ou mettre à jour SubscriptionCourse pour chaque cours du plan
-                $subscriptionCourse = $existingSubscription->getSubscriptionCourses()->filter(function ($sc) use ($planCourse) {
-                    return $sc->getCourse()->getId() === $planCourse->getCourse()->getId();
-                })->first();
+            $existingSubscription->incrementPaymentsCount();
 
-                if ($subscriptionCourse) {
-                    $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + $planCourse->getCredits());
-                } else {
-                    $subscriptionCourse = new SubscriptionCourse();
-                    $subscriptionCourse->setSubscription($existingSubscription);
-                    $subscriptionCourse->setCourse($planCourse->getCourse());
-                    $subscriptionCourse->setRemainingCredits($planCourse->getCredits());
-                    $existingSubscription->addSubscriptionCourse($subscriptionCourse);
-                }
-            }
-
-            if ($existingSubscription->getExpiryDate() < $expiryDate) {
-                $existingSubscription->setExpiryDate($expiryDate);
+            if ($existingSubscription->getPaymentsCount() >= $existingSubscription->getMaxPayments()) {
+                // Annuler l'abonnement sur Stripe
+                $this->cancelStripeSubscription($existingSubscription->getStripeSubscriptionId());
+                $existingSubscription->setExpiryDate(new \DateTime());
+                $existingSubscription->setIsActive(false);
             }
 
             $em->persist($existingSubscription);
@@ -169,9 +159,11 @@ class SubscriptionController extends AbstractController
             $subscription = new Subscription();
             $subscription->setUser($user);
             $subscription->setPlan($plan);
+            $subscription->setStripeSubscriptionId($session->subscription);
+            $subscription->incrementPaymentsCount();
+            $subscription->setMaxPayments($plan->getMaxPayments());  // Utiliser la valeur du plan pour maxPayments
 
             foreach ($plan->getPlanCourses() as $planCourse) {
-                // Créer SubscriptionCourse pour chaque cours du plan
                 $subscriptionCourse = new SubscriptionCourse();
                 $subscriptionCourse->setSubscription($subscription);
                 $subscriptionCourse->setCourse($planCourse->getCourse());
@@ -188,6 +180,7 @@ class SubscriptionController extends AbstractController
         }
 
         if (strpos($plan->getName(), 'pole_annuel_classique_activite') !== false) {
+            // Gérer les cours supplémentaires
             $souplessePlan = $em->getRepository(Plan::class)->findOneBy(['name' => 'souplesse_annuel_classique']);
 
             if ($souplessePlan) {
@@ -251,19 +244,18 @@ class SubscriptionController extends AbstractController
 
         $this->addFlash('success', 'Your subscription has been successfully created.');
 
-        // Envoi d'un email de confirmation d'achat de forfait
         $userEmail = $user->getEmail();
         $planName = $plan->getName();
         $expiryDateFormatted = $expiryDate->format('d/m/Y');
         $userEmailMessage = sprintf(
             'Bonjour,
-            
+
 Votre achat concernant l\'abonnement du forfait "%s" a bien été pris en compte et expirera le %s.
 Nous vous remercions et vous souhaitons une très bonne journée.
 
 Cordialement,
 AirStudio73
-            ',
+        ',
             $planName,
             $expiryDateFormatted
         );
@@ -271,6 +263,21 @@ AirStudio73
         $this->sendEmail($userEmail, 'Confirmation d\'Achat de Forfait', $userEmailMessage, $logger);
 
         return $this->redirectToRoute('user_subscription');
+    }
+
+    #[Route('/subscription/cancel', name: 'subscription_cancel')]
+    public function cancel(): Response
+    {
+        $this->addFlash('error', 'The payment was canceled.');
+        return $this->redirectToRoute('subscription_new');
+    }
+
+    private function cancelStripeSubscription(string $subscriptionId): void
+    {
+        Stripe::setApiKey($this->getParameter('stripe.secret_key'));
+
+        $subscription = \Stripe\Subscription::retrieve($subscriptionId);
+        $subscription->cancel();
     }
 
     private function validatePromoCode(string $promoCode): ?string
@@ -290,13 +297,6 @@ AirStudio73
         } catch (\Exception $e) {
             return null;
         }
-    }
-
-    #[Route('/subscription/cancel', name: 'subscription_cancel')]
-    public function cancel(): Response
-    {
-        $this->addFlash('error', 'The payment was canceled.');
-        return $this->redirectToRoute('subscription_new');
     }
 
     private function sendEmail(string $to, string $subject, string $message, LoggerInterface $logger): void

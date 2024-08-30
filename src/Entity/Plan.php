@@ -25,7 +25,7 @@ class Plan
     private ?string $stripePriceId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $paymentMode = null;
+    private ?string $maxPayments = null;
 
     #[ORM\OneToMany(targetEntity: PlanCourse::class, mappedBy: 'plan', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $planCourses;
@@ -59,6 +59,17 @@ class Plan
     public function setDuration(string $duration): self
     {
         $this->duration = $duration;
+        return $this;
+    }
+
+    public function getMaxPayments(): ?string
+    {
+        return $this->maxPayments;
+    }
+
+    public function setMaxPayments(string $maxPayments): self
+    {
+        $this->maxPayments = $maxPayments;
         return $this;
     }
 

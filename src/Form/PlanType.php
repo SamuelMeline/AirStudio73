@@ -26,6 +26,9 @@ class PlanType extends AbstractType
                 ],
                 'placeholder' => 'Sélectionnez une durée',
             ])
+            ->add('maxPayments', TextType::class, [
+                'label' => 'Mode de paiement',
+            ])
             ->add('stripePriceId', TextType::class, [
                 'label' => 'ID du prix Stripe',
             ])
