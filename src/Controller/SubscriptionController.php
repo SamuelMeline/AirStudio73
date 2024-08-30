@@ -73,6 +73,7 @@ class SubscriptionController extends AbstractController
                 'quantity' => 1,
             ];
 
+            // Forcer l'utilisation du mode "subscription" pour Stripe
             $session = StripeSession::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [$lineItem],
@@ -138,96 +139,34 @@ class SubscriptionController extends AbstractController
 
         $expiryDate = (new \DateTime())->add(new \DateInterval($plan->getDuration()));
 
-        // Cumuler les crédits des cours si l'abonnement existe déjà
-        $existingSubscription = $em->getRepository(Subscription::class)->findOneBy([
-            'user' => $user,
-            'plan' => $plan,
-        ]);
+        // Créer un nouvel abonnement, même s'il en existe déjà un du même type
+        $subscription = new Subscription();
+        $subscription->setUser($user);
+        $subscription->setPlan($plan);
+        $subscription->setStripeSubscriptionId($session->subscription);
+        $subscription->incrementPaymentsCount();
+        $subscription->setMaxPayments($plan->getMaxPayments());
 
-        if ($existingSubscription) {
-            $existingSubscription->incrementPaymentsCount();
-
-            if ($existingSubscription->getPaymentsCount() >= $existingSubscription->getMaxPayments()) {
-                // Annuler l'abonnement sur Stripe
-                $this->cancelStripeSubscription($existingSubscription->getStripeSubscriptionId());
-                $existingSubscription->setExpiryDate(new \DateTime());
-                $existingSubscription->setIsActive(false);
-            }
-
-            $em->persist($existingSubscription);
-        } else {
-            $subscription = new Subscription();
-            $subscription->setUser($user);
-            $subscription->setPlan($plan);
-            $subscription->setStripeSubscriptionId($session->subscription);
-            $subscription->incrementPaymentsCount();
-            $subscription->setMaxPayments($plan->getMaxPayments());  // Utiliser la valeur du plan pour maxPayments
-
-            foreach ($plan->getPlanCourses() as $planCourse) {
-                $subscriptionCourse = new SubscriptionCourse();
-                $subscriptionCourse->setSubscription($subscription);
-                $subscriptionCourse->setCourse($planCourse->getCourse());
-                $subscriptionCourse->setRemainingCredits($planCourse->getCredits());
-                $subscription->addSubscriptionCourse($subscriptionCourse);
-            }
-
-            $subscription->setPurchaseDate(new \DateTime());
-            $subscription->setExpiryDate($expiryDate);
-            $subscription->setPromoCode($promoCode);
-            $subscription->setPaymentMode($plan->getName());
-
-            $em->persist($subscription);
+        foreach ($plan->getPlanCourses() as $planCourse) {
+            $subscriptionCourse = new SubscriptionCourse();
+            $subscriptionCourse->setSubscription($subscription);
+            $subscriptionCourse->setCourse($planCourse->getCourse());
+            $subscriptionCourse->setRemainingCredits($planCourse->getCredits());
+            $subscription->addSubscriptionCourse($subscriptionCourse);
         }
 
-        if (strpos($plan->getName(), 'pole_annuel_classique_activite') !== false) {
-            // Gérer les cours supplémentaires
-            $souplessePlan = $em->getRepository(Plan::class)->findOneBy(['name' => 'souplesse_annuel_classique']);
+        $subscription->setPurchaseDate(new \DateTime());
+        $subscription->setExpiryDate($expiryDate);
+        $subscription->setPromoCode($promoCode);
+        $subscription->setPaymentMode($plan->getName());
 
-            if ($souplessePlan) {
-                $existingSouplesseSubscription = $em->getRepository(Subscription::class)->findOneBy([
-                    'user' => $user,
-                    'plan' => $souplessePlan,
-                ]);
+        $em->persist($subscription);
 
-                if ($existingSouplesseSubscription) {
-                    $souplesseCourse = $existingSouplesseSubscription->getSubscriptionCourses()->filter(function ($sc) {
-                        return $sc->getCourse()->getName() === 'Souplesse';
-                    })->first();
-
-                    if ($souplesseCourse) {
-                        $souplesseCourse->setRemainingCredits($souplesseCourse->getRemainingCredits() + 43);
-                    } else {
-                        $souplesseCourse = new SubscriptionCourse();
-                        $souplesseCourse->setSubscription($existingSouplesseSubscription);
-                        $souplesseCourse->setCourse($em->getRepository(Course::class)->findOneBy(['name' => 'Souplesse']));
-                        $souplesseCourse->setRemainingCredits(43);
-                        $existingSouplesseSubscription->addSubscriptionCourse($souplesseCourse);
-                    }
-
-                    if ($existingSouplesseSubscription->getExpiryDate() < $expiryDate) {
-                        $existingSouplesseSubscription->setExpiryDate($expiryDate);
-                    }
-
-                    $em->persist($existingSouplesseSubscription);
-                } else {
-                    $souplesseSubscription = new Subscription();
-                    $souplesseSubscription->setUser($user);
-                    $souplesseSubscription->setPlan($souplessePlan);
-                    $souplesseSubscription->setPurchaseDate(new \DateTime());
-                    $souplesseSubscription->setExpiryDate($expiryDate);
-                    $souplesseSubscription->setPromoCode($promoCode);
-                    $souplesseSubscription->setPaymentMode('souplesse_annuel_classique');
-
-                    // Créer SubscriptionCourse pour Souplesse
-                    $souplesseCourse = new SubscriptionCourse();
-                    $souplesseCourse->setSubscription($souplesseSubscription);
-                    $souplesseCourse->setCourse($em->getRepository(Course::class)->findOneBy(['name' => 'Souplesse']));
-                    $souplesseCourse->setRemainingCredits(43);
-                    $souplesseSubscription->addSubscriptionCourse($souplesseCourse);
-
-                    $em->persist($souplesseSubscription);
-                }
-            }
+        // Annuler immédiatement l'abonnement si max_payments est 1
+        if ($subscription->getMaxPayments() == 1) {
+            $this->cancelStripeSubscription($subscription->getStripeSubscriptionId());
+            $subscription->setIsActive(false);
+            $subscription->setExpiryDate(new \DateTime());
         }
 
         // Enregistrer l'utilisation du code promo

@@ -17,7 +17,6 @@ class WebhookController extends AbstractController
 
     public function __construct(EntityManagerInterface $entityManager)
     {
-        // Récupérer le secret d'endpoint Stripe depuis les variables d'environnement
         $this->stripeEndpointSecret = $_ENV['STRIPE_ENDPOINT_SECRET'];
         $this->entityManager = $entityManager;
     }
@@ -25,22 +24,17 @@ class WebhookController extends AbstractController
     #[Route('/stripe/webhook', name: 'stripe_webhook', methods: ['POST'])]
     public function handleStripeWebhook(Request $request): Response
     {
-        error_log('handleSubscriptionDeleted called');
         $payload = $request->getContent();
         $sigHeader = $request->headers->get('stripe-signature');
 
         try {
-            // Vérifier l'authenticité de la requête
             $event = Webhook::constructEvent($payload, $sigHeader, $this->stripeEndpointSecret);
         } catch (\UnexpectedValueException $e) {
-            // Invalid payload
             return new Response('Invalid payload', Response::HTTP_BAD_REQUEST);
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            // Invalid signature
             return new Response('Invalid signature', Response::HTTP_BAD_REQUEST);
         }
 
-        // Traiter l'événement selon son type
         switch ($event->type) {
             case 'invoice.payment_succeeded':
                 $this->handleInvoicePaymentSucceeded($event->data->object);
@@ -51,9 +45,7 @@ class WebhookController extends AbstractController
             case 'customer.subscription.deleted':
                 $this->handleSubscriptionDeleted($event->data->object);
                 break;
-                // Ajouter d'autres cas pour les événements que vous souhaitez traiter
             default:
-                // Si l'événement n'est pas géré, on retourne une réponse sans action
                 return new Response(sprintf('Unhandled event type: %s', $event->type));
         }
 
@@ -62,10 +54,8 @@ class WebhookController extends AbstractController
 
     private function handleInvoicePaymentSucceeded($invoice)
     {
-        // Récupérer l'ID de l'abonnement à partir de l'objet invoice
         $subscriptionId = $invoice->subscription;
 
-        // Rechercher l'abonnement dans la base de données
         $subscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
             'stripeSubscriptionId' => $subscriptionId,
         ]);
@@ -74,15 +64,11 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
-        // Incrémenter le compteur de paiements
         $subscription->incrementPaymentsCount();
 
-        // Vérifier si le nombre de paiements a atteint le maximum
         if ($subscription->getPaymentsCount() >= $subscription->getMaxPayments()) {
-            // Mettre à jour l'abonnement pour qu'il soit inactif
             $subscription->setIsActive(false);
 
-            // Annuler l'abonnement sur Stripe
             try {
                 \Stripe\Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
                 $stripeSubscription = \Stripe\Subscription::retrieve($subscriptionId);
@@ -92,7 +78,6 @@ class WebhookController extends AbstractController
             }
         }
 
-        // Enregistrer les modifications dans la base de données
         $this->entityManager->flush();
 
         return new Response('Success', Response::HTTP_OK);
