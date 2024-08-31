@@ -45,6 +45,24 @@ class WebhookController extends AbstractController
             case 'customer.subscription.deleted':
                 $this->handleSubscriptionDeleted($event->data->object);
                 break;
+            case 'checkout.session.completed':
+                $this->handleCheckoutSessionCompleted($event->data->object);
+                break;
+            case 'payment_method.attached':
+                $this->handlePaymentMethodAttached($event->data->object);
+                break;
+            case 'charge.succeeded':
+                $this->handleChargeSucceeded($event->data->object);
+                break;
+            case 'customer.created':
+            case 'customer.updated':
+            case 'invoice.created':
+            case 'invoice.finalized':
+            case 'invoice.paid':
+            case 'invoice.updated':
+            case 'payment_intent.succeeded':
+            case 'payment_intent.created':
+                break;
             default:
                 return new Response(sprintf('Unhandled event type: %s', $event->type));
         }
@@ -79,16 +97,12 @@ class WebhookController extends AbstractController
         }
 
         $this->entityManager->flush();
-
-        return new Response('Success', Response::HTTP_OK);
     }
 
     private function handleSubscriptionUpdated($subscription)
     {
-        // Récupérer l'ID de l'abonnement Stripe
         $subscriptionId = $subscription->id;
 
-        // Rechercher l'abonnement dans la base de données
         $existingSubscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
             'stripeSubscriptionId' => $subscriptionId,
         ]);
@@ -97,9 +111,9 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
-        // Mettre à jour l'abonnement selon les données reçues
-        // Par exemple, vous pourriez mettre à jour la date de fin, le statut, etc.
-        $existingSubscription->setExpiryDate(new \DateTime('@' . $subscription->current_period_end));
+        $newExpiryDate = new \DateTime('@' . $subscription->current_period_end);
+
+        $existingSubscription->setExpiryDate($newExpiryDate);
         $existingSubscription->setIsActive($subscription->status === 'active');
 
         $this->entityManager->flush();
@@ -107,10 +121,8 @@ class WebhookController extends AbstractController
 
     private function handleSubscriptionDeleted($subscription)
     {
-        // Récupérer l'ID de l'abonnement Stripe
         $subscriptionId = $subscription->id;
 
-        // Rechercher l'abonnement dans la base de données
         $existingSubscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
             'stripeSubscriptionId' => $subscriptionId,
         ]);
@@ -119,10 +131,24 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
-        // Désactiver l'abonnement ou le marquer comme annulé
         $existingSubscription->setIsActive(false);
         $existingSubscription->setExpiryDate(new \DateTime());
 
         $this->entityManager->flush();
+    }
+
+    private function handleCheckoutSessionCompleted($session)
+    {
+        // Gestion de l'événement checkout.session.completed
+    }
+
+    private function handlePaymentMethodAttached($paymentMethod)
+    {
+        // Gestion de l'événement payment_method.attached
+    }
+
+    private function handleChargeSucceeded($charge)
+    {
+        // Gestion de l'événement charge.succeeded
     }
 }

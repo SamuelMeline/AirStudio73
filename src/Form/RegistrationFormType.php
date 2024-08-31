@@ -27,7 +27,7 @@ class RegistrationFormType extends AbstractType
     {
         $this->authChecker = $authChecker;
     }
-    
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -86,22 +86,30 @@ class RegistrationFormType extends AbstractType
                     ]),
                 ],
             ])
+            ->add('address', TextType::class, [
+                'label' => 'Adresse postale',
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'L\'adresse postale est obligatoire',
+                    ]),
+                ],
+            ])
             ->add('notes', TextareaType::class, [
                 'label' => 'Notes supplémentaires',
                 'required' => false,
             ]);
 
-            if ($this->authChecker->isGranted('ROLE_ADMIN')) {
-                $builder->add('roles', ChoiceType::class, [
-                    'label' => 'Rôles',
-                    'choices' => [
-                        'Utilisateur' => 'ROLE_USER',
-                        'Administrateur' => 'ROLE_ADMIN',
-                    ],
-                    'multiple' => true,
-                    'expanded' => true,
-                ]);
-            }
+        if ($this->authChecker->isGranted('ROLE_ADMIN')) {
+            $builder->add('roles', ChoiceType::class, [
+                'label' => 'Rôles',
+                'choices' => [
+                    'Utilisateur' => 'ROLE_USER',
+                    'Administrateur' => 'ROLE_ADMIN',
+                ],
+                'multiple' => true,
+                'expanded' => true,
+            ]);
+        }
 
         // Ajout de l'écouteur d'événement pour valider les mots de passe
         $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {

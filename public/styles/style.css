@@ -103,15 +103,11 @@ th {
 /* Boutons */
 .reserve-btn {
     display: inline-block;
-    padding: 5px 10px;
+    /* padding: 5px 10px; */
     background-color: #4caf50;
     color: white;
     text-decoration: none;
     border-radius: 3px;
-}
-
-.reserve-btn:hover {
-    background-color: #45a049;
 }
 
 button[disabled] {

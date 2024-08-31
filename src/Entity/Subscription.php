@@ -23,10 +23,10 @@ class Subscription
     #[ORM\JoinColumn(nullable: false)]
     private ?Plan $plan = null;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'date')] // Changer en 'date'
     private ?\DateTimeInterface $purchaseDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'date', nullable: true)] // Changer en 'date'
     private ?\DateTimeInterface $expiryDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -42,7 +42,7 @@ class Subscription
     private bool $isActive = true;
 
     #[ORM\Column(name: 'stripe_subscription_id', type: 'string', length: 255, nullable: true)]
-    private ?string $stripeSubscriptionId = null;    
+    private ?string $stripeSubscriptionId = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $promoCode = null;
@@ -52,7 +52,14 @@ class Subscription
 
     public function __construct()
     {
+        $this->purchaseDate = new \DateTime();
         $this->subscriptionCourses = new ArrayCollection();
+    }
+
+    public function isValid(): bool
+    {
+        $currentDate = new \DateTime();
+        return $this->expiryDate === null || $currentDate <= $this->expiryDate;
     }
 
     public function getId(): ?int
@@ -68,7 +75,6 @@ class Subscription
     public function setUser(User $user): self
     {
         $this->user = $user;
-
         return $this;
     }
 
@@ -81,8 +87,15 @@ class Subscription
     {
         $this->plan = $plan;
 
+        if ($plan->getEndDate() !== null) {
+            $this->expiryDate = $plan->getEndDate(); // Vérifiez ici
+        } else {
+            throw new \Exception("Plan does not have an end date.");
+        }
+
         return $this;
     }
+
 
     public function getPurchaseDate(): ?\DateTimeInterface
     {
@@ -92,7 +105,6 @@ class Subscription
     public function setPurchaseDate(\DateTimeInterface $purchaseDate): self
     {
         $this->purchaseDate = $purchaseDate;
-
         return $this;
     }
 
@@ -103,8 +115,11 @@ class Subscription
 
     public function setExpiryDate(?\DateTimeInterface $expiryDate): self
     {
+        if ($expiryDate < new \DateTime()) {
+            throw new \Exception("Expiry date cannot be in the past.");
+        }
+    
         $this->expiryDate = $expiryDate;
-
         return $this;
     }
 
@@ -116,7 +131,6 @@ class Subscription
     public function setPaymentMode(?string $paymentMode): self
     {
         $this->paymentMode = $paymentMode;
-
         return $this;
     }
 
@@ -125,7 +139,7 @@ class Subscription
         $this->paymentsCount++;
         return $this;
     }
-    
+
     public function getPaymentsCount(): int
     {
         return $this->paymentsCount;
@@ -167,7 +181,6 @@ class Subscription
     public function setStripeSubscriptionId(string $stripe_subscription_id): self
     {
         $this->stripeSubscriptionId = $stripe_subscription_id;
-
         return $this;
     }
 
@@ -179,13 +192,9 @@ class Subscription
     public function setPromoCode(?string $promoCode): self
     {
         $this->promoCode = $promoCode;
-
         return $this;
     }
 
-    /**
-     * @return Collection|SubscriptionCourse[]
-     */
     public function getSubscriptionCourses(): Collection
     {
         return $this->subscriptionCourses;
@@ -204,7 +213,6 @@ class Subscription
     public function removeSubscriptionCourse(SubscriptionCourse $subscriptionCourse): self
     {
         if ($this->subscriptionCourses->removeElement($subscriptionCourse)) {
-            // set the owning side to null (unless already changed)
             if ($subscriptionCourse->getSubscription() === $this) {
                 $subscriptionCourse->setSubscription(null);
             }

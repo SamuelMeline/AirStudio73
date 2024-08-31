@@ -18,14 +18,20 @@ class Plan
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $duration = null;
+    // #[ORM\Column(type: 'string', length: 255)]
+    // private ?string $duration = null;
 
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $stripePriceId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $maxPayments = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $startDate = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $endDate = null;
 
     #[ORM\OneToMany(targetEntity: PlanCourse::class, mappedBy: 'plan', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $planCourses;
@@ -51,16 +57,16 @@ class Plan
         return $this;
     }
 
-    public function getDuration(): ?string
-    {
-        return $this->duration;
-    }
+    // public function getDuration(): ?string
+    // {
+    //     return $this->duration;
+    // }
 
-    public function setDuration(string $duration): self
-    {
-        $this->duration = $duration;
-        return $this;
-    }
+    // public function setDuration(string $duration): self
+    // {
+    //     $this->duration = $duration;
+    //     return $this;
+    // }
 
     public function getMaxPayments(): ?string
     {
@@ -81,6 +87,28 @@ class Plan
     public function setStripePriceId(string $stripePriceId): self
     {
         $this->stripePriceId = $stripePriceId;
+        return $this;
+    }
+
+    public function getStartDate(): ?\DateTimeInterface
+    {
+        return $this->startDate;
+    }
+
+    public function setStartDate(?\DateTimeInterface $startDate): self
+    {
+        $this->startDate = $startDate;
+        return $this;
+    }
+
+    public function getEndDate(): ?\DateTimeInterface
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?\DateTimeInterface $endDate): self
+    {
+        $this->endDate = $endDate;
         return $this;
     }
 

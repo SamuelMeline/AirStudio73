@@ -1,7 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inscription
-{% endblock %}
+{% block title %}Inscription{% endblock %}
 
 {% block body %}
 	<div class="container register">
@@ -48,6 +47,12 @@
 							{{ form_label(registrationForm.phoneNumber, null, {'label_attr': {'class': 'form-label'}}) }}
 							{{ form_widget(registrationForm.phoneNumber, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre numéro de téléphone'}}) }}
 							{{ form_errors(registrationForm.phoneNumber) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(registrationForm.address, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(registrationForm.address, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre adresse postale'}}) }}
+							{{ form_errors(registrationForm.address) }}
 						</div>
 
 						<div class="form-group mb-3">

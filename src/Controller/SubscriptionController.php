@@ -3,29 +3,25 @@
 namespace App\Controller;
 
 use Stripe\Stripe;
-use Stripe\Event;
 use App\Entity\Plan;
 use App\Entity\User;
-use App\Entity\Course;
-use Stripe\Webhook;
 use Stripe\PromotionCode;
 use App\Entity\Subscription;
 use App\Entity\PromoCodeUsage;
 use App\Form\SubscriptionType;
 use App\Entity\SubscriptionCourse;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport;
 use Doctrine\ORM\EntityManagerInterface;
 use Stripe\Checkout\Session as StripeSession;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mailer\Mailer;
-use Symfony\Component\Mailer\Transport;
-use Symfony\Component\Mime\Email;
 
 class SubscriptionController extends AbstractController
 {
@@ -37,24 +33,19 @@ class SubscriptionController extends AbstractController
     {
         $subscription = new Subscription();
         $form = $this->createForm(SubscriptionType::class, $subscription);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
-            $plan = $subscription->getPlan();
-            $promoCode = $form->get('promoCode')->getData();
             $user = $this->getUser();
+            $plan = $form->get('plan')->getData();
 
-            // Vérifier si l'utilisateur a déjà utilisé ce code promo
-            $existingUsage = $em->getRepository(PromoCodeUsage::class)
-                ->findOneBy(['user' => $user, 'promoCode' => $promoCode]);
+            $subscription->setUser($user);
+            $subscription->setPlan($plan);
 
-            if ($existingUsage) {
-                $this->addFlash('error', 'You have already used this promo code.');
-                return $this->redirectToRoute('subscription_new');
-            }
-
+            $promoCode = $form->get('promoCode')->getData();
             $stripePriceId = $plan->getStripePriceId();
 
             $discounts = [];
@@ -73,7 +64,6 @@ class SubscriptionController extends AbstractController
                 'quantity' => 1,
             ];
 
-            // Forcer l'utilisation du mode "subscription" pour Stripe
             $session = StripeSession::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [$lineItem],
@@ -98,7 +88,7 @@ class SubscriptionController extends AbstractController
 
     #[Route('/subscription/success', name: 'subscription_success')]
     #[IsGranted('ROLE_USER')]
-    public function success(Request $request, EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function success(Request $request, EntityManagerInterface $em): Response
     {
         $sessionId = $request->query->get('session_id');
         if (!$sessionId) {
@@ -137,15 +127,26 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
-        $expiryDate = (new \DateTime())->add(new \DateInterval($plan->getDuration()));
-
-        // Créer un nouvel abonnement, même s'il en existe déjà un du même type
         $subscription = new Subscription();
         $subscription->setUser($user);
         $subscription->setPlan($plan);
+
+
+        // Vérification de l'endDate ici
+        if ($plan->getEndDate() !== null) {
+            $subscription->setExpiryDate($plan->getEndDate());
+        } else {
+            throw new \Exception("Plan does not have a valid end date.");
+        }
+
+        $subscription->setExpiryDate($plan->getEndDate()); // Correctement fixer la date d'expiration
+
         $subscription->setStripeSubscriptionId($session->subscription);
         $subscription->incrementPaymentsCount();
         $subscription->setMaxPayments($plan->getMaxPayments());
+        $subscription->setPurchaseDate(new \DateTime());
+        $subscription->setPromoCode($promoCode);
+        $subscription->setPaymentMode($plan->getName());
 
         foreach ($plan->getPlanCourses() as $planCourse) {
             $subscriptionCourse = new SubscriptionCourse();
@@ -155,21 +156,13 @@ class SubscriptionController extends AbstractController
             $subscription->addSubscriptionCourse($subscriptionCourse);
         }
 
-        $subscription->setPurchaseDate(new \DateTime());
-        $subscription->setExpiryDate($expiryDate);
-        $subscription->setPromoCode($promoCode);
-        $subscription->setPaymentMode($plan->getName());
-
         $em->persist($subscription);
 
-        // Annuler immédiatement l'abonnement si max_payments est 1
         if ($subscription->getMaxPayments() == 1) {
             $this->cancelStripeSubscription($subscription->getStripeSubscriptionId());
             $subscription->setIsActive(false);
-            $subscription->setExpiryDate(new \DateTime());
         }
 
-        // Enregistrer l'utilisation du code promo
         if ($promoCode) {
             $promoCodeUsage = new PromoCodeUsage();
             $promoCodeUsage->setUser($user);
@@ -185,7 +178,7 @@ class SubscriptionController extends AbstractController
 
         $userEmail = $user->getEmail();
         $planName = $plan->getName();
-        $expiryDateFormatted = $expiryDate->format('d/m/Y');
+        $expiryDateFormatted = $subscription->getExpiryDate()->format('d/m/Y');
         $userEmailMessage = sprintf(
             'Bonjour,
 
@@ -193,13 +186,12 @@ Votre achat concernant l\'abonnement du forfait "%s" a bien été pris en compte
 Nous vous remercions et vous souhaitons une très bonne journée.
 
 Cordialement,
-AirStudio73
-        ',
+AirStudio73',
             $planName,
             $expiryDateFormatted
         );
 
-        $this->sendEmail($userEmail, 'Confirmation d\'Achat de Forfait', $userEmailMessage, $logger);
+        $this->sendEmail($userEmail, 'Confirmation d\'Achat de Forfait', $userEmailMessage);
 
         return $this->redirectToRoute('user_subscription');
     }
@@ -238,7 +230,7 @@ AirStudio73
         }
     }
 
-    private function sendEmail(string $to, string $subject, string $message, LoggerInterface $logger): void
+    private function sendEmail(string $to, string $subject, string $message): void
     {
         $email = (new Email())
             ->from(self::SENDER_EMAIL)
@@ -248,13 +240,11 @@ AirStudio73
             ->text($message);
 
         try {
-            $logger->info('Sending email to: ' . $to);
             $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
             $mailer = new Mailer($transport);
             $mailer->send($email);
-            $logger->info('Email sent successfully to: ' . $to);
         } catch (\Exception $e) {
-            $logger->error('Failed to send email to ' . $to . ': ' . $e->getMessage());
+            // Gérer l'erreur d'envoi d'email si nécessaire
         }
     }
 }

@@ -24,30 +24,12 @@ class UserController extends AbstractController
         $user = $this->getUser();
         $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user]);
 
-        // Filtrer les abonnements pour garder seulement ceux avec des crédits restants
-        $activeSubscriptions = array_filter($subscriptions, function ($subscription) {
-            foreach ($subscription->getSubscriptionCourses() as $subscriptionCourse) {
-                if ($subscriptionCourse->getRemainingCredits() > 0) {
-                    return true;
-                }
-            }
-            return false;
-        });
-
-        // Trier les abonnements par date d'expiration et nombre de crédits restants
-        usort($activeSubscriptions, function ($a, $b) {
-            if ($a->getExpiryDate() == $b->getExpiryDate()) {
-                $aCredits = array_sum(array_map(fn ($sc) => $sc->getRemainingCredits(), $a->getSubscriptionCourses()->toArray()));
-                $bCredits = array_sum(array_map(fn ($sc) => $sc->getRemainingCredits(), $b->getSubscriptionCourses()->toArray()));
-                return $aCredits - $bCredits;
-            }
-            return $a->getExpiryDate() <=> $b->getExpiryDate();
-        });
-
+        // Supprimez tout filtre et affichez simplement tous les abonnements
         return $this->render('user/subscription.html.twig', [
-            'subscriptions' => $activeSubscriptions,
+            'subscriptions' => $subscriptions,
         ]);
     }
+
 
     #[Route('/admin/clients', name: 'admin_client_list')]
     #[IsGranted('ROLE_ADMIN')]

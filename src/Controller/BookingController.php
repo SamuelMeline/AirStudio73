@@ -29,13 +29,17 @@ class BookingController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em, LoggerInterface $logger, int $courseId): Response
     {
         $course = $em->getRepository(Course::class)->find($courseId);
-
         if (!$course) {
             throw $this->createNotFoundException('No course found for id ' . $courseId);
         }
 
-        $user = $this->getUser();
+        // Vérification si le cours est déjà passé
+        if ($course->getStartTime() < new \DateTime()) {
+            $this->addFlash('error', 'Vous ne pouvez pas réserver un cours qui est déjà passé.');
+            return $this->redirectToRoute('calendar');
+        }
 
+        $user = $this->getUser();
         if (!$user instanceof User) {
             throw new \LogicException('L\'utilisateur doit être un objet de type User.');
         }
@@ -83,7 +87,7 @@ class BookingController extends AbstractController
             $em->persist($booking);
             $em->flush();
 
-            $validSubscriptionCourse->setRemainingCredits($remainingCourseCredits - 1);
+            $validSubscriptionCourse->setRemainingCredits($remainingCourseCredits - $numOccurrences); // Décrémenter le nombre de crédits utilisés
             $em->persist($validSubscriptionCourse);
             $em->flush();
 
@@ -144,14 +148,11 @@ Airstudio73
             return $this->redirectToRoute('calendar');
         }
 
-        // Vérification si le cours est dans moins de 3 jours
+        // Vérification si le cours commence dans moins de 6 heures
         $courseStartTime = $booking->getCourse()->getStartTime();
         $currentDate = new \DateTime();
-        $interval = $currentDate->diff($courseStartTime);
-        $daysUntilCourse = (int) $interval->format('%a');
-
-        if ($daysUntilCourse < 3) {
-            $this->addFlash('error', 'You cannot cancel a booking less than 3 days before the course.');
+        if ($courseStartTime < $currentDate->add(new \DateInterval('PT6H'))) {
+            $this->addFlash('error', 'You cannot cancel a booking less than 6 hours before the course.');
             return $this->redirectToRoute('calendar');
         }
 
@@ -239,15 +240,12 @@ Airstudio73
                 return $this->redirectToRoute('booking_manage');
             }
 
-            // Vérification si le cours est dans moins de 3 jours
+            // Vérification si le cours commence dans moins de 6 heures
             $courseStartTime = $booking->getCourse()->getStartTime();
             $currentDate = new \DateTime();
-            $interval = $currentDate->diff($courseStartTime);
-            $daysUntilCourse = (int) $interval->format('%a');
-
-            if ($daysUntilCourse < 3) {
+            if ($courseStartTime < $currentDate->add(new \DateInterval('PT6H'))) {
                 $this->addFlash('error', sprintf(
-                    'Vous ne pouvez pas annuler la réservation pour le cours "%s" prévu le %s à %s car il commence dans moins de 3 jours.',
+                    'Vous ne pouvez pas annuler la réservation pour le cours "%s" prévu le %s à %s car il commence dans moins de 6 heures.',
                     $booking->getCourse()->getName(),
                     $courseStartTime->format('d/m/Y'),
                     $courseStartTime->format('H:i')
@@ -325,6 +323,10 @@ Airstudio73
     private function getValidSubscriptionCourse(array $subscriptions, Course $course): ?SubscriptionCourse
     {
         foreach ($subscriptions as $sub) {
+            if (!$this->isSubscriptionValid($sub)) {
+                error_log(sprintf("Skipping expired subscription ID: %d", $sub->getId()));
+                continue; // Ignore les abonnements expirés ou inactifs
+            }
             foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
                 if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
                     return $subscriptionCourse;
@@ -332,6 +334,12 @@ Airstudio73
             }
         }
         return null;
+    }
+
+    private function isSubscriptionValid(Subscription $subscription): bool
+    {
+        // Ne pas vérifier l'activation de l'abonnement
+        return $subscription->isValid(); // Assurez-vous que l'abonnement est valide
     }
 
     private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, SubscriptionCourse $subscriptionCourse, Course $course): void

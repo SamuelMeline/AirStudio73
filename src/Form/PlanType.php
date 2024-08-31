@@ -8,7 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 
 class PlanType extends AbstractType
 {
@@ -18,13 +18,15 @@ class PlanType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Nom du forfait',
             ])
-            ->add('duration', ChoiceType::class, [
-                'label' => 'Durée du forfait',
-                'choices' => [
-                    '3 Mois' => 'P3M',
-                    '1 An' => 'P1Y',
-                ],
-                'placeholder' => 'Sélectionnez une durée',
+            ->add('startDate', DateType::class, [
+                'label' => 'Date de début',
+                'widget' => 'single_text',
+                'required' => true,
+            ])
+            ->add('endDate', DateType::class, [
+                'label' => 'Date de fin',
+                'widget' => 'single_text',
+                'required' => true,
             ])
             ->add('maxPayments', TextType::class, [
                 'label' => 'Mode de paiement',

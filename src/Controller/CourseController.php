@@ -33,6 +33,11 @@ class CourseController extends AbstractController
                     $endTime = clone $course->getEndTime();
                     $endTime->add(new \DateInterval('P' . ($i * $course->getRecurrenceInterval()) . 'D'));
 
+                    // Vérification pour s'assurer que l'heure de fin est après l'heure de début
+                    if ($endTime <= $startTime) {
+                        throw new \LogicException('L\'heure de fin doit être après l\'heure de début.');
+                    }
+
                     $recurrentCourse = new Course();
                     $recurrentCourse->setName($course->getName());
                     $recurrentCourse->setStartTime($startTime);
