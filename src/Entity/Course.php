@@ -34,6 +34,9 @@ class Course
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $recurrenceDuration  = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isCanceled = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -113,13 +116,24 @@ class Course
 
     public function getRecurrenceDuration(): ?string
     {
-        return $this->recurrenceDuration ;
+        return $this->recurrenceDuration;
     }
 
-    public function setRecurrenceDuration(?string $recurrenceDuration ): self
+    public function setRecurrenceDuration(?string $recurrenceDuration): self
     {
-        $this->recurrenceDuration  = $recurrenceDuration ;
+        $this->recurrenceDuration  = $recurrenceDuration;
 
+        return $this;
+    }
+    
+    public function getIsCanceled(): bool
+    {
+        return $this->isCanceled;
+    }
+
+    public function setIsCanceled(bool $isCanceled): self
+    {
+        $this->isCanceled = $isCanceled;
         return $this;
     }
 }

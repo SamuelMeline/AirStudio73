@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\DBAL\Exception;
 
 class BookingController extends AbstractController
 {
@@ -200,6 +201,59 @@ Airstudio73
             ),
             $logger
         );
+
+        return $this->redirectToRoute('calendar');
+    }
+
+    #[Route('/admin/course/cancel/{courseId}', name: 'admin_course_cancel')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminCancelCourse(int $courseId, EntityManagerInterface $em, LoggerInterface $logger): Response
+    {
+        $course = $em->getRepository(Course::class)->find($courseId);
+
+        if (!$course) {
+            $this->addFlash('error', 'Cours non trouvé.');
+            return $this->redirectToRoute('calendar');
+        }
+
+        // Marquer le cours comme annulé
+        $course->setIsCanceled(true);
+        $em->persist($course);
+
+        // Récupérer toutes les réservations liées au cours
+        $bookings = $em->getRepository(Booking::class)->findBy(['course' => $course]);
+
+        foreach ($bookings as $booking) {
+            // Rembourser les crédits
+            $subscriptionCourse = $booking->getSubscriptionCourse();
+            $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + $booking->getNumOccurrences());
+
+            // Supprimer la réservation
+            $em->remove($booking);
+
+            // Envoyer un email de notification
+            $this->sendEmail(
+                $booking->getUser()->getEmail(),
+                'Annulation de Réservation et Remboursement',
+                sprintf(
+                    'Bonjour,
+
+Votre réservation pour le cours "%s" prévu le %s à %s a été annulée par l\'administration.
+Vous avez été remboursé de vos crédits.
+
+Cordialement,
+Airstudio73',
+                    $course->getName(),
+                    $course->getStartTime()->format('d/m/Y'),
+                    $course->getStartTime()->format('H:i')
+                ),
+                $logger
+            );
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', 'Le cours a été annulé et les utilisateurs ont récupéré leurs crédits.');
 
         return $this->redirectToRoute('calendar');
     }
