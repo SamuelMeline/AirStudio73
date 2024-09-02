@@ -208,6 +208,10 @@ img.d-block.w-100 {
     background-color: #d8d8d8 !important;
 }
 
+.calendrier p {
+    margin-top: 10px;
+}
+
 /* Responsiveness */
 @media screen and (max-width: 1500px) {
     .col {
