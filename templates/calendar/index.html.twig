@@ -105,13 +105,13 @@
 														<br>
 														{% if user_booking %}
 															{% if available_spots > 0 %}
-																<span class="mt-3">
+																<p class="mt-3">
 																	{{ bookings_count }}
 																	/
 																	{{ course_capacity }}
-																</span>
+																</p>
 															{% else %}
-																<span class="badge badge-danger">Complet</span>
+																<span class="btn btn-danger">Complet</span>
 															{% endif %}
 															<span class="btn btn-success btn-sm text-uppercase mt-2">Réservé</span>
 															{% if interval_until_course >= 6 %}
@@ -123,11 +123,10 @@
 															{% endif %}
 														{% else %}
 															{% if available_spots > 0 %}
-																<span class="mt-3">
+																<p class="mt-3">
 																	{{ course_capacity - bookings_count }}
 																	places restantes
-																</span>
-																<br>
+																</p>
 																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm mt-2">Réserver</a>
 															{% else %}
 																<span class="badge badge-danger">Complet</span>
@@ -226,12 +225,14 @@
 														{% endif %}
 													{% else %}
 														{% if available_spots > 0 %}
-															{{ bookings_count }}
-															/
-															{{ course_capacity }}
+															<p>
+																{{ bookings_count }}
+																/
+																{{ course_capacity }}
+															</p>
 															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
 														{% else %}
-															<span class="badge badge-danger">Complet</span>
+															<span class="btn btn-danger mt-2">Complet</span>
 														{% endif %}
 													{% endif %}
 													{% if is_granted('ROLE_ADMIN') %}
@@ -239,9 +240,9 @@
 															<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
 															<form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
 																<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-																<button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+																<button type="submit" class="btn btn-danger btn-sm mt-2">Annuler</button>
 															</form>
-                                                            <br>
+															<br>
 															<form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
 																<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
 																<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
