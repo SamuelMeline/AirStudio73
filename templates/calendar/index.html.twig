@@ -1,293 +1,271 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
-        <h1>Calendrier des Cours</h1>
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endfor %}
-        <div class="mb-3">
-            {% set prevWeek = currentWeek - 1 %}
-            {% set nextWeek = currentWeek + 1 %}
-            {% set prevYear = currentYear %}
-            {% set nextYear = currentYear %}
+	<div class="container">
+		<h1>Calendrier des Cours</h1>
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label }}">
+					{{ message }}
+				</div>
+			{% endfor %}
+		{% endfor %}
+		<div class="mb-3">
+			{% set prevWeek = currentWeek - 1 %}
+			{% set nextWeek = currentWeek + 1 %}
+			{% set prevYear = currentYear %}
+			{% set nextYear = currentYear %}
 
-            {% if prevWeek < 1 %}
-                {% set prevWeek = 52 %}
-                {% set prevYear = currentYear - 1 %}
-            {% endif %}
+			{% if prevWeek < 1 %}
+				{% set prevWeek = 52 %}
+				{% set prevYear = currentYear - 1 %}
+			{% endif %}
 
-            {% if nextWeek > 52 %}
-                {% set nextWeek = 1 %}
-                {% set nextYear = currentYear + 1 %}
-            {% endif %}
+			{% if nextWeek > 52 %}
+				{% set nextWeek = 1 %}
+				{% set nextYear = currentYear + 1 %}
+			{% endif %}
 
-            {% set startOfCurrentWeek = "now"|date_modify(('Monday this week'))|date('Y-m-d') %}
-            {% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
+			{% set startOfCurrentWeek = "now"|date_modify(('Monday this week'))|date('Y-m-d') %}
+			{% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
 
-            {% if prevDate >= startOfCurrentWeek %}
-                <a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo;</a>
-            {% else %}
-                <button class="btn btn-secondary" disabled>&laquo;</button>
-            {% endif %}
-            <a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-success">Semaine en cours</a>
-            <a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-primary">&raquo;</a>
-            {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('course_new') }}" class="btn btn-success">Créer un cours</a>
-            {% endif %}
-            <a href="{{ path('user_subscription') }}" class="btn btn-info">Mes forfaits</a>
-            <a href="{{ path('booking_manage') }}" class="btn btn-info">Gérer mes réservations</a>
-        </div>
+			{% if prevDate >= startOfCurrentWeek %}
+				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo;</a>
+			{% else %}
+				<button class="btn btn-secondary" disabled>&laquo;</button>
+			{% endif %}
+			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-success">Semaine en cours</a>
+			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-primary">&raquo;</a>
+			{% if is_granted('ROLE_ADMIN') %}
+				<a href="{{ path('course_new') }}" class="btn btn-success">Créer un cours</a>
+			{% endif %}
+			<a href="{{ path('user_subscription') }}" class="btn btn-info">Mes forfaits</a>
+			<a href="{{ path('booking_manage') }}" class="btn btn-info">Gérer mes réservations</a>
+		</div>
 
-        <div class="row">
-            <div class="col col-9">
-                <table class="table table-bordered">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Heures</th>
-                            <th>Lundi {{ startOfWeek|date('d/m/Y') }}</th>
-                            <th>Mardi {{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
-                            <th>Mercredi {{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
-                            <th>Jeudi {{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
-                            <th>Vendredi {{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set weekday_timeslots = [
-                            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
-                            '17:45', '18:00', '18:15', '18:30', '18:45', '19:00', '19:15', '19:30', 
-                            '19:45', '20:00', '20:15', '20:30'
+		<div class="row">
+			<div class="col col-9">
+				<table class="table table-bordered">
+					<thead class="thead-light">
+						<tr>
+							<th>Heures</th>
+							<th>Lundi
+								{{ startOfWeek|date('d/m/Y') }}</th>
+							<th>Mardi
+								{{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
+							<th>Mercredi
+								{{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
+							<th>Jeudi
+								{{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
+							<th>Vendredi
+								{{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% set weekday_timeslots = [
+                            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00','17:15', '17:30','17:45',
+                            '18:00','18:15', '18:30','18:45', '19:00', '19:15', '19:30', '19:45',
+                            '20:00', '20:15', '20:30'
                         ] %}
 
-                        {% set merged_slots = {} %}
-                        {% set empty_rowspan = 0 %}
-                        {% for timeslot in weekday_timeslots %}
-                            {% set has_course = false %}
-                            {% for dow in 1..5 %}
-                                {% for course in courses %}
-                                    {% set course_start_time = course.startTime|date('H:i') %}
-                                    {% set course_day_of_week = course.startTime|date('N') %}
-                                    {% set course_end_time = course.endTime|date('H:i') %}
-                                    {% if course_day_of_week == dow and course_start_time <= timeslot and course_end_time > timeslot %}
-                                        {% set has_course = true %}
-                                    {% endif %}
-                                {% endfor %}
-                            {% endfor %}
-                            
-                            {% if has_course %}
-                                {% if empty_rowspan > 0 %}
-                                    <tr>
-                                        <td colspan="6">Pas de cours programmés</td>
-                                    </tr>
-                                    {% set empty_rowspan = 0 %}
-                                {% endif %}
-                                <tr>
-                                    {% set interval = (timeslot >= '17:30') ? 15 : 30 %}
-                                    <td>{{ timeslot }} - {{ timeslot|date_modify('+' ~ interval ~ ' minutes')|date('H:i') }}</td>
-                                    {% for dow in 1..5 %}
-                                        {% set key = dow ~ '-' ~ timeslot %}
-                                        {% if merged_slots[key] is not defined %}
-                                            {% set course_found = false %}
-                                            {% for course in courses %}
-                                                {% set course_start_time = course.startTime|date('H:i') %}
-                                                {% set course_day_of_week = course.startTime|date('N') %}
-                                                {% set course_capacity = course.capacity %}
-                                                {% set course_bookings = bookings[course.id] %}
-                                                {% set bookings_count = course_bookings|length %}
-                                                {% set available_spots = course_capacity - bookings_count %}
-                                                {% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
-                                                {% if app.user is not null %}
-                                                    {% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
-                                                {% else %}
-                                                    {% set user_booking = null %}
-                                                {% endif %}
+						{% set merged_slots = {} %}
 
-                                                {% if course_day_of_week == dow and course_start_time <= timeslot and course.endTime|date('H:i') > timeslot %}
-                                                    {% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
-                                                    {% set rowspan = course_duration // interval %}
-                                                    {% if not course_found %}
-                                                        <td rowspan="{{ rowspan }}">
-                                                            <a href="{{ path('course_details_list', { 'courseId': course.id }) }}">
-                                                                {{ course.name }}
-                                                            </a>
-                                                            <br>
-                                                            {% if user_booking %}
-                                                                {% if available_spots > 0 %}
-                                                                    <span class="mt-3">{{ bookings_count }}/{{ course_capacity }}</span>
-                                                                {% else %}
-                                                                    <span class="badge badge-danger">Complet</span>
-                                                                {% endif %}
-                                                                <span class="badge badge-success mt-2 p-2 text-uppercase">Réservé</span>
-                                                                {% if interval_until_course >= 6 %}
-                                                                    <br>
-                                                                    <a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm mt-2">Annuler</a>
-                                                                {% else %}
-                                                                    <br>
-                                                                    <button class="btn btn-secondary btn-sm mt-2" disabled>Annulation impossible</button>
-                                                                {% endif %}
-                                                            {% else %}
-                                                                {% if available_spots > 0 %}
-                                                                    <span class="mt-3">{{ available_spots }} places restantes</span>
-                                                                    <br>
-                                                                    <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm mt-2">Réserver</a>
-                                                                {% else %}
-                                                                    <span class="badge badge-danger">Complet</span>
-                                                                {% endif %}
-                                                            {% endif %}
-                                                            {% if is_granted('ROLE_ADMIN') %}
-                                                                <div class="mt-2">
-                                                                    <a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
-                                                                    <form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
-                                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-                                                                        <button type="submit" class="btn btn-danger btn-sm">Annuler</button>
-                                                                    </form>
-                                                                    <br>
-                                                                    <form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
-                                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-                                                                        <button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
-                                                                    </form>
-                                                                </div>
-                                                            {% endif %}
-                                                        </td>
-                                                        {% set course_found = true %}
-                                                        {% for i in 0..rowspan-1 %}
-                                                            {% set merged_key = dow ~ '-' ~ (timeslot|date_modify('+' ~ (i * interval) ~ ' minutes')|date('H:i')) %}
-                                                            {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
-                                                        {% endfor %}
-                                                    {% endif %}
-                                                {% endif %}
-                                            {% endfor %}
-                                            {% if not course_found %}
-                                                <td>&nbsp;</td>
-                                            {% endif %}
-                                        {% endif %}
-                                    {% endfor %}
-                                </tr>
-                            {% else %}
-                                {% set empty_rowspan = empty_rowspan + 1 %}
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+						{% for timeslot in weekday_timeslots %}
+							<tr>
+								{% set interval = (timeslot >= '17:00') ? 15 : 30 %}
+								<td>{{ timeslot }}
+									-
+									{{ timeslot|date_modify('+' ~ interval ~ ' minutes')|date('H:i') }}</td>
+								{% for dow in 1..5 %}
+									{% set key = dow ~ '-' ~ timeslot %}
+									{% if merged_slots[key] is not defined %}
+										{% set course_found = false %}
+										{% for course in courses %}
+											{% set course_start_time = course.startTime|date('H:i') %}
+											{% set course_day_of_week = course.startTime|date('N') %}
+											{% set course_capacity = course.capacity %}
+											{% set course_bookings = bookings[course.id] %}
+											{% set bookings_count = course_bookings|length %}
+											{% set available_spots = course_capacity - bookings_count %}
+											{% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
+											{% if app.user is not null %}
+												{% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
+											{% else %}
+												{% set user_booking = null %}
+											{% endif %}
 
-            <div class="col col-3">
-                <table class="table table-bordered">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Heures (Samedi)</th>
-                            <th>Samedi {{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set saturday_timeslots = [
+											{% if course_day_of_week == dow and course_start_time <= timeslot and course.endTime|date('H:i') > timeslot %}
+												{% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
+												{% set rowspan = course_duration // interval %}
+												{% if not course_found %}
+													<td rowspan="{{ rowspan }}">
+														<a href="{{ path('course_details_list', { 'courseId': course.id }) }}">
+															{{ course.name }}
+														</a>
+														<br>
+														{% if user_booking %}
+															{% if available_spots > 0 %}
+																<span class="mt-3">
+																	{{ bookings_count }}
+																	/
+																	{{ course_capacity }}
+																</span>
+															{% else %}
+																<span class="badge badge-danger">Complet</span>
+															{% endif %}
+															<span class="badge badge-success mt-2 p-2 text-uppercase">Réservé</span>
+															{% if interval_until_course >= 6 %}
+																<br>
+																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm mt-2">Annuler</a>
+															{% else %}
+																<br>
+																<button class="btn btn-secondary btn-sm mt-2" disabled>Annulation impossible</button>
+															{% endif %}
+														{% else %}
+															{% if available_spots > 0 %}
+																<span class="mt-3">
+																	{{ course_capacity - bookings_count }}
+																	places restantes
+																</span>
+																<br>
+																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm mt-2">Réserver</a>
+															{% else %}
+																<span class="badge badge-danger">Complet</span>
+															{% endif %}
+														{% endif %}
+														{% if is_granted('ROLE_ADMIN') %}
+															<div class="mt-2">
+																<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
+
+																<form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
+																	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+																	<button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+																</form>
+																<br>
+																<form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
+																	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+																	<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
+																</form>
+															</div>
+														{% endif %}
+													</td>
+													{% set course_found = true %}
+													{% for i in 0..rowspan-1 %}
+														{% set merged_key = dow ~ '-' ~ (timeslot|date_modify('+' ~ (i * interval) ~ ' minutes')|date('H:i')) %}
+														{% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+													{% endfor %}
+												{% endif %}
+											{% endif %}
+										{% endfor %}
+										{% if not course_found %}
+											<td>&nbsp;</td>
+										{% endif %}
+									{% endif %}
+								{% endfor %}
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+
+			<div class="col col-3">
+				<table class="table table-bordered">
+					<thead class="thead-light">
+						<tr>
+							<th>Heures (Samedi)</th>
+							<th>Samedi
+								{{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% set saturday_timeslots = [
                             '09:00', '09:30', '10:00', '10:30', 
                             '11:00', '11:30', '12:00'
                         ] %}
 
-                        {% set merged_slots = {} %}
-                        {% set empty_rowspan = 0 %}
-                        {% for timeslot in saturday_timeslots %}
-                            {% set has_course = false %}
-                            {% for course in courses %}
-                                {% set course_start_time = course.startTime|date('H:i') %}
-                                {% set course_day_of_week = course.startTime|date('N') %}
-                                {% set course_end_time = course.endTime|date('H:i') %}
-                                {% if course_day_of_week == 6 and course_start_time <= timeslot and course_end_time > timeslot %}
-                                    {% set has_course = true %}
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if has_course %}
-                                {% if empty_rowspan > 0 %}
-                                    <tr>
-                                        <td colspan="2">Pas de cours programmés</td>
-                                    </tr>
-                                    {% set empty_rowspan = 0 %}
-                                {% endif %}
-                                <tr>
-                                    {% set interval = 30 %}
-                                    <td>{{ timeslot }} - {{ timeslot|date_modify('+' ~ interval ~ ' minutes')|date('H:i') }}</td>
-                                    {% set key = '6-' ~ timeslot %}
-                                    {% if merged_slots[key] is not defined %}
-                                        {% set course_found = false %}
-                                        {% for course in courses %}
-                                            {% set course_start_time = course.startTime|date('H:i') %}
-                                            {% set course_day_of_week = course.startTime|date('N') %}
-                                            {% set course_capacity = course.capacity %}
-                                            {% set course_bookings = bookings[course.id] %}
-                                            {% set bookings_count = course_bookings|length %}
-                                            {% set available_spots = course_capacity - bookings_count %}
-                                            {% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
-                                            {% if app.user is not null %}
-                                                {% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
-                                            {% else %}
-                                                {% set user_booking = null %}
-                                            {% endif %}
+						{% set merged_slots = {} %}
 
-                                            {% if course_day_of_week == 6 and course_start_time <= timeslot and course.endTime|date('H:i') > timeslot %}
-                                                {% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
-                                                {% set rowspan = course_duration // interval %}
-                                                {% if not course_found %}
-                                                    <td rowspan="{{ rowspan }}">
-                                                        <a href="{{ path('booking_new', { 'courseId': course.id }) }}">
-                                                            {{ course.name }}
-                                                        </a>
-                                                        <br>
-                                                        {% if user_booking %}
-                                                            <span class="btn btn-success btn-sm mt-2">Réservé</span>
-                                                            {% if interval_until_course >= 6 %}
-                                                                <a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
-                                                            {% else %}
-                                                                <button class="btn btn-secondary btn-sm mt-2" disabled>Annulation impossible</button>
-                                                            {% endif %}
-                                                        {% else %}
-                                                            {% if available_spots > 0 %}
-                                                                {{ bookings_count }}/{{ course.capacity }}
-                                                                <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
-                                                            {% else %}
-                                                                <span class="badge badge-danger">Complet</span>
-                                                            {% endif %}
-                                                        {% endif %}
-                                                        {% if is_granted('ROLE_ADMIN') %}
-                                                            <div class="mt-2">
-                                                                <a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
-                                                                <form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
-                                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-                                                                    <button type="submit" class="btn btn-danger btn-sm">Annuler</button>
-                                                                </form>
-                                                                <br>
-                                                                <form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
-                                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-                                                                    <button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
-                                                                </form>
-                                                            </div>
-                                                        {% endif %}
-                                                    </td>
-                                                    {% set course_found = true %}
-                                                    {% for i in 0..rowspan-1 %}
-                                                        {% set merged_key = '6-' ~ (timeslot|date_modify('+' ~ (i * interval) ~ ' minutes')|date('H:i')) %}
-                                                        {% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
-                                                    {% endfor %}
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if not course_found %}
-                                            <td>&nbsp;</td>
-                                        {% endif %}
-                                    {% endif %}
-                                </tr>
-                            {% else %}
-                                {% set empty_rowspan = empty_rowspan + 1 %}
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+						{% for timeslot in saturday_timeslots %}
+							<tr>
+								{% set interval = 30 %}
+								<td>{{ timeslot }}
+									-
+									{{ timeslot|date_modify('+' ~ interval ~ ' minutes')|date('H:i') }}</td>
+								{% set key = '6-' ~ timeslot %}
+								{% if merged_slots[key] is not defined %}
+									{% set course_found = false %}
+									{% for course in courses %}
+										{% set course_start_time = course.startTime|date('H:i') %}
+										{% set course_day_of_week = course.startTime|date('N') %}
+										{% set course_capacity = course.capacity %}
+										{% set course_bookings = bookings[course.id] %}
+										{% set bookings_count = course_bookings|length %}
+										{% set available_spots = course_capacity - bookings_count %}
+										{% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
+										{% if app.user is not null %}
+											{% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
+										{% else %}
+											{% set user_booking = null %}
+										{% endif %}
+
+										{% if course_day_of_week == 6 and course_start_time <= timeslot and course.endTime|date('H:i') > timeslot %}
+											{% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
+											{% set rowspan = course_duration // interval %}
+											{% if not course_found %}
+												<td rowspan="{{ rowspan }}">
+													<a href="{{ path('booking_new', { 'courseId': course.id }) }}">
+														{{ course.name }}
+													</a>
+													<br>
+													{% if user_booking %}
+														<span class="btn btn-success btn-sm mt-2">Réservé</span>
+														{% if interval_until_course >= 6 %}
+															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
+														{% else %}
+															<button class="btn btn-secondary btn-sm mt-2" disabled>Annulation impossible</button>
+														{% endif %}
+													{% else %}
+														{% if available_spots > 0 %}
+															{{ bookings_count }}
+															/
+															{{ course_capacity }}
+															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+														{% else %}
+															<span class="badge badge-danger">Complet</span>
+														{% endif %}
+													{% endif %}
+													{% if is_granted('ROLE_ADMIN') %}
+														<div class="mt-2">
+															<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
+															<form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
+																<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+																<button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+															</form>
+                                                            <br>
+															<form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
+																<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+																<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
+															</form>
+														</div>
+													{% endif %}
+												</td>
+												{% set course_found = true %}
+												{% for i in 0..rowspan-1 %}
+													{% set merged_key = '6-' ~ (timeslot|date_modify('+' ~ (i * interval) ~ ' minutes')|date('H:i')) %}
+													{% set merged_slots = merged_slots|merge({ (merged_key): true }) %}
+												{% endfor %}
+											{% endif %}
+										{% endif %}
+									{% endfor %}
+									{% if not course_found %}
+										<td>&nbsp;</td>
+									{% endif %}
+								{% endif %}
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 {% endblock %}
