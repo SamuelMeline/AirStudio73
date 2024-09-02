@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Entity;
 
@@ -16,13 +16,21 @@ class Contact
     private $name;
 
     #[ORM\Column(type: 'string', length: 255)]
+    private $firstName; // Nouveau champ
+
+    #[ORM\Column(type: 'string', length: 255)]
     private $email;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private $phone; // Nouveau champ
 
     #[ORM\Column(type: 'string', length: 255)]
     private $subject;
 
     #[ORM\Column(type: 'text')]
     private $message;
+
+    // Getters et Setters
 
     public function getId(): ?int
     {
@@ -41,6 +49,18 @@ class Contact
         return $this;
     }
 
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(string $firstName): self
+    {
+        $this->firstName = $firstName;
+
+        return $this;
+    }
+
     public function getEmail(): ?string
     {
         return $this->email;
@@ -49,6 +69,18 @@ class Contact
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(string $phone): self
+    {
+        $this->phone = $phone;
 
         return $this;
     }

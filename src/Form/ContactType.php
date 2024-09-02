@@ -18,18 +18,20 @@ class ContactType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Nom',
             ])
+            ->add('firstName', TextType::class, [ // Nouveau champ
+                'label' => 'Prénom',
+            ])
             ->add('email', EmailType::class, [
                 'label' => 'Email',
+            ])
+            ->add('phone', TextType::class, [ // Nouveau champ
+                'label' => 'Téléphone',
             ])
             ->add('subject', TextType::class, [
                 'label' => 'Sujet',
             ])
             ->add('message', TextareaType::class, [
                 'label' => 'Message',
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Envoyer',
-                'attr' => ['class' => 'btn btn-primary'],
             ])
         ;
     }
