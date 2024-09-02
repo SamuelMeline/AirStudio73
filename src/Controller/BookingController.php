@@ -35,6 +35,7 @@ class BookingController extends AbstractController
         }
 
         // Vérification si le cours est déjà passé
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         if ($course->getStartTime() < new \DateTime()) {
             $this->addFlash('error', 'Vous ne pouvez pas réserver un cours qui est déjà passé.');
             return $this->redirectToRoute('calendar');
