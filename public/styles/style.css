@@ -213,6 +213,10 @@ img.d-block.w-100 {
     margin-bottom: 10px;
 }
 
+.calendrier p.btn {
+    margin-top: 0;
+}
+
 /* Responsiveness */
 @media screen and (max-width: 1500px) {
     .col {

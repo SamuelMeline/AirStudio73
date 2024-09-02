@@ -98,7 +98,7 @@
 												{% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
 												{% set rowspan = course_duration // interval %}
 												{% if not course_found %}
-													<td rowspan="{{ rowspan }}">
+													<td rowspan="{{ rowspan }}" class="{{ course.name|replace({ 'Yoga aérien': 'bg-yoga-aerien', 'Pole Dance': 'bg-pole-dance', 'Hammock': 'bg-hammock', 'Souplesse/ Renfo': 'bg-souplesse', 'Cours à la demande Particulier / Essais /Coaching': 'bg-cours-demande' }) }}">
 														<a href="{{ path('course_details_list', { 'courseId': course.id }) }}">
 															{{ course.name }}
 														</a>
@@ -145,6 +145,14 @@
 																	<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
 																</form>
 															</div>
+															<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
+																<input type="hidden" name="year" value="{{ currentYear }}">
+																<input type="hidden" name="week" value="{{ currentWeek }}">
+																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
+																<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
+																<span>Capacité :
+																	{{ course_capacity }}</span>
+															</form>
 														{% endif %}
 													</td>
 													{% set course_found = true %}
@@ -210,16 +218,25 @@
 											{% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
 											{% set rowspan = course_duration // interval %}
 											{% if not course_found %}
-												<td rowspan="{{ rowspan }}">
+												<td rowspan="{{ rowspan }}" class="{{ course.name|replace({ 'Yoga aérien': 'bg-yoga-aerien', 'Pole Dance': 'bg-pole-dance', 'Hammock': 'bg-hammock', 'Souplesse/ Renfo': 'bg-souplesse', 'Cours à la demande Particulier / Essais /Coaching': 'bg-cours-demande' }) }}">
 													<a href="{{ path('booking_new', { 'courseId': course.id }) }}">
 														{{ course.name }}
 													</a>
 													<br>
 													{% if user_booking %}
-														<p class="btn btn-success btn-sm">Réservé</p>
+														{% if available_spots > 0 %}
+															<p>
+																{{ bookings_count }}
+																/
+																{{ course_capacity }}
+															</p>
+														{% else %}
+															<span class="btn btn-danger">Complet</span>
+														{% endif %}
+														<p class="btn btn-success btn-sm text-uppercase">Réservé</p>
 														<br>
 														{% if interval_until_course >= 6 %}
-															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
+															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm ">Annuler</a>
 														{% else %}
 															<button class="btn btn-secondary btn-sm" disabled>Annulation impossible</button>
 														{% endif %}
@@ -248,6 +265,14 @@
 																<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
 															</form>
 														</div>
+														<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
+															<input type="hidden" name="year" value="{{ currentYear }}">
+															<input type="hidden" name="week" value="{{ currentWeek }}">
+															<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
+															<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
+															<span>Capacité :
+																{{ course_capacity }}</span>
+														</form>
 													{% endif %}
 												</td>
 												{% set course_found = true %}
@@ -265,8 +290,8 @@
 							</tr>
 						{% endfor %}
 					</tbody>
-				</table>
-			</div>
+				</tbody>
+			</table>
 		</div>
 	</div>
-{% endblock %}
+</div>{% endblock %}
