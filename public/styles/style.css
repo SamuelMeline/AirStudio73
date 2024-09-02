@@ -209,7 +209,8 @@ img.d-block.w-100 {
 }
 
 .calendrier p {
-    margin-top: 10px;
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 /* Responsiveness */
