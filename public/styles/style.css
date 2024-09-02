@@ -189,11 +189,11 @@ img.d-block.w-100 {
 
 /* Background colors for specific classes */
 .bg-yoga-aerien {
-    background-color: darkseagreen !important;
+    background-color: #67e1e5 !important;
 }
 
 .bg-pole-dance {
-    background-color: orange !important;
+    background-color: #9999ff !important;
 }
 
 .bg-hammock {
@@ -201,11 +201,11 @@ img.d-block.w-100 {
 }
 
 .bg-souplesse {
-    background-color: magenta !important;
+    background-color: #70fffe !important;
 }
 
 .bg-cours-demande {
-    background-color: yellowgreen !important;
+    background-color: #d8d8d8 !important;
 }
 
 /* Responsiveness */
