@@ -216,7 +216,6 @@
 													<br>
 													{% if user_booking %}
 														<p class="btn btn-success btn-sm">Réservé</p>
-														<br>
 														{% if interval_until_course >= 6 %}
 															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm">Annuler</a>
 														{% else %}
@@ -229,6 +228,7 @@
 																/
 																{{ course_capacity }}
 															</p>
+															<br>
 															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
 														{% else %}
 															<p class="btn btn-danger">Complet</p>
