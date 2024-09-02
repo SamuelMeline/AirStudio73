@@ -253,3 +253,64 @@ img.d-block.w-100 {
 .dn {
     display: none;
 }
+
+
+/* Pour les écrans de 768px ou moins */
+@media screen and (max-width: 768px) {
+    .navbar .navbar-brand img {
+        width: 120px; /* Réduction de la taille du logo pour les mobiles */
+    }
+
+    .navbar-nav .nav-link {
+        font-size: 16px; /* Ajustement de la taille du texte du menu pour les mobiles */
+    }
+
+    .container {
+        padding: 10px; /* Réduction du padding général */
+    }
+
+    .table-responsive {
+        overflow-x: auto; /* Permettre le défilement horizontal pour les tables */
+    }
+
+    .table th, .table td {
+        padding: 8px; /* Réduire les padding des cellules de table pour les mobiles */
+    }
+
+    /* Réduction de la taille des boutons pour qu'ils soient plus faciles à utiliser sur mobile */
+    .btn {
+        font-size: 14px;
+        padding: 5px 10px;
+    }
+
+    /* Pour le calendrier */
+    .calendar-navigation a {
+        font-size: 14px; /* Ajustement de la taille des liens de navigation du calendrier */
+    }
+}
+
+/* Pour les écrans de 576px ou moins */
+@media screen and (max-width: 576px) {
+    .navbar .navbar-brand img {
+        width: 100px; /* Réduction encore plus de la taille du logo */
+    }
+
+    .navbar-nav .nav-link {
+        font-size: 14px; /* Réduction supplémentaire de la taille du texte du menu */
+    }
+
+    .container {
+        padding: 5px; /* Réduction maximale du padding général */
+    }
+
+    .table th, .table td {
+        padding: 5px; /* Réduction maximale des padding des cellules de table pour les petits écrans */
+        font-size: 10px; /* Réduction de la taille de la police des tables */
+    }
+
+    /* Réduction de la taille des boutons pour qu'ils soient encore plus faciles à utiliser sur mobile */
+    .btn {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+}
