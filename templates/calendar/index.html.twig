@@ -113,7 +113,7 @@
 															{% else %}
 																<span class="badge badge-danger">Complet</span>
 															{% endif %}
-															<span class="badge badge-success mt-2 p-2 text-uppercase">Réservé</span>
+															<span class="btn btn-success btn-sm text-uppercase">Réservé</span>
 															{% if interval_until_course >= 6 %}
 																<br>
 																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm mt-2">Annuler</a>
