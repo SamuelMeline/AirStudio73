@@ -12,9 +12,6 @@ security:
                 class: App\Entity\User
                 property: email
     firewalls:
-        stripe_webhook:
-                pattern: ^/stripe/webhook
-                security: false
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
