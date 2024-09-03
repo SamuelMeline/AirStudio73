@@ -33,6 +33,9 @@ class Plan
     #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $endDate = null;
 
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $type = null;
+
     #[ORM\OneToMany(targetEntity: PlanCourse::class, mappedBy: 'plan', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $planCourses;
 
@@ -109,6 +112,17 @@ class Plan
     public function setEndDate(?\DateTimeInterface $endDate): self
     {
         $this->endDate = $endDate;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): self
+    {
+        $this->type = $type;
         return $this;
     }
 

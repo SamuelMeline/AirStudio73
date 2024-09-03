@@ -32,9 +32,16 @@ class SubscriptionController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $subscription = new Subscription();
-        $form = $this->createForm(SubscriptionType::class, $subscription);
+        $form = $this->createForm(SubscriptionType::class, $subscription, ['em' => $em]);
 
         $form->handleRequest($request);
+
+        // Vérifiez si le formulaire est soumis pour la sélection du type
+        if ($form->isSubmitted() && !$form->get('plan')->getData()) {
+            return $this->render('subscription/new.html.twig', [
+                'form' => $form->createView(),
+            ]);
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             Stripe::setApiKey($this->getParameter('stripe.secret_key'));
