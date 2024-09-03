@@ -131,11 +131,16 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
-        $existingSubscription->setIsActive(false);
+        // Vérifier si l'abonnement est annulé
+        if ($subscription->status === 'canceled') {
+            $existingSubscription->setIsActive(false);
+        }
+
         $existingSubscription->setExpiryDate(new \DateTime());
 
         $this->entityManager->flush();
     }
+
 
     private function handleCheckoutSessionCompleted($session)
     {
