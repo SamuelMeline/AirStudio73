@@ -114,7 +114,7 @@ class WebhookController extends AbstractController
         $newExpiryDate = new \DateTime('@' . $subscription->current_period_end);
 
         $existingSubscription->setExpiryDate($newExpiryDate);
-        $existingSubscription->setIsActive($subscription->status === 'active');
+        $existingSubscription->setIsActive($subscription->status === 'active' || $subscription->status === 'trialing');
 
         $this->entityManager->flush();
     }
@@ -131,16 +131,12 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
-        // Vérifier si l'abonnement est annulé
-        if ($subscription->status === 'canceled') {
-            $existingSubscription->setIsActive(false);
-        }
-
+        // Mettez is_active à false lorsque l'abonnement est annulé
+        $existingSubscription->setIsActive(false);
         $existingSubscription->setExpiryDate(new \DateTime());
 
         $this->entityManager->flush();
     }
-
 
     private function handleCheckoutSessionCompleted($session)
     {
