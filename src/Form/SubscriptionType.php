@@ -18,15 +18,19 @@ class SubscriptionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        // Ajout du champ type
+        // Ajout du champ type avec un placeholder
         $builder->add('type', ChoiceType::class, [
             'label' => 'Type de Forfait',
+            'placeholder' => 'Sélectionnez un type', // Ajoute un placeholder
             'choices' => $this->getPlanTypes($options['em']),
             'mapped' => false, // Ce champ n'est pas lié à l'entité Subscription
             'required' => true,
             'attr' => [
                 'onchange' => 'this.form.submit()', // Soumettre automatiquement le formulaire
             ],
+            'choice_attr' => function ($choice, $key, $value) {
+                return $key === 'Sélectionnez un type' ? ['disabled' => true, 'style' => 'display:none;'] : [];
+            },
         ]);
 
         // Utiliser PRE_SUBMIT pour capturer la soumission du formulaire avec le type sélectionné

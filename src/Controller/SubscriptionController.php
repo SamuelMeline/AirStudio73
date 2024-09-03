@@ -36,62 +36,74 @@ class SubscriptionController extends AbstractController
 
         $form->handleRequest($request);
 
-        // Vérifiez si le formulaire est soumis pour la sélection du type
-        if ($form->isSubmitted() && !$form->get('plan')->getData()) {
-            return $this->render('subscription/new.html.twig', [
-                'form' => $form->createView(),
-            ]);
-        }
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            Stripe::setApiKey($this->getParameter('stripe.secret_key'));
-
-            $user = $this->getUser();
-            $plan = $form->get('plan')->getData();
-
-            $subscription->setUser($user);
-            $subscription->setPlan($plan);
-
-            $promoCode = $form->get('promoCode')->getData();
-            $stripePriceId = $plan->getStripePriceId();
-
-            $discounts = [];
-            if ($promoCode) {
-                $promotionCodeId = $this->validatePromoCode($promoCode);
-                if ($promotionCodeId) {
-                    $discounts = [['promotion_code' => $promotionCodeId]];
-                } else {
-                    $this->addFlash('error', 'Invalid promo code.');
-                    return $this->redirectToRoute('subscription_new');
-                }
+        // Vérifiez si le formulaire est soumis et si la soumission concerne la sélection d'un type
+        if ($form->isSubmitted()) {
+            // Si le champ 'plan' n'existe pas encore, cela signifie que le formulaire n'est pas encore dans l'état final
+            if (!$form->has('plan')) {
+                return $this->render('subscription/new.html.twig', [
+                    'form' => $form->createView(),
+                ]);
             }
 
-            $lineItem = [
-                'price' => $stripePriceId,
-                'quantity' => 1,
-            ];
+            // Maintenant que le champ 'plan' existe, vérifiez s'il est rempli
+            if (!$form->get('plan')->getData()) {
+                return $this->render('subscription/new.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
 
-            $session = StripeSession::create([
-                'payment_method_types' => ['card'],
-                'line_items' => [$lineItem],
-                'mode' => 'subscription',
-                'discounts' => $discounts,
-                'client_reference_id' => json_encode([
-                    'planId' => $plan->getId(),
-                    'userId' => $user->getUserIdentifier(),
-                    'promoCode' => $promoCode,
-                ]),
-                'success_url' => $this->generateUrl('subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => $this->generateUrl('subscription_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
-            ]);
+            // Si tout va bien, passez à la validation et au traitement
+            if ($form->isValid()) {
+                Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
-            return $this->redirect($session->url);
+                $user = $this->getUser();
+                $plan = $form->get('plan')->getData();
+
+                $subscription->setUser($user);
+                $subscription->setPlan($plan);
+
+                $promoCode = $form->get('promoCode')->getData();
+                $stripePriceId = $plan->getStripePriceId();
+
+                $discounts = [];
+                if ($promoCode) {
+                    $promotionCodeId = $this->validatePromoCode($promoCode);
+                    if ($promotionCodeId) {
+                        $discounts = [['promotion_code' => $promotionCodeId]];
+                    } else {
+                        $this->addFlash('error', 'Invalid promo code.');
+                        return $this->redirectToRoute('subscription_new');
+                    }
+                }
+
+                $lineItem = [
+                    'price' => $stripePriceId,
+                    'quantity' => 1,
+                ];
+
+                $session = StripeSession::create([
+                    'payment_method_types' => ['card'],
+                    'line_items' => [$lineItem],
+                    'mode' => 'subscription',
+                    'discounts' => $discounts,
+                    'client_reference_id' => json_encode([
+                        'planId' => $plan->getId(),
+                        'userId' => $user->getUserIdentifier(),
+                        'promoCode' => $promoCode,
+                    ]),
+                    'success_url' => $this->generateUrl('subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => $this->generateUrl('subscription_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                ]);
+
+                return $this->redirect($session->url);
+            }
         }
 
         return $this->render('subscription/new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
+
 
     #[Route('/subscription/success', name: 'subscription_success')]
     #[IsGranted('ROLE_USER')]
