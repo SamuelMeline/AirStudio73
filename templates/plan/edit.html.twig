@@ -13,6 +13,10 @@
 						{{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
 					</div>
 					<div class="form-group">
+						{{ form_label(form.type, 'Type de Forfait') }}
+						{{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+					</div>
+					<div class="form-group">
 						{{ form_label(form.startDate, 'Date de début du forfait') }}
 						{{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
 					</div>
@@ -49,43 +53,43 @@
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
-			let collectionHolder = document.querySelector('.plan-courses-collection');
-			let addCourseButton = document.querySelector('.add-course');
-			let index = collectionHolder.querySelectorAll('.plan-course-item').length;
+let collectionHolder = document.querySelector('.plan-courses-collection');
+let addCourseButton = document.querySelector('.add-course');
+let index = collectionHolder.querySelectorAll('.plan-course-item').length;
 
-			collectionHolder.dataset.index = index;
+collectionHolder.dataset.index = index;
 
-			addCourseButton.addEventListener('click', function () {
-				addForm(collectionHolder);
-			});
+addCourseButton.addEventListener('click', function () {
+addForm(collectionHolder);
+});
 
-			function addForm(collectionHolder) {
-				let prototype = collectionHolder.dataset.prototype;
-				let index = collectionHolder.dataset.index;
-				let newForm = prototype.replace(/__name__/g, index);
-				collectionHolder.dataset.index = parseInt(index) + 1;
+function addForm(collectionHolder) {
+let prototype = collectionHolder.dataset.prototype;
+let index = collectionHolder.dataset.index;
+let newForm = prototype.replace(/__name__/g, index);
+collectionHolder.dataset.index = parseInt(index) + 1;
 
-				let newFormElement = document.createElement('div');
-				newFormElement.innerHTML = newForm;
-				newFormElement.classList.add('plan-course-item', 'mb-3');
+let newFormElement = document.createElement('div');
+newFormElement.innerHTML = newForm;
+newFormElement.classList.add('plan-course-item', 'mb-3');
 
-				let removeButton = document.createElement('button');
-				removeButton.type = 'button';
-				removeButton.className = 'btn btn-danger btn-sm remove-course';
-				removeButton.innerText = 'Supprimer';
-				removeButton.addEventListener('click', function () {
-					newFormElement.remove();
-				});
+let removeButton = document.createElement('button');
+removeButton.type = 'button';
+removeButton.className = 'btn btn-danger btn-sm remove-course';
+removeButton.innerText = 'Supprimer';
+removeButton.addEventListener('click', function () {
+newFormElement.remove();
+});
 
-				newFormElement.appendChild(removeButton);
-				collectionHolder.appendChild(newFormElement);
-			}
+newFormElement.appendChild(removeButton);
+collectionHolder.appendChild(newFormElement);
+}
 
-			document.querySelectorAll('.remove-course').forEach(function (button) {
-				button.addEventListener('click', function () {
-					this.closest('.plan-course-item').remove();
-				});
-			});
-		});
+document.querySelectorAll('.remove-course').forEach(function (button) {
+button.addEventListener('click', function () {
+this.closest('.plan-course-item').remove();
+});
+});
+});
 	</script>
 {% endblock %}

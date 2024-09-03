@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Plan;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -13,11 +14,36 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 
 class PlanType extends AbstractType
 {
+    private $em;
+
+    public function __construct(EntityManagerInterface $em)
+    {
+        $this->em = $em;
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Récupération des types existants dans la base de données
+        $types = $this->em->getRepository(Plan::class)->createQueryBuilder('p')
+            ->select('p.type')
+            ->distinct()
+            ->getQuery()
+            ->getResult();
+
+        $typeChoices = [];
+        foreach ($types as $type) {
+            $typeChoices[$type['type']] = $type['type'];
+        }
+
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom du forfait',
+            ])
+            ->add('type', ChoiceType::class, [
+                'label' => 'Type de Forfait',
+                'choices' => $typeChoices,
+                'placeholder' => 'Sélectionnez un type de forfait',
+                'required' => false, // Permet la création d'un nouveau type s'il n'existe pas encore
             ])
             ->add('startDate', DateType::class, [
                 'label' => 'Date de début',
@@ -29,8 +55,14 @@ class PlanType extends AbstractType
                 'widget' => 'single_text',
                 'required' => true,
             ])
-            ->add('maxPayments', TextType::class, [
+            ->add('maxPayments', ChoiceType::class, [
                 'label' => 'Mode de paiement',
+                'choices' => [
+                    'Paiement Comptant' => 1,
+                    'Paiement en 2 fois' => 2,
+                    'Paiement en 3 fois' => 3,
+                    'Paiement en 10 fois' => 10,
+                ],
             ])
             ->add('stripePriceId', TextType::class, [
                 'label' => 'ID du prix Stripe',

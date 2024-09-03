@@ -10,15 +10,18 @@
 						<a href="{{ path('plan_new') }}" class="btn btn-success mb-3">Ajouter un nouveau forfait</a>
 					{% endif %}
 					<div class="list-group">
+						{% set paymentModes = {1: 'Paiement comptant', 2: 'Paiement en 2 fois', 3: 'Paiement en 3 fois', 10: 'Paiement en 10 fois'} %}
 						{% for plan in plans %}
 							<div class="list-group-item mb-3">
 								<h5 class="mb-1">{{ plan.name }}</h5>
 								<p class="mb-1">
+									Type de forfait : {{ plan.type }}
+									<br>
 									Date de début : {{ plan.startDate|date('d/m/Y') }}
 									<br>
 									Date de fin : {{ plan.endDate|date('d/m/Y') }}
 									<br>
-									Mode de paiement : {{ plan.maxPayments }}
+									Mode de paiement : {{ paymentModes[plan.maxPayments] }}
 									<br>
 									ID du prix Stripe : {{ plan.stripePriceId }}
 								</p>
@@ -26,10 +29,7 @@
 								<ul class="list-group mb-3">
 									{% for planCourse in plan.planCourses %}
 										<li class="list-group-item">
-											{{ planCourse.course.name }}
-											-
-											{{ planCourse.credits }}
-											crédits
+											{{ planCourse.course.name }} - {{ planCourse.credits }} crédits
 										</li>
 									{% endfor %}
 								</ul>
