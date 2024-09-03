@@ -83,6 +83,8 @@ class WebhookController extends AbstractController
     {
         $subscriptionId = $invoice->subscription;
 
+        $this->logger->info('Processing invoice.payment_succeeded', ['subscription_id' => $subscriptionId]);
+
         $subscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
             'stripeSubscriptionId' => $subscriptionId,
         ]);
@@ -92,9 +94,14 @@ class WebhookController extends AbstractController
             return;
         }
 
+        $this->logger->info('Subscription found', [
+            'payments_count' => $subscription->getPaymentsCount(),
+            'is_active' => $subscription->getIsActive(),
+        ]);
+
         $subscription->incrementPaymentsCount();
 
-        $this->logger->info('Payments count after increment:', ['payments_count' => $subscription->getPaymentsCount()]);
+        $this->logger->info('Payments count after increment', ['payments_count' => $subscription->getPaymentsCount()]);
 
         if ($subscription->getPaymentsCount() >= $subscription->getMaxPayments()) {
             $subscription->setIsActive(false);
@@ -111,11 +118,17 @@ class WebhookController extends AbstractController
         }
 
         $this->entityManager->flush();
+        $this->logger->info('Subscription updated successfully', [
+            'payments_count' => $subscription->getPaymentsCount(),
+            'is_active' => $subscription->getIsActive(),
+        ]);
     }
 
     private function handleSubscriptionUpdated($subscription)
     {
         $subscriptionId = $subscription->id;
+
+        $this->logger->info('Processing customer.subscription.updated', ['subscription_id' => $subscriptionId]);
 
         $existingSubscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
             'stripeSubscriptionId' => $subscriptionId,
@@ -132,11 +145,17 @@ class WebhookController extends AbstractController
         $existingSubscription->setIsActive($subscription->status === 'active');
 
         $this->entityManager->flush();
+        $this->logger->info('Subscription updated successfully', [
+            'expiry_date' => $existingSubscription->getExpiryDate()->format('Y-m-d H:i:s'),
+            'is_active' => $existingSubscription->getIsActive(),
+        ]);
     }
 
     private function handleSubscriptionDeleted($subscription)
     {
         $subscriptionId = $subscription->id;
+
+        $this->logger->info('Processing customer.subscription.deleted', ['subscription_id' => $subscriptionId]);
 
         $existingSubscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
             'stripeSubscriptionId' => $subscriptionId,
@@ -151,6 +170,10 @@ class WebhookController extends AbstractController
         $existingSubscription->setExpiryDate(new \DateTime());
 
         $this->entityManager->flush();
+        $this->logger->info('Subscription deleted successfully', [
+            'subscription_id' => $subscriptionId,
+            'is_active' => $existingSubscription->getIsActive(),
+        ]);
     }
 
     private function handleCheckoutSessionCompleted($session)
