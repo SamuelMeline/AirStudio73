@@ -279,7 +279,7 @@ img.d-block.w-100 {
 }
 
 .bg-souplesse {
-	background-color: #70fffe !important;
+	background-color: #58ffd6e0 !important;
 }
 
 .bg-cours-demande {
@@ -430,6 +430,10 @@ h1 {
 .content-scrollable::-webkit-scrollbar-thumb {
 	background-color: #2c7487;
 	border-radius: 20px;
+}
+
+textarea.form-control {
+    min-width: 400px !important;
 }
 
 #back-to-top {

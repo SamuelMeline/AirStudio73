@@ -152,6 +152,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function addNote(string $newNote): self
+    {
+        $date = new \DateTime();
+        $formattedNote = sprintf("[%s] %s", $date->format('d-m-Y H:i'), $newNote);
+        
+        // Ajouter la nouvelle note en haut des notes existantes
+        if ($this->notes) {
+            $this->notes = $formattedNote . "\n" . $this->notes;
+        } else {
+            $this->notes = $formattedNote;
+        }
+    
+        return $this;
+    }
+
     // UserInterface methods
     public function getUserIdentifier(): string
     {

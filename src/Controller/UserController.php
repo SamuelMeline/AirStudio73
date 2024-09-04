@@ -42,7 +42,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/clients/new', name: 'admin_client_new')]
+    #[Route('/admin/clients_new', name: 'admin_client_new')]
     #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $em): Response
     {
@@ -71,7 +71,7 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_client_list');
         }
 
-        return $this->render('client/new.html.twig', [
+        return $this->render('admin/client_new.html.twig', [
             'form' => $form->createView(),
         ]);
     }
@@ -80,7 +80,10 @@ class UserController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher, User $user): Response
     {
-        $form = $this->createForm(RegistrationFormType::class, $user);
+        // Ne pas exiger de mot de passe si l'admin édite un client
+        $form = $this->createForm(RegistrationFormType::class, $user, [
+            'is_edit' => true, // On passe un paramètre pour indiquer qu'il s'agit d'une édition
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -106,6 +109,18 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/admin/clients/{id}/edit_notes', name: 'admin_client_edit_notes', methods: ['POST'])]
+    public function editNotes(Request $request, EntityManagerInterface $em, User $user): Response
+    {
+        $notes = $request->request->get('notes'); // Récupérer les notes envoyées via AJAX
+
+        if ($notes) {
+            $user->setNotes($notes);  // Mettre à jour les notes
+            $em->flush();  // Sauvegarder les modifications
+        }
+
+        return new Response('Notes mises à jour avec succès', Response::HTTP_OK);
+    }
 
     #[Route('/admin/clients/{id}/delete', name: 'admin_client_delete')]
     #[IsGranted('ROLE_ADMIN')]

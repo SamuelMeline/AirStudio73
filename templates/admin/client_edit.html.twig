@@ -27,6 +27,10 @@
 							{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control'}}) }}
 						</div>
 						<div class="form-group">
+							{{ form_label(form.address) }}
+							{{ form_widget(form.address, {'attr': {'class': 'form-control'}}) }}
+						</div>
+						<div class="form-group">
 							{{ form_label(form.notes) }}
 							{{ form_widget(form.notes, {'attr': {'class': 'form-control'}}) }}
 						</div>
@@ -34,15 +38,35 @@
 							{{ form_label(form.roles) }}
 							{{ form_widget(form.roles, {'attr': {'class': 'form-control'}}) }}
 						</div>
+
+						<!-- Case à cocher pour afficher les champs de mot de passe -->
 						<div class="form-group">
-							{{ form_label(form.plainPassword) }}
-							{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+							<label>
+								<input type="checkbox" id="changePasswordCheckbox">
+								Modifier le mot de passe de l'utilisateur
+							</label>
 						</div>
-						<div class="form-group mb-3">
-							{{ form_label(form.confirmPassword, null, {'label_attr': {'class': 'form-label'}}) }}
-							{{ form_widget(form.confirmPassword, {'attr': {'class': 'form-control', 'placeholder': 'Confirmez votre mot de passe'}}) }}
-							{{ form_errors(form.confirmPassword) }}
+
+						<!-- Champs de mot de passe, cachés par défaut -->
+						<div id="passwordFields" style="display: none;">
+							<div class="form-group">
+								{{ form_label(form.plainPassword, 'Nouveau mot de passe') }}
+								<!-- Affiche le label -->
+								{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control', 'placeholder': 'Nouveau mot de passe de l\'utilisateur'}}) }} <!-- Affiche l'input -->
+								{{ form_errors(form.plainPassword) }}
+								<!-- Affiche les erreurs, si nécessaire -->
+							</div>
+							<div class="form-group">
+								{{ form_label(form.confirmPassword, 'Confirmation du nouveau mot de passe') }}
+								<!-- Affiche le label -->
+								{{ form_widget(form.confirmPassword, {'attr': {'class': 'form-control', 'placeholder': 'Confirmez le nouveau mot de passe'}}) }}
+								<!-- Affiche l'input -->
+								{{ form_errors(form.confirmPassword) }}
+								<!-- Affiche les erreurs, si nécessaire -->
+							</div>
 						</div>
+
+
 						<button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
 						{{ form_end(form) }}
 					</div>
@@ -50,4 +74,16 @@
 			</div>
 		</div>
 	</div>
+
+	<script>
+		// Gestion de l'affichage des champs de mot de passe
+document.getElementById('changePasswordCheckbox').addEventListener('change', function () {
+var passwordFields = document.getElementById('passwordFields');
+if (this.checked) {
+passwordFields.style.display = 'block';
+} else {
+passwordFields.style.display = 'none';
+}
+});
+	</script>
 {% endblock %}

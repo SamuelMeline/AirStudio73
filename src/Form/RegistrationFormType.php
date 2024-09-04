@@ -30,6 +30,8 @@ class RegistrationFormType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isEdit = $options['is_edit'] ?? false; // On récupère la valeur du paramètre 'is_edit'
+
         $builder
             ->add('email', EmailType::class, [
                 'label' => 'Adresse e-mail',
@@ -42,7 +44,8 @@ class RegistrationFormType extends AbstractType
             ->add('plainPassword', PasswordType::class, [
                 'label' => 'Mot de passe',
                 'mapped' => false,
-                'constraints' => [
+                'required' => !$isEdit, // Si on est en mode édition, le mot de passe n'est pas obligatoire
+                'constraints' => $isEdit ? [] : [
                     new Length([
                         'min' => 6,
                         'minMessage' => 'Votre mot de passe doit contenir au moins {{ limit }} caractères',
@@ -56,11 +59,12 @@ class RegistrationFormType extends AbstractType
             ->add('confirmPassword', PasswordType::class, [
                 'label' => 'Confirmez votre mot de passe',
                 'mapped' => false,
-                'constraints' => [
+                'required' => !$isEdit, // Le mot de passe de confirmation n'est obligatoire que si on enregistre un nouveau mot de passe
+                'constraints' => !$isEdit ? [
                     new NotBlank([
                         'message' => 'Veuillez confirmer votre mot de passe',
                     ]),
-                ],
+                ] : [],
             ])
             ->add('firstName', TextType::class, [
                 'label' => 'Prénom',
@@ -95,7 +99,12 @@ class RegistrationFormType extends AbstractType
                 ],
             ])
             ->add('notes', TextareaType::class, [
-                'label' => 'Notes supplémentaires',
+                'label' => 'Notes',
+                'attr' => [
+                    'class' => 'form-control',
+                    'rows' => 5,  // Ajustez le nombre de lignes visibles
+                    'placeholder' => 'Ajoutez des notes ici',
+                ],
                 'required' => false,
             ]);
 
@@ -111,13 +120,13 @@ class RegistrationFormType extends AbstractType
             ]);
         }
 
-        // Ajout de l'écouteur d'événement pour valider les mots de passe
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+        // Ajout de l'écouteur d'événement pour valider les mots de passe si nécessaire
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) use ($isEdit) {
             $form = $event->getForm();
             $plainPassword = $form->get('plainPassword')->getData();
             $confirmPassword = $form->get('confirmPassword')->getData();
 
-            if ($plainPassword !== $confirmPassword) {
+            if ($plainPassword !== $confirmPassword && !$isEdit) {
                 $form->get('confirmPassword')->addError(new FormError('Les mots de passe ne correspondent pas.'));
             }
         });
@@ -127,6 +136,7 @@ class RegistrationFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'is_edit' => false, // Ajout d'une option par défaut pour indiquer s'il s'agit d'une édition
         ]);
     }
 }
