@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Règlement Intérieur
+{% endblock %}
+
+
+{% block stylesheets %}
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			line-height: 1.6;
+			margin: 0;
+			padding: 0;
+			background-color: #f9f9f9;
+		}
+
+		.container-reglement,
+		.container-condition {
+			width: 90%;
+			margin: 40px auto;
+			padding: 20px;
+			background-color: #ffffff;
+			border: 1px solid #ddd;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+			max-height: 800px;
+			overflow: auto;
+		}
+
+		.container-reglement {
+			margin-bottom: 40px;
+			border-radius:40px;
+		}
+
+		.container-condition {
+			margin-top: 20px;
+		}
+
+		h1,
+		h2 {
+			background-color: #2c7487;
+			color: #ffffff;
+			padding: 10px;
+			text-align: center;
+			font-size: 24px;
+			border-radius: 5px;
+		}
+
+		h3 {
+			background-color: #CFE9EF;
+			padding: 8px;
+			color: #000;
+			font-size: 20px;
+			border-left: 5px solid #2c7487;
+			margin-bottom: 15px;
+		}
+
+		p {
+			text-align: justify;
+			color: #333;
+			margin-bottom: 10px;
+		}
+
+		h3::before {
+			content: "• ";
+			color: #2c7487;
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<div class="container-reglement content-scrollable">
+		<h1>Règlement Intérieur</h1>
+
+		<p>La saison 2024/2025 débutera le 09/09/2024 pour finir le 20/07/2025 (fermeture du studio du 22 décembre au 05 janvier)</p>
+
+		<h3>Tenue adéquate pour pratiquer :</h3>
+		<ul>
+			<li>
+				<strong>La Pole Dance</strong>
+				est
+				<strong>le short/shorty</strong>
+				et
+				<strong>la brassière/débardeur</strong>. Toutefois, vous pouvez prendre des affaires longues pour votre échauffement (legging, guêtre...)</li>
+			<li>
+				<strong>Le Yoga aérien ou Hammock</strong>, un legging et un tee-shirt recouvrant les aisselles sont conseillés.</li>
+		</ul>
+
+		<p>Merci de ne mettre
+			<strong>aucune crème ou corps gras</strong>
+			sur votre corps dans les heures précédant votre cours.</p>
+		<p>Merci également d’<strong>enlever tout bijou ou piercing</strong>
+			qui pourrait entrer en contact avec la barre ou le tissu, et qui pourrait d’une part endommager le matériel mis à votre disposition et votre propre personne par un arrachement dudit bijou.</p>
+		<p>Merci de penser à
+			<strong>prendre une bouteille d’eau</strong>
+			pour vous hydrater pendant le cours.</p>
+		<p>Merci de
+			<strong>signaler toutes blessures</strong>
+			ou difficultés particulières en début de cours.</p>
+
+		<h3>Pour des raisons de sécurité :</h3>
+		<p>Merci de
+			<strong>respecter les figures apprises par le professeur</strong>
+			pendant le cours, une plage de liberté vous sera laissée en fin de cours pour les figures que vous maîtrisez uniquement.</p>
+
+		<h3>Pour le respect de tous :</h3>
+		<ul>
+			<li>Merci d’arriver 10 minutes avant l’horaire du cours afin de vous changer. Vous pouvez vous voir refuser l’accès au cours si vous dépassez 15 minutes de retard et que l’échauffement est déjà bien entamé.</li>
+			<li>Merci de
+				<strong>prévoir une serviette</strong>
+				pour les échauffements et pour vous essuyer personnellement.</li>
+			<li>Merci de
+				<strong>laisser vos chaussures</strong>
+				de ville à l’entrée.</li>
+		</ul>
+
+		<div style="background:#F2CEED; padding:10px; border:1.5pt solid #0C3512;">
+			<p>
+				<strong>Dans tous les cas, LA BIENVEILLANCE sera le maître mot de nos cours, envers vous-même et envers les autres.</strong>
+			</p>
+		</div>
+		<h2 class="mt-5">Conditions Générales</h2>
+
+		<h3>Inscription :</h3>
+		<p>Un dossier d’inscription vous est remis lors de votre cours d’essai comprenant la fiche d’inscription, la grille de tarifs, et le règlement intérieur. Le dossier devra être complété pour votre 1<sup>er</sup>
+			cours, vous disposez d’un mois à compter de votre 1<sup>er</sup>
+			cours pour fournir le certificat médical demandé mentionnant l’aptitude à la pratique des disciplines aériennes ainsi que votre responsabilité civile ou votre formulaire de demande de licence FFD (loisir ou compétition) complété.</p>
+
+		<h3>Réservation :</h3>
+		<p>Vous devez réserver votre cours sur le site dédié à la réservation, il sera également possible de le réserver en passant par votre professeur.</p>
+		<p>Ou en mentionnant votre souhait pour l’année si vous pensez choisir un jour et un horaire fixe pour toute l’année.</p>
+
+		<h3>Annulation :</h3>
+		<p>Pour ma part, je me réserve le droit d’annuler un cours si je n’ai pas 2 personnes au minimum.</p>
+		<p>De votre côté, merci de prévenir au moins 6 heures à l’avance pour une annulation de cours. Si ce délai n’est pas respecté, le cours sera dû, sauf cas de force majeure justifiée.</p>
+
+		<h3>Remboursement :</h3>
+		<p>Les seuls cas de remboursements possibles sont liés à l’apport d’un certificat médical, à une grossesse, ou à un cas de force majeure, mutation professionnelle par exemple.</p>
+
+		<h3>Urgence médicale :</h3>
+		<p>Toute personne participante aux cours dans l’établissement reconnaît être apte à pratiquer l’activité pour laquelle elle est inscrite. Le studio ne peut en aucun cas être tenu responsable d’un malaise ou d’une blessure accidentelle. En cas d’urgence médicale, le professeur alertera les secours, en composant le 18 ou le 15 pour un transport à l’hôpital le plus proche.</p>
+	</div>
+{% endblock %}

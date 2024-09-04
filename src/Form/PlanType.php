@@ -63,6 +63,7 @@ class PlanType extends AbstractType
                     'Paiement en 3 fois' => 3,
                     'Paiement en 10 fois' => 10,
                 ],
+                'placeholder' => 'Sélectionnez un mode de paiement',
             ])
             ->add('stripePriceId', TextType::class, [
                 'label' => 'ID du prix Stripe',

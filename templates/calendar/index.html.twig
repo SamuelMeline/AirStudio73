@@ -30,17 +30,17 @@
 			{% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
 
 			{% if prevDate >= startOfCurrentWeek %}
-				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-primary">&laquo;</a>
+				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-general">&laquo;</a>
 			{% else %}
-				<button class="btn btn-secondary" disabled>&laquo;</button>
+				<button class="btn btn-general" disabled>&laquo;</button>
 			{% endif %}
-			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn btn-success">Semaine en cours</a>
-			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-primary">&raquo;</a>
+			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn reserve-btn">Semaine en cours</a>
+			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-general">&raquo;</a>
+			<a href="{{ path('user_subscription') }}" class="btn btn-general">Mes forfaits</a>
+			<a href="{{ path('booking_manage') }}" class="btn btn-general">Gérer mes réservations</a>
 			{% if is_granted('ROLE_ADMIN') %}
-				<a href="{{ path('course_new') }}" class="btn btn-success">Créer un cours</a>
+				<a href="{{ path('course_new') }}" class="btn reserve-btn">Créer un cours</a>
 			{% endif %}
-			<a href="{{ path('user_subscription') }}" class="btn btn-info">Mes forfaits</a>
-			<a href="{{ path('booking_manage') }}" class="btn btn-info">Gérer mes réservations</a>
 		</div>
 
 		<div class="row">
@@ -104,52 +104,50 @@
 														</a>
 														<br>
 														{% if user_booking %}
-															{% if available_spots > 0 %}
-																<p>
-																	{{ bookings_count }}
-																	/
-																	{{ course_capacity }}
-																</p>
-															{% else %}
-																<span class="btn btn-danger">Complet</span>
-															{% endif %}
-															<p class="btn btn-success btn-sm text-uppercase">Réservé</p>
-															<br>
+															<p>
+																{{ bookings_count }}
+																/
+																{{ course_capacity }}
+															</p>
+															<p class="reserve">Réservé</p>
 															{% if interval_until_course >= 6 %}
-																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm ">Annuler</a>
+																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm ">Annuler</a>
 															{% else %}
-																<button class="btn btn-secondary btn-sm" disabled>Annulation impossible</button>
+																<button class="btn btn-sm" disabled>Annulation impossible</button>
 															{% endif %}
 														{% else %}
 															{% if available_spots > 0 %}
-																<p>
-																	{{ course_capacity - bookings_count }}
-																	places restantes
-																</p>
-																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+																<p class="update">
+																	{% if course_capacity - bookings_count  == 1 %}
+																		{{ course_capacity - bookings_count }}
+																		place restante
+																	{% else %}
+																		{{ course_capacity - bookings_count }}
+																		places restantes
+																	</p>
+																{% endif %}
+																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn reserve-btn btn-sm">Réserver</a>
 															{% else %}
-																<span class="badge badge-danger">Complet</span>
+																<p class="complet">Complet</p>
 															{% endif %}
 														{% endif %}
 														{% if is_granted('ROLE_ADMIN') %}
 															<div class="mt-2">
-																<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
-
+																<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn update btn-sm">Modifier</a>
 																<form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
 																	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-																	<button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+																	<button type="submit" class="btn complet btn-sm">Annuler</button>
 																</form>
-																<br>
 																<form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
 																	<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-																	<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
+																	<button type="submit" class="btn complet btn-sm mt-2">Supprimer</button>
 																</form>
 															</div>
 															<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
 																<input type="hidden" name="year" value="{{ currentYear }}">
 																<input type="hidden" name="week" value="{{ currentWeek }}">
-																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
 																<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
+																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
 																<span>Capacité :
 																	{{ course_capacity }}</span>
 															</form>
@@ -224,52 +222,52 @@
 													</a>
 													<br>
 													{% if user_booking %}
-														{% if available_spots > 0 %}
-															<p>
-																{{ bookings_count }}
-																/
-																{{ course_capacity }}
-															</p>
-														{% else %}
-															<span class="btn btn-danger">Complet</span>
-														{% endif %}
-														<p class="btn btn-success btn-sm text-uppercase">Réservé</p>
+														<p>
+															{{ bookings_count }}
+															/
+															{{ course_capacity }}
+														</p>
+														<p class="btn reserve btn-sm">Réservé</p>
 														<br>
 														{% if interval_until_course >= 6 %}
-															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn btn-danger btn-sm ">Annuler</a>
+															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm ">Annuler</a>
 														{% else %}
-															<button class="btn btn-secondary btn-sm" disabled>Annulation impossible</button>
+															<button class="btn btn-sm" disabled>Annulation impossible</button>
 														{% endif %}
 													{% else %}
 														{% if available_spots > 0 %}
-															<p>
-																{{ bookings_count }}
-																/
-																{{ course_capacity }}
-															</p>
-															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn btn-primary btn-sm">Réserver</a>
+															<p class="update">
+																{% if course_capacity - bookings_count  == 1 %}
+																	{{ course_capacity - bookings_count }}
+																	place restante
+																{% else %}
+																	{{ course_capacity - bookings_count }}
+																	places restantes
+																</p>
+															{% endif %}
+															<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn reserve-btn btn-sm">Réserver</a>
 														{% else %}
-															<p class="btn btn-danger">Complet</p>
+															<p class="complet">Complet</p>
 														{% endif %}
 													{% endif %}
 													{% if is_granted('ROLE_ADMIN') %}
 														<div>
-															<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn btn-warning btn-sm">Modifier</a>
+															<a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn update btn-sm">Modifier</a>
 															<form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
 																<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-																<button type="submit" class="btn btn-danger btn-sm mt-2">Annuler</button>
+																<button type="submit" class="btn complet btn-sm mt-2">Annuler</button>
 															</form>
 															<br>
 															<form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
 																<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-																<button type="submit" class="btn btn-danger btn-sm mt-2">Supprimer</button>
+																<button type="submit" class="btn complet btn-sm mt-2">Supprimer</button>
 															</form>
 														</div>
 														<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
 															<input type="hidden" name="year" value="{{ currentYear }}">
 															<input type="hidden" name="week" value="{{ currentWeek }}">
-															<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
 															<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
+															<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
 															<span>Capacité :
 																{{ course_capacity }}</span>
 														</form>

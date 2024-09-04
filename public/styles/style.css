@@ -1,316 +1,592 @@
 /* Styles généraux */
 
 body {
-    background-image: url("../images/fondSITE.jpg"); /* Mise à jour du chemin */
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: 40% 17%; /* Centre l'image horizontalement et la déplace vers le bas */
-    height: 100vh;
+	background-image: url("../images/fondSITE.jpg"); /* Mise à jour du chemin */
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: 40% 17%; /* Centre l'image horizontalement et la déplace vers le bas */
+	min-height: 100vh;
 }
 
-
 .container-fluid {
-    padding-left: 0;
+	padding-left: 0;
 }
 
 .container {
-    max-width: 1650px;
+	max-width: 1800px;
 }
 
 /* Logo */
 .logo-img {
-    margin-left: 20px;
+	margin-left: 20px;
 }
 
 /* Navigation */
 .navbar.navbar-expand-lg.navbar-light.bg-white {
-    padding: 0;
+	padding: 0;
 }
 
 a.navbar-brand {
-    padding: 0;
+	padding: 0;
 }
 
 a.nav-link {
-    font-size: 20px;
-    align-items: end;
-    margin: 10px 10px 0 10px;
-    color: #2c7487 !important;
-    font-weight: 500;
+	font-size: 20px;
+	align-items: end;
+	margin: 10px 10px 0 10px;
+	color: #2c7487 !important;
+	font-weight: 500;
 }
 
 .red a.nav-link {
-    color: red !important;
+	color: red !important;
 }
 
 /* Jumbotron */
 .jumbotron {
-    background-color: #fff;
-    font-size: 22px;
-    width: 80%;
-    text-align: center;
-    margin: 0 auto;
-    border-radius: 20px;
+	background-color: #fff;
+	font-size: 22px;
+	width: 80%;
+	text-align: center;
+	margin: 0 auto;
+	border-radius: 40px;
+	margin-top: 30px;
 }
 
 .jumbotron h1 {
-    font-size: 45px;
+	font-size: 45px;
+	font-weight: 400;
+	max-width: 66%;
+	border-radius: 10px;
+	margin: 0 auto;
+	margin-bottom: 50px;
+}
+
+.jumbotron a.reserve {
+	font-size: 22px !important;
+}
+
+a.reserve:hover {
+	color:#225f6e !important;
+	transition: all 0.3s ease !important;
+	text-decoration: underline;
 }
 
 .lead {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: red;
+	font-size: 1.6rem;
+	font-weight: 600;
+	color: red;
 }
 
 /* Calendriers */
 .calendars-container {
-    display: flex;
-    justify-content: space-around;
+	display: flex;
+	justify-content: space-around;
 }
 
 .calendar {
-    flex: 1;
-    margin: 10px;
+	flex: 1;
+	margin: 10px;
 }
 
 /* Tables */
+/* Styles généraux pour les tables */
 table {
-    width: 100%;
-    border-collapse: collapse;
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: 15px; /* Bord arrondi pour le tableau */
+	overflow: hidden; /* Pour que les coins restent arrondis */
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ombre douce */
+	min-height: 50%;
 }
 
-table a {
-    text-transform: uppercase;
+/* Améliorer le style des bordures des cellules */
+th,
+td {
+	border-bottom: 1px solid #a5a4a4 !important;
+	padding: 10px;
+	text-align: center;
+	vertical-align: middle;
+	background-color: white; /* Fond blanc pour un contraste clair */
+	min-width: 180px;
 }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 10px;
-    text-align: center;
-    vertical-align: middle;
+/* Arrondir uniquement les coins du tableau */
+table thead th:first-child {
+	border-top-left-radius: 15px;
 }
 
+table thead th:last-child {
+	border-top-right-radius: 15px;
+}
+
+table tbody tr:last-child td:first-child {
+	border-bottom-left-radius: 15px;
+}
+
+table tbody tr:last-child td:last-child {
+	border-bottom-right-radius: 15px;
+}
+
+/* Ajouter une distinction pour l'en-tête */
 th {
-    background-color: #f4f4f4;
-    min-width: 178px;
+	background-color: #1c7d97c9 !important;
+	font-weight: 600;
+	font-size: 1.1em;
+	color: #fff !important;
 }
 
+/* Styles spécifiques pour la planification */
 .planning .table td {
-    vertical-align: middle;
+	vertical-align: middle;
+}
+
+/* Modifier les bordures des tableaux secondaires (Samedi) */
+.col-md-4 table {
+	border-radius: 10px;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Améliorer les boutons */
+.btn {
+	border-radius: 5px;
+}
+
+/* Ombre et transition pour les boutons */
+.btn,
+a.btn {
+	transition: all 0.3s ease !important;
 }
 
 /* Boutons */
 .reserve-btn {
-    display: inline-block;
-    /* padding: 5px 10px; */
-    background-color: #4caf50;
-    color: white;
-    text-decoration: none;
-    border-radius: 3px;
+	display: inline-block;
+	/* padding: 5px 10px; */
+	background-color: #4fbd52c7;
+	text-decoration: none;
+	border-radius: 5px;
+	color: white !important;
+}
+
+.reserve-btn:hover {
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+	background-color: #fff;
+	color: #4fbd52c7 !important;
+}
+
+.btn-general {
+	background-color: #2c7487;
+	text-decoration: none;
+	border-radius: 5px;
+	color: white !important;
+}
+
+.btn-general:hover {
+	color: #2c7487 !important;
+	background-color: #fff;
+	border: 1px solid #2c7487;
 }
 
 button[disabled] {
-    background-color: #ccc;
-    color: #777;
-    cursor: not-allowed;
+	background-color: #868686 !important;
+	color: #fff;
+	cursor: not-allowed;
 }
 
 /* Navigation du calendrier */
 .calendar-navigation {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 20px;
 }
 
 .calendar-navigation a {
-    text-decoration: none;
-    color: #007bff;
+	text-decoration: none;
+	color: #2c7487;
 }
 
 .calendar-navigation a:hover {
-    text-decoration: underline;
+	text-decoration: underline;
 }
 
 /* Alertes */
 .flash-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #f5c6cb;
-    border-radius: 3px;
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 10px;
+	margin-bottom: 20px;
+	border: 1px solid #f5c6cb;
+	border-radius: 3px;
 }
 
 /* Divers */
 .hsam {
-    max-width: 30% !important;
+	max-width: 30% !important;
 }
 
 .session {
-    margin: 5px 0;
+	margin: 5px 0;
 }
 
 span.badge.badge-success.mt-2.p-2.text-uppercase {
-    font-weight: 600;
-    margin-left: 5px;
+	font-weight: 600;
+	margin-left: 5px;
 }
 
 .register ul {
-    padding-left: 0;
-    margin: 0;
+	padding-left: 0;
+	margin: 0;
 }
 
 .register li {
-    color: red;
-    list-style: none;
-    margin-left: 5px;
-    margin-top: 5px;
+	color: red;
+	list-style: none;
+	margin-left: 5px;
+	margin-top: 5px;
 }
 
 /* Carousel */
 img.card-img-top {
-    max-height: 500px;
-    object-fit: cover;
+	max-height: 500px;
+	object-fit: cover;
 }
 
 img.d-block.w-100 {
-    max-height: 750px;
-    object-fit: contain;
+	max-height: 750px;
+	object-fit: contain;
 }
 
 .carousel-control-prev {
-    left: 260px;
+	left: 260px;
 }
 
 .carousel-control-next {
-    right: 260px;
+	right: 260px;
 }
 
 /* Background colors for specific classes */
 .bg-yoga-aerien {
-    background-color: #67e1e5 !important;
+	background-color: #67e1e5 !important;
 }
 
 .bg-pole-dance {
-    background-color: #9999ff !important;
+	background-color: #9999ff !important;
 }
 
 .bg-hammock {
-    background-color: lightblue !important;
+	background-color: lightblue !important;
 }
 
 .bg-souplesse {
-    background-color: #70fffe !important;
+	background-color: #70fffe !important;
 }
 
 .bg-cours-demande {
-    background-color: #d8d8d8 !important;
+	background-color: #d8d8d8 !important;
 }
 
 .calendrier p {
-    margin-top: 5px;
-    margin-bottom: 10px;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	color: black;
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 14px;
+}
+
+p.complet {
+	margin: 0 auto;
+	background: red;
+	border-radius: 5px;
+	padding: 5px;
+	margin-top: 10px;
+	color: #fff;
+	max-width: 80px;
+	margin-bottom: 10px;
+}
+
+p.reserve, a.reserve {
+	color: #2c7487 !important;
+	margin-bottom: 10px;
+	font-weight: bold !important;
+	font-size: 16px !important;
+	text-decoration: none;
+}
+
+p.update {
+	color: black !important;
+	margin-bottom: 10px;
+	margin-right: 20px;
+	font-weight: 600 !important;
+	font-size: 16px !important;
+}
+
+button.complet {
+	margin: 0 auto;
+	background: red;
+	border-radius: 5px;
+	padding: 5px;
+	margin-top: 10px;
+	color: #fff !important;
+	text-transform: initial !important;
+}
+
+a.complet {
+	margin: 0 auto;
+	background: red;
+	border-radius: 5px;
+	padding: 5px;
+	color: #fff !important;
+	text-transform: initial !important;
+}
+
+a.update {
+	margin: 0 auto;
+	background: #81742abd;
+	border-radius: 5px;
+	padding: 5px;
+	margin-top: 10px;
+	color: #fff !important;
+	text-transform: initial !important;
+	font-weight: normal !important;
+}
+
+a.update:hover {
+	color: #81742abd !important;
+	background-color: #fff;
+}
+
+button.complet:hover,
+a.complet:hover {
+	color: red !important;
+	background-color: #fff;
+}
+
+.calendrier a {
+	text-decoration: none;
+	text-transform: uppercase;
+	color: #2c7487;
+	font-weight: 600;
 }
 
 .calendrier p.btn {
-    margin-top: 0;
+	margin-top: 0;
+}
+
+.card {
+	margin-bottom: 20px;
+	border-radius: 40px;
+}
+
+.list-group {
+	max-height: 600px;
+	overflow: auto;
+	padding-right: 8px;
+}
+
+.planning .content-scrollable {
+	max-height: 600px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+h1 {
+	font-size: 24px;
+	background-color: #2c7487;
+	color: #ffffff !important;
+	padding: 15px;
+	border-radius: 20px;
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.planning h1, .calendrier h1 {
+	border-radius: 5px;
+}
+
+.container .home,
+.connexion {
+	margin-top: 100px;
+}
+
+.connexion h1, .register h1 {
+	border-radius: 5px;
+}
+
+/* Pour les navigateurs WebKit (Chrome, Safari, Edge) */
+.content-scrollable::-webkit-scrollbar {
+	width: 6px; /* Largeur de la scrollbar */
+	color: #2c7487;
+}
+
+.content-scrollable::-webkit-scrollbar-track {
+	background-color: transparent;
+	/* border-radius: 20px; */
+	margin-top: 20px; /* Ajouter un espace en haut de la piste */
+	margin-bottom: 20px; /* Ajouter un espace en bas de la piste */
+}
+
+.content-scrollable::-webkit-scrollbar-thumb {
+	background-color: #2c7487;
+	border-radius: 20px;
+}
+
+#back-to-top {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	display: none;
+	background-color: #2c7487;
+	color: #fff;
+	padding: 10px 15px;
+	border-radius: 5px;
+	text-align: center;
+	text-decoration: none;
+	font-size: 14px;
+	z-index: 1000;
+}
+
+#back-to-top:hover {
+	background-color: #0056b3;
+}
+
+footer.footer {
+	background-color: white;
+	min-height: 150px;
+	padding: 20px;
+	text-align: center;
+	border-top: 1px solid #ddd;
+	width: 100%;
+}
+
+footer.footer ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+	display: inline-block;
+}
+
+.footer nav {
+	margin-top: 20px !important;
+}
+
+footer.footer ul li {
+	display: inline;
+	margin-right: 15px;
+}
+
+footer.footer ul li a {
+	font-size: 20px;
+	align-items: end;
+	margin: 10px 10px 0 10px;
+	color: #2c7487 !important;
+	font-weight: 500;
+	text-decoration: none;
+}
+
+footer.footer p {
+	margin-top: 15px;
+	color: #555;
 }
 
 /* Responsiveness */
 @media screen and (max-width: 1500px) {
-    .col {
-        width: 100%;
-        margin: 0 auto;
-    }
+	.col {
+		width: 100%;
+		margin: 0 auto;
+	}
 }
 
 @media screen and (max-width: 1200px) {
-    th {
-        min-width: 100px;
-    }
-    table {
-        font-size: 14px;
-    }
-    button.btn, a.btn {
-        font-size: 10px;
-    }
+	th {
+		min-width: 100px;
+	}
+	table {
+		font-size: 14px;
+	}
+	button.btn,
+	a.btn {
+		font-size: 10px;
+	}
 }
 
 @media screen and (max-width: 860px) {
-    th {
-        min-width: 50px;
-    }
-    table {
-        font-size: 12px;
-    }
-    button.btn, a.btn {
-        font-size: 8px;
-    }
+	th {
+		min-width: 50px;
+	}
+	table {
+		font-size: 12px;
+	}
+	button.btn,
+	a.btn {
+		font-size: 8px;
+	}
 }
 
 /* Classes utilitaires */
 .dn {
-    display: none;
+	display: none;
 }
-
 
 /* Pour les écrans de 768px ou moins */
 @media screen and (max-width: 768px) {
-    .navbar .navbar-brand img {
-        width: 120px; /* Réduction de la taille du logo pour les mobiles */
-    }
+	.navbar .navbar-brand img {
+		width: 120px; /* Réduction de la taille du logo pour les mobiles */
+	}
 
-    .navbar-nav .nav-link {
-        font-size: 16px; /* Ajustement de la taille du texte du menu pour les mobiles */
-    }
+	.navbar-nav .nav-link {
+		font-size: 16px; /* Ajustement de la taille du texte du menu pour les mobiles */
+	}
 
-    .container {
-        padding: 10px; /* Réduction du padding général */
-    }
+	.container {
+		padding: 10px; /* Réduction du padding général */
+	}
 
-    .table-responsive {
-        overflow-x: auto; /* Permettre le défilement horizontal pour les tables */
-    }
+	.table-responsive {
+		overflow-x: auto; /* Permettre le défilement horizontal pour les tables */
+	}
 
-    .table th, .table td {
-        padding: 8px; /* Réduire les padding des cellules de table pour les mobiles */
-    }
+	.table th,
+	.table td {
+		padding: 8px; /* Réduire les padding des cellules de table pour les mobiles */
+	}
 
-    /* Réduction de la taille des boutons pour qu'ils soient plus faciles à utiliser sur mobile */
-    .btn {
-        font-size: 14px;
-        padding: 5px 10px;
-    }
+	/* Réduction de la taille des boutons pour qu'ils soient plus faciles à utiliser sur mobile */
+	.btn {
+		font-size: 14px;
+		padding: 5px 10px;
+	}
 
-    /* Pour le calendrier */
-    .calendar-navigation a {
-        font-size: 14px; /* Ajustement de la taille des liens de navigation du calendrier */
-    }
+	/* Pour le calendrier */
+	.calendar-navigation a {
+		font-size: 14px; /* Ajustement de la taille des liens de navigation du calendrier */
+	}
 }
 
 /* Pour les écrans de 576px ou moins */
 @media screen and (max-width: 576px) {
-    .navbar .navbar-brand img {
-        width: 100px; /* Réduction encore plus de la taille du logo */
-    }
+	.navbar .navbar-brand img {
+		width: 100px; /* Réduction encore plus de la taille du logo */
+	}
 
-    .navbar-nav .nav-link {
-        font-size: 14px; /* Réduction supplémentaire de la taille du texte du menu */
-    }
+	.navbar-nav .nav-link {
+		font-size: 14px; /* Réduction supplémentaire de la taille du texte du menu */
+	}
 
-    .container {
-        padding: 5px; /* Réduction maximale du padding général */
-    }
+	.container {
+		padding: 5px; /* Réduction maximale du padding général */
+	}
 
-    .table th, .table td {
-        padding: 5px; /* Réduction maximale des padding des cellules de table pour les petits écrans */
-        font-size: 10px; /* Réduction de la taille de la police des tables */
-    }
+	.table th,
+	.table td {
+		padding: 5px; /* Réduction maximale des padding des cellules de table pour les petits écrans */
+		font-size: 10px; /* Réduction de la taille de la police des tables */
+	}
 
-    /* Réduction de la taille des boutons pour qu'ils soient encore plus faciles à utiliser sur mobile */
-    .btn {
-        font-size: 12px;
-        padding: 4px 8px;
-    }
+	/* Réduction de la taille des boutons pour qu'ils soient encore plus faciles à utiliser sur mobile */
+	.btn {
+		font-size: 12px;
+		padding: 4px 8px;
+	}
 }

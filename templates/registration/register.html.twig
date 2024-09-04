@@ -1,15 +1,14 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inscription{% endblock %}
+{% block title %}Inscription
+{% endblock %}
 
 {% block body %}
-	<div class="container register">
+	<div class="container register mt-3">
 		<div class="row justify-content-center">
 			<div class="col-md-6">
 				<div class="card shadow-sm">
-					<div class="card-header text-center bg-primary text-white">
-						<h1 class="card-title mb-0">Inscription</h1>
-					</div>
+					<h1 class="card-title mb-0">Inscription</h1>
 					<div class="card-body">
 						{{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
 
@@ -61,12 +60,12 @@
 							{{ form_errors(registrationForm.notes) }}
 						</div>
 
-						<button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
+						<button type="submit" class="btn btn-general btn-block">S'inscrire</button>
 						{{ form_end(registrationForm) }}
+						<div class="text-center mt-2">
+							<a class="reserve" href="{{ path('app_login') }}">Déjà inscrit ? Connecte-toi !</a>
+						</div>
 					</div>
-				</div>
-				<div class="text-center mt-2">
-					<a href="{{ path('app_login') }}">Déjà inscrit ? Connecte-toi !</a>
 				</div>
 			</div>
 		</div>
