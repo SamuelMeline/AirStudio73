@@ -38,9 +38,9 @@
 						<td colspan="8">Aucun client trouvé.</td>
 					</tr>
 				{% endfor %}
-				<a href="{{ path('admin_client_new') }}" class="btn btn-primary mb-3">Ajouter un nouveau client</a>
 			</tbody>
 		</table>
+		<a href="{{ path('admin_client_new') }}" class="btn reserve-btn mb-3">Ajouter un nouveau client</a>
 	</div>
 	<script>
 		document.querySelectorAll('.editable-notes').forEach(function (textarea) {

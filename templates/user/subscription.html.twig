@@ -17,35 +17,39 @@
 					{% endif %}
 				{% endfor %}
 
-				<div class="list-group-item">
-					<h5 class="mb-1">{{ subscription.plan.name }}</h5>
-					<ul class="list-unstyled">
-						{% for subscriptionCourse in subscription.subscriptionCourses %}
-							<li>
-								{{ subscriptionCourse.course.name }}
-								-
-								{{ subscriptionCourse.remainingCredits }}
-								crédits
-							</li>
-						{% endfor %}
-					</ul>
-					<p class="mb-1">Date de commencement :
-						{{ subscription.startDate|date('d-m-Y') }}</p>
-					<p class="mb-1">Date d'expiration :
-						{{ subscription.expiryDate|date('d-m-Y') }}</p>
-					<p class="mb-1">Mode de paiement :
-						{{ subscription.paymentMode }}</p>
+				{# Si la souscription a des crédits restants, on l'affiche #}
+				{% if hasCredits %}
+					<div class="list-group-item">
+						<h5 class="mb-1">{{ subscription.plan.name }}</h5>
+						<ul class="list-unstyled">
+							{% for subscriptionCourse in subscription.subscriptionCourses %}
+								{% if subscriptionCourse.remainingCredits > 0 %}
+									<li>
+										{{ subscriptionCourse.course.name }}
+										- 
+										{{ subscriptionCourse.remainingCredits }} crédits
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
+						<p class="mb-1">Date de commencement :
+							{{ subscription.startDate|date('d-m-Y') }}</p>
+						<p class="mb-1">Date d'expiration :
+							{{ subscription.expiryDate|date('d-m-Y') }}</p>
+						<p class="mb-1">Mode de paiement :
+							{{ subscription.paymentMode }}</p>
 
-					{% if isExpired %}
-						<p class="text-danger">Ce forfait a expiré.</p>
-					{% elseif isNotStarted %}
-						<p class="text-warning">Ce forfait vous permet de réserver des cours à partir du {{ subscription.startDate|date('d-m-Y') }}.</p>
-					{% elseif hasCredits %}
-						<a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
-					{% else %}
-						<p class="text-danger">Pas de crédits restants</p>
-					{% endif %}
-				</div>
+						{% if isExpired %}
+							<p class="text-danger">Ce forfait a expiré.</p>
+						{% elseif isNotStarted %}
+							<p class="text-warning">Ce forfait vous permet de réserver des cours à partir du
+								{{ subscription.startDate|date('d-m-Y') }}.</p>
+						{% else %}
+							<p class="text-success">Vous avez des crédits restants pour ce forfait.</p>
+						{% endif %}
+						<a href="{{ path('calendar') }}" class="btn btn-general btn-sm">Réserver</a>
+					</div>
+				{% endif %}
 			{% endfor %}
 
 			{% if allSubscriptionsEmpty %}
@@ -53,7 +57,7 @@
 					Vous n'avez aucun crédit restant sur vos forfaits.
 				</div>
 			{% endif %}
-			<a href="{{ path('subscription_new') }}" class="btn btn-success btn-sm">Acheter un nouveau forfait</a>
 		</div>
+		<a href="{{ path('subscription_new') }}" class="btn reserve-btn btn-sm mt-2">Acheter un nouveau forfait</a>
 	</div>
 {% endblock %}

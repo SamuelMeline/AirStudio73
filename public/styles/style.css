@@ -110,6 +110,9 @@ td {
 	vertical-align: middle;
 	background-color: white; /* Fond blanc pour un contraste clair */
 	min-width: 180px;
+}
+
+.planning td, .calendrier td {
 	max-width: 180px;
 }
 
@@ -174,6 +177,7 @@ a.btn {
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 	background-color: #fff;
 	color: #4fbd52c7 !important;
+	border: 1px solid #4fbd52c7;
 }
 
 .btn-general {
@@ -357,12 +361,14 @@ a.update {
 a.update:hover {
 	color: #81742abd !important;
 	background-color: #fff;
+	border: 1px solid #81742abd;
 }
 
 button.complet:hover,
 a.complet:hover {
 	color: red !important;
 	background-color: #fff;
+	border: 1px solid red;
 }
 
 .calendrier a {
@@ -409,7 +415,7 @@ h1 {
 
 .container .home,
 .connexion {
-	margin-top: 100px;
+	margin-top: 5%;
 }
 
 .connexion h1, .register h1 {

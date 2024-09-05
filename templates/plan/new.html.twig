@@ -32,7 +32,7 @@
 						{{ form_label(form.stripePriceId) }}
 						{{ form_widget(form.stripePriceId, {'attr': {'class': 'form-control'}}) }}
 					</div>
-					<h2>Courses</h2>
+					<h2>Cours</h2>
 					<div class="plan-courses-collection" data-prototype="{{ form_widget(form.planCourses.vars.prototype)|e('html_attr') }}">
 						{% for planCourse in form.planCourses %}
 							<div class="plan-course-item mb-3">
@@ -46,15 +46,15 @@
 										{{ form_widget(planCourse.credits, {'attr': {'class': 'form-control'}}) }}
 									</div>
 									<div class="col-md-2">
-										<button type="button" class="btn btn-danger remove-course">Supprimer</button>
+										<button type="button" class="btn complet remove-course">Supprimer</button>
 									</div>
 								</div>
 							</div>
 						{% endfor %}
 					</div>
 					<div class="form-group">
-						<button type="button" class="btn btn-primary add-course">Ajouter un cours</button>
-						<button type="submit" class="btn btn-success">Enregistrer</button>
+						<button type="button" class="btn reserve-btn add-course">Ajouter un cours</button>
+						<button type="submit" class="btn btn-general">Enregistrer</button>
 					</div>
 					{{ form_end(form) }}
 				</div>
@@ -103,7 +103,7 @@ newFormElement.appendChild(formRow);
 
 let removeButton = document.createElement('button');
 removeButton.type = 'button';
-removeButton.classList.add('btn', 'btn-danger', 'remove-course');
+removeButton.classList.add('btn', 'complet', 'remove-course');
 removeButton.textContent = 'Supprimer';
 
 formRow.appendChild(removeButton);

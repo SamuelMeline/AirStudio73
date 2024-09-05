@@ -39,8 +39,6 @@ class CourseType extends AbstractType
                     '3 mois' => '3_months',
                     '6 mois' => '6_months',
                     '1 an' => '1_year',
-                    '2 ans' => '2_years',
-                    '3 ans' => '3_years',
                 ],
                 'required' => false,
             ]);

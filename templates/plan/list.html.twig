@@ -7,7 +7,7 @@
 				<div class="card-body">
 					<h1 class="mb-1">Forfaits</h1>
 					{% if is_granted('ROLE_ADMIN') %}
-						<a href="{{ path('plan_new') }}" class="btn btn-success mb-3">Ajouter un nouveau forfait</a>
+						<a href="{{ path('plan_new') }}" class="btn reserve-btn mb-3">Ajouter un nouveau forfait</a>
 					{% endif %}
 					<div class="list-group content-scrollable">
 						{% set paymentModes = {1: 'Paiement comptant', 2: 'Paiement en 2 fois', 3: 'Paiement en 3 fois', 10: 'Paiement en 10 fois'} %}
@@ -33,8 +33,8 @@
 										</li>
 									{% endfor %}
 								</ul>
-								<a href="{{ path('plan_edit', {'id': plan.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
-								<a href="{{ path('plan_delete', {'id': plan.id}) }}" class="btn btn-danger btn-sm">Supprimer</a>
+								<a href="{{ path('plan_edit', {'id': plan.id}) }}" class="btn update btn-sm mt-0">Modifier</a>
+								<a href="{{ path('plan_delete', {'id': plan.id}) }}" class="btn complet btn-sm">Supprimer</a>
 							</div>
 						{% endfor %}
 					</div>

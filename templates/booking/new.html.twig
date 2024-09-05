@@ -8,10 +8,10 @@
 		<div class="row justify-content-center">
 			<div class="col-md-6">
 				<div class="card">
-					<div class="card-header">
+
 						<h1 class="card-title">Réserver le cours :
 							{{ course.name }}</h1>
-					</div>
+
 					<div class="card-body">
 						{{ form_start(form) }}
 						<div class="form-group form-check">
@@ -19,14 +19,23 @@
 							{{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
 						</div>
 						<div id="num-occurrences-container" class="form-group" style="display: none;">
+							<div class="mt-2">
+								<p class>Crédits restants :
+									{{ user_credits }}
+								</p>
+								<p>
+									Cours disponnible :
+									<span id="available-courses">{{ remaining_courses }}</span>
+								</p>
+							</div>
+
 							{{ form_label(form.numOccurrences, null, {'label_attr': {'class': 'form-label'}}) }}
 							{{ form_widget(form.numOccurrences, {'attr': {'class': 'form-control js-num-occurrences w-25'}}) }}
-							<button type="button" class="btn btn-secondary mt-2" id="max-occurrences-button">Max (<span id="available-courses">{{ remaining_courses }}</span>)</button>
 						</div>
 						{{ form_rest(form) }}
-						<button type="submit" class="btn btn-primary btn-block mt-3">Réserver</button>
+						<button type="submit" class="btn reserve-btn btn-block mt-3">Réserver</button>
 						{{ form_end(form) }}
-						<a href="{{ path('calendar') }}" class="btn btn-secondary btn-block mt-3">Retour au calendrier</a>
+						<a href="{{ path('calendar') }}" class="btn btn-general btn-block mt-3">Retour au calendrier</a>
 					</div>
 				</div>
 			</div>
@@ -50,7 +59,7 @@ const availableCourses = data.availableCourses;
 availableCoursesSpan.textContent = availableCourses;
 
 // On met à jour également le bouton Max pour calculer le nombre d'occurrences
-maxOccurrencesButton.addEventListener('click', function () {
+maxOccurrencesButton.addEventListener('click', function () { // Calculer le minimum entre les crédits restants et les cours disponibles
 const maxOccurrences = Math.min(availableCourses, {{ remaining_courses }});
 numOccurrencesInput.value = maxOccurrences;
 });
@@ -72,6 +81,7 @@ numOccurrencesInput.value = '';
 }
 });
 
+// Si la case est déjà cochée, afficher le champ numOccurrences
 if (recurrentCheckbox.checked) {
 numOccurrencesContainer.style.display = 'block';
 numOccurrencesInput.required = true;

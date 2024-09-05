@@ -38,13 +38,13 @@
 						{% for planCourse in form.planCourses %}
 							<div class="plan-course-item mb-3">
 								{{ form_widget(planCourse) }}
-								<button type="button" class="btn btn-danger btn-sm remove-course">Supprimer</button>
+								<button type="button" class="btn complet btn-sm remove-course">Supprimer</button>
 							</div>
 						{% endfor %}
 					</div>
 
-					<button type="button" class="btn btn-secondary mt-2 add-course">Ajouter un cours</button>
-					<button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+					<button type="button" class="btn reserve-btn mt-2 add-course">Ajouter un cours</button>
+					<button type="submit" class="btn btn-general mt-3">Enregistrer</button>
 					{{ form_end(form) }}
 				</div>
 			</div>

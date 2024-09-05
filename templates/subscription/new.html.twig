@@ -27,12 +27,12 @@
 
 				{{ form_rest(form) }}
 
-				<button type="submit" class="btn btn-primary mt-2">Réserver et payer</button>
+				<button type="submit" class="btn btn-general mt-2">Réserver et payer</button>
 				{{ form_end(form) }}
 
 				{% if is_granted('ROLE_ADMIN') %}
 					<div class="mt-3">
-						<a href="{{ path('plan_new') }}" class="btn btn-secondary">Ajouter un nouveau forfait</a>
+						<a href="{{ path('plan_new') }}" class="btn reserve-btn">Ajouter un nouveau forfait</a>
 					</div>
 				{% endif %}
 			</div>

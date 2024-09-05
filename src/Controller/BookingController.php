@@ -49,39 +49,46 @@ class BookingController extends AbstractController
         $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user]);
 
         if (!$subscriptions || count($subscriptions) === 0) {
-            $this->addFlash('error', 'You do not have an active subscription.');
+            $this->addFlash('error', 'Vous n\'avez pas de forfait actif.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
         $validSubscriptionCourse = $this->getValidSubscriptionCourse($subscriptions, $course);
+        
+        // Récupérer la souscription en cours pour l'utilisateur via Subscription
+        $subscriptionCourse = $em->getRepository(SubscriptionCourse::class)->findOneBy([
+            'subscription' => $em->getRepository(Subscription::class)->findOneBy(['user' => $user])
+        ]);
 
         if (!$validSubscriptionCourse) {
-            $this->addFlash('error', 'Vous n\'avez pas de souscription valide pour ce cours.');
+            // Vérification si la date du cours est avant la date de commencement du forfait
+            foreach ($subscriptions as $subscription) {
+                $remainingCredits = $subscriptionCourse->getRemainingCredits();
+                if ($subscription->getStartDate() > $course->getStartTime() && $remainingCredits !=0) {
+                    $this->addFlash('error', sprintf(
+                        'Votre forfait ne commence que le %s. Vous ne pouvez pas réserver avant cette date.',
+                        $subscription->getStartDate()->format('d/m/Y')
+                    ));
+                    return $this->redirectToRoute('calendar');
+                }
+            }
+
+            $this->addFlash('error', 'Il ne vous reste plus de crédits pour ce cours. Veuillez acheter un nouveau forfait.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        $subscription = $validSubscriptionCourse->getSubscription();
-        $currentDate = new \DateTime();
-
-        // Vérifier que la souscription a commencé ou que le cours est après la startDate
-        if ($subscription->getStartDate() > $currentDate && $course->getStartTime() < $subscription->getStartDate()) {
-            $this->addFlash('error', sprintf(
-                'Votre souscription commence le %s. Vous ne pouvez réserver un cours qu\'à partir de cette date.',
-                $subscription->getStartDate()->format('d/m/Y')
-            ));
-            return $this->redirectToRoute('calendar');
+        // S'assurer que la souscription existe
+        if (!$subscriptionCourse) {
+            throw new \LogicException('Aucune souscription trouvée pour cet utilisateur.');
         }
 
-        // Vérifier que la souscription n'est pas expirée
-        if ($subscription->getExpiryDate() !== null && $subscription->getExpiryDate() < $currentDate) {
-            $this->addFlash('error', 'Votre souscription a expiré.');
-            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
-        }
+        // Récupérer les crédits restants depuis SubscriptionCourse
+        $remainingCredits = $subscriptionCourse->getRemainingCredits();
 
         $remainingCourseCredits = $validSubscriptionCourse->getRemainingCredits();
 
         if ($remainingCourseCredits <= 0) {
-            $this->addFlash('error', 'You do not have any remaining credits for this course. Please purchase a new subscription.');
+            $this->addFlash('error', 'Il ne vous reste plus de crédits pour ce cours. Veuillez acheter un nouveau forfait.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
@@ -123,13 +130,14 @@ class BookingController extends AbstractController
                 $user->getEmail(),
                 'Confirmation de Réservation',
                 sprintf(
-                    'Bonjour,
+                    'Bonjour %s,
 
 Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
 À très vite !
 
 Cordialement,
 Airstudio73',
+                    $user->getFirstName(),
                     $course->getName(),
                     $course->getStartTime()->format('d/m/Y'),
                     $course->getStartTime()->format('H:i')
@@ -146,6 +154,7 @@ Airstudio73',
             'form' => $form->createView(),
             'course' => $course,
             'remaining_courses' => $remainingCourseCredits,
+            'user_credits' => $remainingCredits
         ]);
     }
 
@@ -162,12 +171,12 @@ Airstudio73',
         $booking = $em->getRepository(Booking::class)->find($bookingId);
 
         if (!$booking) {
-            $this->addFlash('error', 'Booking not found.');
+            $this->addFlash('error', 'Réservation introuvable.');
             return $this->redirectToRoute('calendar');
         }
 
         if ($booking->getUser() !== $user) {
-            $this->addFlash('error', 'You are not authorized to cancel this booking.');
+            $this->addFlash('error', 'Vous n\'êtes pas autorisé à annuler cette réservation.');
             return $this->redirectToRoute('calendar');
         }
 
@@ -175,7 +184,7 @@ Airstudio73',
         $courseStartTime = $booking->getCourse()->getStartTime();
         $currentDate = new \DateTime();
         if ($courseStartTime < $currentDate->add(new \DateInterval('PT6H'))) {
-            $this->addFlash('error', 'You cannot cancel a booking less than 6 hours before the course.');
+            $this->addFlash('error', 'Vous ne pouvez pas annuler une réservation moins de 6 heures avant le cours.');
             return $this->redirectToRoute('calendar');
         }
 
@@ -196,7 +205,7 @@ Airstudio73',
             $user->getEmail(),
             'Annulation de Réservation',
             sprintf(
-                'Bonjour,
+                'Bonjour %s,
 
 Votre réservation pour le cours "%s" prévu le %s à %s a été annulée.
 En espérant vous revoir prochainement !
@@ -204,6 +213,7 @@ En espérant vous revoir prochainement !
 Cordialement,
 Airstudio73
                 ',
+                $user->getFirstName(),
                 $courseName,
                 $courseDate,
                 $courseTime
@@ -215,11 +225,12 @@ Airstudio73
             self::ADMIN_EMAIL,
             'Annulation de Réservation par un Utilisateur',
             sprintf(
-                'La réservation pour le cours "%s" prévu le %s à %s par l\'utilisateur "%s" a été annulée.',
+                'La réservation pour le cours "%s" prévu le %s à %s par l\'utilisateur %s %s a été annulée.',
                 $courseName,
                 $courseDate,
                 $courseTime,
-                $user->getEmail()
+                $user->getFirstName(),
+                $user->getLastName(),
             ),
             $logger
         );
@@ -347,7 +358,7 @@ Airstudio73',
             $courseDate = $booking->getCourse()->getStartTime()->format('d/m/Y');
             $courseTime = $booking->getCourse()->getStartTime()->format('H:i');
             $userEmailMessage = sprintf(
-                'Bonjour,
+                'Bonjour %s,
 
 Votre réservation pour le cours "%s" prévu le %s à %s a été annulée.
 En espérant vous revoir prochainement !
@@ -355,16 +366,18 @@ En espérant vous revoir prochainement !
 Cordialement,
 Airstudio73
                 ',
+                $user->getFirstName(),
                 $courseName,
                 $courseDate,
                 $courseTime
             );
             $profEmailMessage = sprintf(
-                'La réservation pour le cours "%s" prévu le %s à %s par l\'utilisateur "%s" a été annulée.',
+                'La réservation pour le cours "%s" prévu le %s à %s par l\'utilisateur "%s %s" a été annulée.',
                 $courseName,
                 $courseDate,
                 $courseTime,
-                $user->getEmail()
+                $user->getFirstName(),
+                $user->getLastName()
             );
 
             $emailToUser = (new Email())
@@ -383,12 +396,12 @@ Airstudio73
 
             try {
                 $mailer->send($emailToUser);
-                $logger->info('Email to user sent successfully.');
+                $logger->info('E-mail envoyé à l\'utilisateur avec succès');
 
                 $mailer->send($emailToProf);
-                $logger->info('Email to professor sent successfully.');
+                $logger->info('E-mail envoyé au professeur avec succès.');
             } catch (\Exception $e) {
-                $logger->error('Failed to send cancellation emails: ' . $e->getMessage());
+                $logger->error('Échec de l\'envoi des e-mails d\'annulation : ' . $e->getMessage());
             }
         }
 
@@ -457,18 +470,19 @@ Airstudio73
         $course = $em->getRepository(Course::class)->find($courseId);
 
         if (!$course) {
-            return new JsonResponse(['error' => 'Course not found'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['error' => 'Cours introuvable'], Response::HTTP_NOT_FOUND);
         }
 
         $initialCourseStartTime = $course->getStartTime();
         $recurrenceInterval = 7; // Intervalle de récurrence (ex. une semaine)
         $availableCourses = 0;
 
-        // Limiter la recherche à 10 occurrences maximum (ou une autre valeur raisonnable)
-        for ($i = 0; $i < 43; $i++) {
+        // Limiter la recherche à un nombre raisonnable de courses
+        for ($i = 0; $i < 100; $i++) {
+            // Calculer la prochaine date du cours
             $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
 
-            // Rechercher les cours récurrents à chaque intervalle
+            // Rechercher le cours récurrent à cette date
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
                 'name' => $course->getName(),
                 'startTime' => $nextCourseDate,
@@ -478,19 +492,19 @@ Airstudio73
             if ($recurrentCourse && $this->canBook($recurrentCourse, $em)) {
                 $availableCourses++;
             } else {
-                break; // Arrêter si aucun cours récurrent n'est disponible
+                break; // Arrêter la boucle si aucun cours récurrent n'est disponible ou complet
             }
         }
 
         return new JsonResponse(['availableCourses' => $availableCourses]);
     }
 
-
     private function canBook(Course $course, EntityManagerInterface $em): bool
     {
-        $bookings = $em->getRepository(Booking::class)->findBy(['course' => $course]);
-        return count($bookings) < $course->getCapacity();
+        $currentBookings = $em->getRepository(Booking::class)->count(['course' => $course]);
+        return $currentBookings < $course->getCapacity(); // Vérifier qu'il reste des places
     }
+
 
     private function sendEmail(string $to, string $subject, string $message, LoggerInterface $logger): void
     {
@@ -502,30 +516,64 @@ Airstudio73
             ->text($message);
 
         try {
-            $logger->info('Sending email to: ' . $to);
+            $logger->info('Envoi d\'un email à : ' . $to);
             $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
             $mailer = new Mailer($transport);
             $mailer->send($email);
-            $logger->info('Email sent successfully to: ' . $to);
+            $logger->info('E-mail envoyé avec succès à : ' . $to);
         } catch (\Exception $e) {
-            $logger->error('Failed to send email to ' . $to . ': ' . $e->getMessage());
+            $logger->error('Échec de l\'envoi d\'un e-mail à ' . $to . ': ' . $e->getMessage());
         }
     }
 
     private function getValidSubscriptionCourse(array $subscriptions, Course $course): ?SubscriptionCourse
     {
-        foreach ($subscriptions as $sub) {
-            if (!$this->isSubscriptionValid($sub)) {
-                error_log(sprintf("Skipping expired subscription ID: %d", $sub->getId()));
-                continue; // Ignore les abonnements expirés ou inactifs
+        $validSubscriptionCourse = null;
+
+        foreach ($subscriptions as $subscription) {
+            // Si l'abonnement n'est pas valide, on le saute
+            if (!$this->isSubscriptionValid($subscription)) {
+                error_log(sprintf("Ignorer l'ID d'abonnement expiré ou inactif : %d", $subscription->getId()));
+                continue;
             }
-            foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
-                if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
-                    return $subscriptionCourse;
+
+            // Parcourir les cours liés à cet abonnement
+            foreach ($subscription->getSubscriptionCourses() as $subscriptionCourse) {
+                // Vérifier que le cours correspond et qu'il reste des crédits
+                if (
+                    $subscriptionCourse->getCourse()->getName() === $course->getName()
+                    && $subscriptionCourse->getRemainingCredits() > 0
+                ) {
+
+                    $subscriptionStartDate = $subscription->getStartDate();
+                    $subscriptionExpiryDate = $subscription->getExpiryDate();
+                    $courseStartTime = $course->getStartTime();
+
+                    // Vérifier que la date de début de la souscription est avant ou égale à la date du cours
+                    if ($subscriptionStartDate <= $courseStartTime) {
+                        // Si aucun forfait valide n'a encore été trouvé, on sélectionne le premier compatible
+                        if (!$validSubscriptionCourse) {
+                            $validSubscriptionCourse = $subscriptionCourse;
+                        } else {
+                            // Comparer la date d'expiration et la date de début pour choisir le meilleur forfait
+                            $currentValidExpiryDate = $validSubscriptionCourse->getSubscription()->getExpiryDate();
+                            $currentValidStartDate = $validSubscriptionCourse->getSubscription()->getStartDate();
+
+                            // Priorité à la date d'expiration la plus proche
+                            if (
+                                ($subscriptionExpiryDate !== null && $currentValidExpiryDate !== null && $subscriptionExpiryDate < $currentValidExpiryDate)
+                                || ($currentValidExpiryDate === null && $subscriptionExpiryDate !== null)
+                                || ($subscriptionExpiryDate === $currentValidExpiryDate && $subscriptionStartDate <= $currentValidStartDate)
+                            ) {
+                                $validSubscriptionCourse = $subscriptionCourse;
+                            }
+                        }
+                    }
                 }
             }
         }
-        return null;
+
+        return $validSubscriptionCourse; // Retourner le forfait valide trouvé, ou null si aucun
     }
 
     private function isSubscriptionValid(Subscription $subscription): bool

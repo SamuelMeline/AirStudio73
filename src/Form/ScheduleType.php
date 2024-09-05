@@ -24,21 +24,21 @@ class ScheduleType extends AbstractType
                     'Vendredi' => 'Vendredi',
                     'Samedi' => 'Samedi',
                 ],
-                'label' => 'Day',
+                'label' => 'Jour',
             ])
             ->add('startTime', TimeType::class, [
-                'label' => 'Start Time',
+                'label' => 'Date de début',
                 'widget' => 'single_text',
             ])
             ->add('endTime', TimeType::class, [
-                'label' => 'End Time',
+                'label' => 'Date de fin',
                 'widget' => 'single_text',
             ])
             ->add('courseName', TextType::class, [
-                'label' => 'Course Name',
+                'label' => 'Nom du cours',
             ])
             ->add('instructor', TextType::class, [
-                'label' => 'Instructor',
+                'label' => 'Professeur',
             ]);
     }
 

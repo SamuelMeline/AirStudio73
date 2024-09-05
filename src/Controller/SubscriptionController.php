@@ -135,7 +135,7 @@ class SubscriptionController extends AbstractController
 
         $sessionData = json_decode($session->client_reference_id, true);
         if (!$sessionData) {
-            $this->addFlash('error', 'Session data is missing.');
+            $this->addFlash('error', 'Les données de session sont manquantes.');
             return $this->redirectToRoute('subscription_new');
         }
 
@@ -144,7 +144,7 @@ class SubscriptionController extends AbstractController
         $promoCode = $sessionData['promoCode'] ?? null;
 
         if (!$planId || !$userId) {
-            $this->addFlash('error', 'Invalid session data.');
+            $this->addFlash('error', 'Données de session invalides.');
             return $this->redirectToRoute('subscription_new');
         }
 
@@ -152,7 +152,7 @@ class SubscriptionController extends AbstractController
         $user = $em->getRepository(User::class)->findOneBy(['email' => $userId]);
 
         if (!$plan || !$user) {
-            $this->addFlash('error', 'Invalid plan or user.');
+            $this->addFlash('error', 'Utilisateur ou forfait invalide.');
             return $this->redirectToRoute('subscription_new');
         }
 
@@ -202,32 +202,33 @@ class SubscriptionController extends AbstractController
 
         $em->flush();
 
-        $this->addFlash('success', 'Your subscription has been successfully created.');
+        $this->addFlash('success', 'Votre forfait a bien été créé, vous pouvez maintenant réserver.');
 
         $userEmail = $user->getEmail();
         $planName = $plan->getName();
         $expiryDateFormatted = $subscription->getExpiryDate()->format('d/m/Y');
         $userEmailMessage = sprintf(
-            'Bonjour,
+            'Bonjour %s,
 
 Votre achat concernant l\'abonnement du forfait "%s" a bien été pris en compte et expirera le %s.
 Nous vous remercions et vous souhaitons une très bonne journée.
 
 Cordialement,
 AirStudio73',
+            $user->getFirstName(),
             $planName,
             $expiryDateFormatted
         );
 
         $this->sendEmail($userEmail, 'Confirmation d\'Achat de Forfait', $userEmailMessage);
 
-        return $this->redirectToRoute('user_subscription');
+        return $this->redirectToRoute('calendar');
     }
 
     #[Route('/subscription/cancel', name: 'subscription_cancel')]
     public function cancel(): Response
     {
-        $this->addFlash('error', 'The payment was canceled.');
+        $this->addFlash('error', 'Le paiement a été annulé.');
         return $this->redirectToRoute('subscription_new');
     }
 
