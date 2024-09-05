@@ -21,6 +21,10 @@ body {
 	margin-left: 20px;
 }
 
+.global {
+	min-height: 100vh;
+}
+
 /* Navigation */
 .navbar.navbar-expand-lg.navbar-light.bg-white {
 	padding: 0;
@@ -413,11 +417,6 @@ h1 {
 	border-radius: 5px;
 }
 
-.container .home,
-.connexion {
-	margin-top: 5%;
-}
-
 .connexion h1, .register h1 {
 	border-radius: 5px;
 }
@@ -507,6 +506,7 @@ footer.footer p {
 	.col {
 		width: 100%;
 		margin: 0 auto;
+		overflow: auto;
 	}
 }
 
@@ -524,8 +524,8 @@ footer.footer p {
 }
 
 @media screen and (max-width: 860px) {
-	th {
-		min-width: 50px;
+	th, td {
+		min-width: 0px !important;
 	}
 	table {
 		font-size: 12px;
@@ -556,6 +556,7 @@ footer.footer p {
 	}
 
 	.table-responsive {
+
 		overflow-x: auto; /* Permettre le défilement horizontal pour les tables */
 	}
 
@@ -573,6 +574,25 @@ footer.footer p {
 	/* Pour le calendrier */
 	.calendar-navigation a {
 		font-size: 14px; /* Ajustement de la taille des liens de navigation du calendrier */
+	}
+
+	.jumbotron {
+		width: 100% !important; /* Utiliser toute la largeur sur mobile */
+		margin-top: 20px !important; /* Ajuster la marge supérieure */
+		padding: 20px !important; /* Ajuster le padding pour éviter que le contenu soit trop compact */
+	}
+
+	.jumbotron h1 {
+		font-size: 24px !important; /* Réduction de la taille du titre pour mobile */
+	}
+
+	.jumbotron p {
+		font-size: 14px !important; /* Réduire la taille du texte pour les petits écrans */
+	}
+
+	.jumbotron a.btn-lg {
+		font-size: 16px !important; /* Réduire légèrement la taille du bouton pour qu'il soit plus ergonomique sur mobile */
+		padding: 10px 20px !important; /* Ajuster le padding pour qu'il soit plus agréable à toucher */
 	}
 }
 
@@ -601,4 +621,18 @@ footer.footer p {
 		font-size: 12px;
 		padding: 4px 8px;
 	}
+
+	body {
+		min-height: 60vh;
+	}
+
+	.global {
+		min-height: 60vh;
+	}
+
+	th, td {
+		min-width: 0 !important;
+		max-width: 100px !important;
+	}
+
 }
