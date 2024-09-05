@@ -117,14 +117,16 @@
 															{% endif %}
 														{% else %}
 															{% if available_spots > 0 %}
-																<p class="update">
-																	{% if course_capacity - bookings_count  == 1 %}
+																{% if course_capacity - bookings_count  == 1 %}
+																	<p class="update">
 																		{{ course_capacity - bookings_count }}
 																		place restante
-																	{% else %}
-																		{{ course_capacity - bookings_count }}
-																		places restantes
 																	</p>
+																{% else %}
+																<p class="update">
+																	{{ course_capacity - bookings_count }}
+																	places restantes
+																</p>
 																{% endif %}
 																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn reserve-btn btn-sm">Réserver</a>
 															{% else %}

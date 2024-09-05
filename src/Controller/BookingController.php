@@ -7,6 +7,7 @@ use App\Entity\Course;
 use App\Entity\Booking;
 use App\Form\BookingType;
 use App\Entity\Subscription;
+use Doctrine\DBAL\Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mime\Email;
 use App\Entity\SubscriptionCourse;
@@ -16,9 +17,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Doctrine\DBAL\Exception;
 
 class BookingController extends AbstractController
 {
@@ -55,7 +56,25 @@ class BookingController extends AbstractController
         $validSubscriptionCourse = $this->getValidSubscriptionCourse($subscriptions, $course);
 
         if (!$validSubscriptionCourse) {
-            $this->addFlash('error', 'You do not have a valid subscription for this course.');
+            $this->addFlash('error', 'Vous n\'avez pas de souscription valide pour ce cours.');
+            return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
+        }
+
+        $subscription = $validSubscriptionCourse->getSubscription();
+        $currentDate = new \DateTime();
+
+        // Vérifier que la souscription a commencé ou que le cours est après la startDate
+        if ($subscription->getStartDate() > $currentDate && $course->getStartTime() < $subscription->getStartDate()) {
+            $this->addFlash('error', sprintf(
+                'Votre souscription commence le %s. Vous ne pouvez réserver un cours qu\'à partir de cette date.',
+                $subscription->getStartDate()->format('d/m/Y')
+            ));
+            return $this->redirectToRoute('calendar');
+        }
+
+        // Vérifier que la souscription n'est pas expirée
+        if ($subscription->getExpiryDate() !== null && $subscription->getExpiryDate() < $currentDate) {
+            $this->addFlash('error', 'Votre souscription a expiré.');
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
@@ -75,8 +94,9 @@ class BookingController extends AbstractController
             $isRecurrent = $form->get('isRecurrent')->getData();
             $numOccurrences = $form->get('numOccurrences')->getData() ?? 1;
 
+            // Vérification que le nombre de réservations demandées n'excède pas les crédits restants
             if ($numOccurrences > $remainingCourseCredits) {
-                $this->addFlash('error', 'You do not have enough remaining credits for this booking.');
+                $this->addFlash('error', 'Vous n\'avez pas assez de crédits restants pour cette réservation.');
                 return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
             }
 
@@ -85,13 +105,16 @@ class BookingController extends AbstractController
             $booking->setIsRecurrent($isRecurrent);
             $booking->setNumOccurrences($numOccurrences);
 
+            // Persistance de la première réservation
             $em->persist($booking);
             $em->flush();
 
-            $validSubscriptionCourse->setRemainingCredits($remainingCourseCredits - $numOccurrences); // Décrémenter le nombre de crédits utilisés
+            // Décrémenter les crédits restants
+            $validSubscriptionCourse->setRemainingCredits($remainingCourseCredits - $numOccurrences);
             $em->persist($validSubscriptionCourse);
             $em->flush();
 
+            // Si c'est une réservation récurrente, on crée les réservations pour les occurrences suivantes
             if ($isRecurrent) {
                 $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscriptionCourse, $course);
             }
@@ -106,8 +129,7 @@ Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
 À très vite !
 
 Cordialement,
-Airstudio73
-                ',
+Airstudio73',
                     $course->getName(),
                     $course->getStartTime()->format('d/m/Y'),
                     $course->getStartTime()->format('H:i')
@@ -374,57 +396,45 @@ Airstudio73
         return $this->redirectToRoute('user_subscription');
     }
 
-    private function getValidSubscriptionCourse(array $subscriptions, Course $course): ?SubscriptionCourse
-    {
-        foreach ($subscriptions as $sub) {
-            if (!$this->isSubscriptionValid($sub)) {
-                error_log(sprintf("Skipping expired subscription ID: %d", $sub->getId()));
-                continue; // Ignore les abonnements expirés ou inactifs
-            }
-            foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
-                if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
-                    return $subscriptionCourse;
-                }
-            }
-        }
-        return null;
-    }
-
-    private function isSubscriptionValid(Subscription $subscription): bool
-    {
-        // Ne pas vérifier l'activation de l'abonnement
-        return $subscription->isValid(); // Assurez-vous que l'abonnement est valide
-    }
-
     private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, SubscriptionCourse $subscriptionCourse, Course $course): void
     {
-        $startTime = $course->getStartTime();
-        $startTime = $this->ensureDateTime($startTime);
+        $initialCourseStartTime = $this->ensureDateTime($course->getStartTime());
 
-        $recurrenceInterval = $course->getRecurrenceInterval();
+        $recurrenceInterval = 7; // Intervalle de récurrence en jours (1 semaine)
 
-        for ($i = 1; $i <= $numOccurrences && $subscriptionCourse->getRemainingCredits() > 0; $i++) {
-            $nextCourseDate = (clone $startTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
+        // Créer un tableau pour stocker les nouvelles réservations
+        $newBookings = [];
 
+        for ($i = 1; $i <= $numOccurrences; $i++) {
+            // Calcul de la date du prochain cours récurrent (toutes les semaines)
+            $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
+
+            // Recherche du cours correspondant à cette date
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
                 'name' => $course->getName(),
                 'startTime' => $nextCourseDate,
             ]);
 
             if ($recurrentCourse && $this->canBook($recurrentCourse, $em)) {
+                // Création d'une nouvelle réservation
                 $newBooking = new Booking();
                 $newBooking->setUser($booking->getUser());
                 $newBooking->setCourse($recurrentCourse);
-                $newBooking->setIsRecurrent(true);
-                $newBooking->setNumOccurrences(1);
                 $newBooking->setSubscriptionCourse($subscriptionCourse);
-                $em->persist($newBooking);
+                $newBooking->setIsRecurrent(true);
+                $newBooking->setNumOccurrences(1); // Traiter chaque occurrence individuellement
 
-                $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() - 1);
-                $em->persist($subscriptionCourse);
+                // Ajouter la réservation au tableau
+                $newBookings[] = $newBooking;
             }
         }
 
+        // Persist toutes les nouvelles réservations en une seule fois
+        foreach ($newBookings as $newBooking) {
+            $em->persist($newBooking);
+        }
+
+        // Flush une seule fois après toutes les réservations
         $em->flush();
     }
 
@@ -440,6 +450,41 @@ Airstudio73
 
         return new \DateTime('now');
     }
+
+    #[Route('/booking/available-courses/{courseId}', name: 'booking_available_courses', methods: ['GET'])]
+    public function countAvailableCourses(int $courseId, EntityManagerInterface $em): JsonResponse
+    {
+        $course = $em->getRepository(Course::class)->find($courseId);
+
+        if (!$course) {
+            return new JsonResponse(['error' => 'Course not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $initialCourseStartTime = $course->getStartTime();
+        $recurrenceInterval = 7; // Intervalle de récurrence (ex. une semaine)
+        $availableCourses = 0;
+
+        // Limiter la recherche à 10 occurrences maximum (ou une autre valeur raisonnable)
+        for ($i = 0; $i < 43; $i++) {
+            $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
+
+            // Rechercher les cours récurrents à chaque intervalle
+            $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
+                'name' => $course->getName(),
+                'startTime' => $nextCourseDate,
+            ]);
+
+            // Vérifier que le cours existe et qu'il reste des places
+            if ($recurrentCourse && $this->canBook($recurrentCourse, $em)) {
+                $availableCourses++;
+            } else {
+                break; // Arrêter si aucun cours récurrent n'est disponible
+            }
+        }
+
+        return new JsonResponse(['availableCourses' => $availableCourses]);
+    }
+
 
     private function canBook(Course $course, EntityManagerInterface $em): bool
     {
@@ -465,5 +510,26 @@ Airstudio73
         } catch (\Exception $e) {
             $logger->error('Failed to send email to ' . $to . ': ' . $e->getMessage());
         }
+    }
+
+    private function getValidSubscriptionCourse(array $subscriptions, Course $course): ?SubscriptionCourse
+    {
+        foreach ($subscriptions as $sub) {
+            if (!$this->isSubscriptionValid($sub)) {
+                error_log(sprintf("Skipping expired subscription ID: %d", $sub->getId()));
+                continue; // Ignore les abonnements expirés ou inactifs
+            }
+            foreach ($sub->getSubscriptionCourses() as $subscriptionCourse) {
+                if ($subscriptionCourse->getCourse()->getName() === $course->getName() && $subscriptionCourse->getRemainingCredits() > 0) {
+                    return $subscriptionCourse;
+                }
+            }
+        }
+        return null;
+    }
+
+    private function isSubscriptionValid(Subscription $subscription): bool
+    {
+        return $subscription->isValid();
     }
 }

@@ -8,6 +8,7 @@
 			{% for subscription in subscriptions %}
 				{% set hasCredits = false %}
 				{% set isExpired = subscription.expiryDate < date() %}
+				{% set isNotStarted = subscription.startDate > date() %}
 
 				{% for subscriptionCourse in subscription.subscriptionCourses %}
 					{% if subscriptionCourse.remainingCredits > 0 %}
@@ -28,6 +29,8 @@
 							</li>
 						{% endfor %}
 					</ul>
+					<p class="mb-1">Date de commencement :
+						{{ subscription.startDate|date('d-m-Y') }}</p>
 					<p class="mb-1">Date d'expiration :
 						{{ subscription.expiryDate|date('d-m-Y') }}</p>
 					<p class="mb-1">Mode de paiement :
@@ -35,6 +38,8 @@
 
 					{% if isExpired %}
 						<p class="text-danger">Ce forfait a expiré.</p>
+					{% elseif isNotStarted %}
+						<p class="text-warning">Ce forfait vous permet de réserver des cours à partir du {{ subscription.startDate|date('d-m-Y') }}.</p>
 					{% elseif hasCredits %}
 						<a href="{{ path('calendar') }}" class="btn btn-primary btn-sm">Réserver</a>
 					{% else %}

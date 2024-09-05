@@ -20,10 +20,10 @@
 				</thead>
 				<tbody>
 					{% for booking in bookings %}
-						{% set interval = (booking.course.startTime|date('U') - "now"|date('U')) // 86400 %}
+						{% set interval = (booking.course.startTime|date('U') - "now"|date('U')) // 3600 %}
 						<tr>
 							<td>
-								{% if interval >= 3 %}
+								{% if interval >= 6 %}
 									<input type="checkbox" name="bookingIds[]" value="{{ booking.id }}">
 								{% else %}
 									<span class="text-muted">Annulation impossible</span>

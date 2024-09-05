@@ -29,6 +29,9 @@ class Subscription
     #[ORM\Column(type: 'date', nullable: true)] // Changer en 'date'
     private ?\DateTimeInterface $expiryDate = null;
 
+    #[ORM\Column(type: 'date', nullable: true)] // Changer en 'date'
+    private ?\DateTimeInterface $startDate = null; // Ajouter le champ startDate
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $paymentMode = null;
 
@@ -87,6 +90,11 @@ class Subscription
     {
         $this->plan = $plan;
 
+        // Assigner la startDate et la endDate depuis le Plan
+        if ($plan->getStartDate() !== null) {
+            $this->startDate = $plan->getStartDate();
+        }
+
         if ($plan->getEndDate() !== null) {
             $this->expiryDate = $plan->getEndDate(); // Vérifiez ici
         } else {
@@ -118,8 +126,19 @@ class Subscription
         if ($expiryDate < new \DateTime()) {
             throw new \Exception("Expiry date cannot be in the past.");
         }
-    
+
         $this->expiryDate = $expiryDate;
+        return $this;
+    }
+
+    public function getStartDate(): ?\DateTimeInterface
+    {
+        return $this->startDate;
+    }
+
+    public function setStartDate(?\DateTimeInterface $startDate): self
+    {
+        $this->startDate = $startDate;
         return $this;
     }
 

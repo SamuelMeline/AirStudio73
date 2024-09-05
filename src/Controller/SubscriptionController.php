@@ -59,8 +59,19 @@ class SubscriptionController extends AbstractController
                 $user = $this->getUser();
                 $plan = $form->get('plan')->getData();
 
+                // Associez le plan à la souscription et définissez la startDate et l'expiryDate
                 $subscription->setUser($user);
                 $subscription->setPlan($plan);
+
+                // Récupérer la startDate depuis le plan
+                if ($plan->getStartDate() !== null) {
+                    $subscription->setStartDate($plan->getStartDate());
+                }
+
+                // Récupérer l'expiryDate depuis le plan
+                if ($plan->getEndDate() !== null) {
+                    $subscription->setExpiryDate($plan->getEndDate());
+                }
 
                 $promoCode = $form->get('promoCode')->getData();
                 $stripePriceId = $plan->getStripePriceId();
@@ -71,7 +82,7 @@ class SubscriptionController extends AbstractController
                     if ($promotionCodeId) {
                         $discounts = [['promotion_code' => $promotionCodeId]];
                     } else {
-                        $this->addFlash('error', 'Invalid promo code.');
+                        $this->addFlash('error', 'Le code promo est invalide');
                         return $this->redirectToRoute('subscription_new');
                     }
                 }
@@ -104,14 +115,13 @@ class SubscriptionController extends AbstractController
         ]);
     }
 
-
     #[Route('/subscription/success', name: 'subscription_success')]
     #[IsGranted('ROLE_USER')]
     public function success(Request $request, EntityManagerInterface $em): Response
     {
         $sessionId = $request->query->get('session_id');
         if (!$sessionId) {
-            $this->addFlash('error', 'Session ID is missing.');
+            $this->addFlash('error', 'L\'ID de la session n\'existe pas.');
             return $this->redirectToRoute('subscription_new');
         }
 
@@ -119,7 +129,7 @@ class SubscriptionController extends AbstractController
 
         $session = StripeSession::retrieve($sessionId);
         if (!$session) {
-            $this->addFlash('error', 'Session not found.');
+            $this->addFlash('error', 'La session n\'existe pas.');
             return $this->redirectToRoute('subscription_new');
         }
 
@@ -150,16 +160,14 @@ class SubscriptionController extends AbstractController
         $subscription->setUser($user);
         $subscription->setPlan($plan);
 
-
         // Vérification de l'endDate ici
         if ($plan->getEndDate() !== null) {
             $subscription->setExpiryDate($plan->getEndDate());
         } else {
-            throw new \Exception("Plan does not have a valid end date.");
+            throw new \Exception("La souscription ne peut pas être validée car la date de fin du forfait est déjà passé.");
         }
 
-        $subscription->setExpiryDate($plan->getEndDate()); // Correctement fixer la date d'expiration
-
+        $subscription->setExpiryDate($plan->getEndDate());
         $subscription->setStripeSubscriptionId($session->subscription);
         $subscription->incrementPaymentsCount();
         $subscription->setMaxPayments($plan->getMaxPayments());
@@ -177,6 +185,7 @@ class SubscriptionController extends AbstractController
 
         $em->persist($subscription);
 
+        // Si le paiement est unique, annuler l'abonnement sur Stripe et désactiver l'abonnement
         if ($subscription->getMaxPayments() == 1) {
             $this->cancelStripeSubscription($subscription->getStripeSubscriptionId());
             $subscription->setIsActive(false);

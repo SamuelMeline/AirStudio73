@@ -1,62 +1,81 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Réserver le cours{% endblock %}
+{% block title %}Réserver le cours
+{% endblock %}
 
 {% block body %}
-<div class="container mt-5 reserver">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h1 class="card-title">Réserver le cours : {{ course.name }}</h1>
-                </div>
-                <div class="card-body">
-                    {{ form_start(form) }}
-                    <div class="form-group form-check">
-                        {{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input js-recurrent-checkbox'}}) }}
-                        {{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
-                    </div>
-                    <div id="num-occurrences-container" class="form-group" style="display: none;">
-                        {{ form_label(form.numOccurrences, null, {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.numOccurrences, {'attr': {'class': 'form-control js-num-occurrences w-25'}}) }}
-                        <button type="button" class="btn btn-secondary mt-2" id="max-occurrences-button">Max ({{ remaining_courses }})</button>
-                    </div>
-                    {{ form_rest(form) }}
-                    <button type="submit" class="btn btn-primary btn-block mt-3">Réserver</button>
-                    {{ form_end(form) }}
-                    <a href="{{ path('calendar') }}" class="btn btn-secondary btn-block mt-3">Retour au calendrier</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+	<div class="container mt-5 reserver">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-header">
+						<h1 class="card-title">Réserver le cours :
+							{{ course.name }}</h1>
+					</div>
+					<div class="card-body">
+						{{ form_start(form) }}
+						<div class="form-group form-check">
+							{{ form_widget(form.isRecurrent, {'attr': {'class': 'form-check-input js-recurrent-checkbox'}}) }}
+							{{ form_label(form.isRecurrent, null, {'label_attr': {'class': 'form-check-label'}}) }}
+						</div>
+						<div id="num-occurrences-container" class="form-group" style="display: none;">
+							{{ form_label(form.numOccurrences, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.numOccurrences, {'attr': {'class': 'form-control js-num-occurrences w-25'}}) }}
+							<button type="button" class="btn btn-secondary mt-2" id="max-occurrences-button">Max (<span id="available-courses">{{ remaining_courses }}</span>)</button>
+						</div>
+						{{ form_rest(form) }}
+						<button type="submit" class="btn btn-primary btn-block mt-3">Réserver</button>
+						{{ form_end(form) }}
+						<a href="{{ path('calendar') }}" class="btn btn-secondary btn-block mt-3">Retour au calendrier</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
-        const numOccurrencesContainer = document.getElementById('num-occurrences-container');
-        const numOccurrencesInput = document.querySelector('.js-num-occurrences');
-        const maxOccurrencesButton = document.getElementById('max-occurrences-button');
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const recurrentCheckbox = document.querySelector('.js-recurrent-checkbox');
+const numOccurrencesContainer = document.getElementById('num-occurrences-container');
+const numOccurrencesInput = document.querySelector('.js-num-occurrences');
+const maxOccurrencesButton = document.getElementById('max-occurrences-button');
+const availableCoursesSpan = document.getElementById('available-courses');
+const courseId = {{ course.id }}; // Ajoute l'ID du cours pour l'API
 
-        recurrentCheckbox.addEventListener('change', function () {
-            if (recurrentCheckbox.checked) {
-                numOccurrencesContainer.style.display = 'block';
-                numOccurrencesInput.required = true;
-            } else {
-                numOccurrencesContainer.style.display = 'none';
-                numOccurrencesInput.required = false;
-                numOccurrencesInput.value = '';
-            }
-        });
+const updateAvailableCourses = () => {
+fetch (`/booking/available-courses/${courseId}`).then(response => response.json()).then(data => {
+const availableCourses = data.availableCourses;
 
-        maxOccurrencesButton.addEventListener('click', function () {
-            numOccurrencesInput.value = {{ remaining_courses }};
-        });
+// Mettre à jour le texte à côté du bouton Max
+availableCoursesSpan.textContent = availableCourses;
 
-        if (recurrentCheckbox.checked) {
-            numOccurrencesContainer.style.display = 'block';
-            numOccurrencesInput.required = true;
-        }
-    });
-</script>
+// On met à jour également le bouton Max pour calculer le nombre d'occurrences
+maxOccurrencesButton.addEventListener('click', function () {
+const maxOccurrences = Math.min(availableCourses, {{ remaining_courses }});
+numOccurrencesInput.value = maxOccurrences;
+});
+}).catch(error => console.error('Error fetching available courses:', error));
+};
+
+// Appeler la fonction au chargement de la page
+updateAvailableCourses();
+
+recurrentCheckbox.addEventListener('change', function () {
+if (recurrentCheckbox.checked) {
+numOccurrencesContainer.style.display = 'block';
+numOccurrencesInput.required = true;
+updateAvailableCourses(); // Mettre à jour lorsque la case est cochée
+} else {
+numOccurrencesContainer.style.display = 'none';
+numOccurrencesInput.required = false;
+numOccurrencesInput.value = '';
+}
+});
+
+if (recurrentCheckbox.checked) {
+numOccurrencesContainer.style.display = 'block';
+numOccurrencesInput.required = true;
+}
+});
+	</script>
 {% endblock %}
