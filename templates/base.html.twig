@@ -2,6 +2,7 @@
 <html lang="fr">
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>
 			{% block title %}Bienvenue !
 			{% endblock %}
@@ -31,7 +32,9 @@
 								{# <li class="nav-item"><a class="nav-link" href="{{ path('event_list') }}">Événements</a></li> #}
 									<li class="nav-item"> <a class="nav-link" href="{{ path('planning') }}">Planning</a>
 								</li>
-								<li class="nav-item"><a class="nav-link" href="{{ path('calendar') }}">Réservation</a></li>
+								<li class="nav-item">
+									<a class="nav-link" href="{{ path('calendar') }}">Réservation</a>
+								</li>
 								{# <li class="nav-item"><a class="nav-link" href="/tarifs">Tarifs</a></li> #}
 								<li class="nav-item">
 									<a class="nav-link" href="{{ path('contact') }}">Contact</a>
@@ -84,12 +87,8 @@
 				<footer class="footer">
 					<nav>
 						<ul>
-							<li>
-								<a href="{{ path('reglement_interieur') }}">Règlement Intérieur</a>
-							</li>
-							<li>
-								<a href="{{ path('nos_cgv') }}">Nos CGV</a>
-							</li>
+							<li><a href="{{ path('reglement_interieur') }}">Règlement Intérieur</a></li>
+							<li><a href="{{ path('nos_cgv') }}">Nos CGV</a></li>
 						</ul>
 					</nav>
 					<p class="text-center">©2024 Tous droits réservés. AirStudio73 - Powered by Samuel MÉLINE</p>
@@ -100,26 +99,23 @@
 			<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 			<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 			{% block javascripts %}
-        <script>
-            // Afficher le bouton lorsque l'utilisateur fait défiler vers le bas
-            window.onscroll = function() {
-                var backToTopButton = document.getElementById("back-to-top");
-                if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-                    backToTopButton.style.display = "block";
-                } else {
-                    backToTopButton.style.display = "none";
-                }
-            };
+				<script>
+					// Afficher le bouton lorsque l'utilisateur fait défiler vers le bas
+window.onscroll = function () {
+var backToTopButton = document.getElementById("back-to-top");
+if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+backToTopButton.style.display = "block";
+} else {
+backToTopButton.style.display = "none";
+}
+};
 
-            // Retourner en haut de la page en cliquant sur le bouton
-            document.getElementById("back-to-top").addEventListener("click", function(event) {
-                event.preventDefault();
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
-            });
-        </script>
-{% endblock %}
+// Retourner en haut de la page en cliquant sur le bouton
+document.getElementById("back-to-top").addEventListener("click", function (event) {
+event.preventDefault();
+window.scrollTo({top: 0, behavior: "smooth"});
+});
+				</script>
+			{% endblock %}
 		</body>
 	</html>

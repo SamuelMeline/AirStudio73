@@ -44,7 +44,7 @@
 		</div>
 
 		<div class="row">
-			<div class="col col-9">
+			<div class="col col-9 content-scrollable">
 				<table class="table table-bordered">
 					<thead class="thead-light">
 						<tr>
@@ -123,10 +123,10 @@
 																		place restante
 																	</p>
 																{% else %}
-																<p class="update">
-																	{{ course_capacity - bookings_count }}
-																	places restantes
-																</p>
+																	<p class="update">
+																		{{ course_capacity - bookings_count }}
+																		places restantes
+																	</p>
 																{% endif %}
 																<a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn reserve-btn btn-sm">Réserver</a>
 															{% else %}

@@ -397,8 +397,7 @@ a.complet:hover {
 	padding-right: 8px;
 }
 
-.planning .content-scrollable {
-	max-height: 600px;
+.content-scrollable {
 	overflow-y: auto;
 	overflow-x: hidden;
 }
@@ -441,6 +440,10 @@ h1 {
 
 textarea.form-control {
     min-width: 400px !important;
+}
+
+.connexion .card {
+	margin-top: 10%;
 }
 
 #back-to-top {
@@ -501,138 +504,120 @@ footer.footer p {
 	color: #555;
 }
 
-/* Responsiveness */
 @media screen and (max-width: 1500px) {
+
+	.table th, .table td {
+        font-size: 14px !important; /* Réduire la taille de la police */
+        padding: 5px !important; /* Réduire l'espacement */
+		min-width: 0px !important;
+    }
+}
+
+@media screen and (max-width: 768px) {
+
+	body {
+		font-size: 16px !important;
+	}
+
 	.col {
 		width: 100%;
-		margin: 0 auto;
-		overflow: auto;
-	}
-}
-
-@media screen and (max-width: 1200px) {
-	th {
-		min-width: 100px;
-	}
-	table {
-		font-size: 14px;
-	}
-	button.btn,
-	a.btn {
-		font-size: 10px;
-	}
-}
-
-@media screen and (max-width: 860px) {
-	th, td {
-		min-width: 0px !important;
-	}
-	table {
-		font-size: 12px;
-	}
-	button.btn,
-	a.btn {
-		font-size: 8px;
-	}
-}
-
-/* Classes utilitaires */
-.dn {
-	display: none;
-}
-
-/* Pour les écrans de 768px ou moins */
-@media screen and (max-width: 768px) {
-	.navbar .navbar-brand img {
-		width: 120px; /* Réduction de la taille du logo pour les mobiles */
-	}
-
-	.navbar-nav .nav-link {
-		font-size: 16px; /* Ajustement de la taille du texte du menu pour les mobiles */
-	}
-
-	.container {
-		padding: 10px; /* Réduction du padding général */
-	}
-
-	.table-responsive {
-
-		overflow-x: auto; /* Permettre le défilement horizontal pour les tables */
-	}
-
-	.table th,
-	.table td {
-		padding: 8px; /* Réduire les padding des cellules de table pour les mobiles */
-	}
-
-	/* Réduction de la taille des boutons pour qu'ils soient plus faciles à utiliser sur mobile */
-	.btn {
-		font-size: 14px;
-		padding: 5px 10px;
-	}
-
-	/* Pour le calendrier */
-	.calendar-navigation a {
-		font-size: 14px; /* Ajustement de la taille des liens de navigation du calendrier */
 	}
 
 	.jumbotron {
-		width: 100% !important; /* Utiliser toute la largeur sur mobile */
-		margin-top: 20px !important; /* Ajuster la marge supérieure */
-		padding: 20px !important; /* Ajuster le padding pour éviter que le contenu soit trop compact */
+		width: 100% !important;
+		margin: 20px auto !important;
+		padding: 20px !important;
+		min-height: 40vh !important; /* Forcer le jumbotron à occuper au moins 60% de la hauteur de l'écran */
+		display: flex;
+		flex-direction: column;
+		justify-content: center; /* Centrer verticalement le contenu */
+		background-color: rgba(255, 255, 255, 0.9); /* Léger fond blanc avec transparence */
 	}
 
 	.jumbotron h1 {
-		font-size: 24px !important; /* Réduction de la taille du titre pour mobile */
+		font-size: 18px !important;
+		max-width: 100%;
 	}
 
-	.jumbotron p {
-		font-size: 14px !important; /* Réduire la taille du texte pour les petits écrans */
+	.jumbotron p, .jumbotron a.reserve {
+		font-size: 14px !important;
 	}
 
 	.jumbotron a.btn-lg {
-		font-size: 16px !important; /* Réduire légèrement la taille du bouton pour qu'il soit plus ergonomique sur mobile */
-		padding: 10px 20px !important; /* Ajuster le padding pour qu'il soit plus agréable à toucher */
-	}
-}
-
-/* Pour les écrans de 576px ou moins */
-@media screen and (max-width: 576px) {
-	.navbar .navbar-brand img {
-		width: 100px; /* Réduction encore plus de la taille du logo */
+		font-size: 16px !important;
+		padding: 10px 15px !important;
 	}
 
-	.navbar-nav .nav-link {
-		font-size: 14px; /* Réduction supplémentaire de la taille du texte du menu */
+	.table {
+		margin-bottom: 0px !important;
+	}
+
+	.table th, .table td {
+        font-size: 10px !important; /* Réduire la taille de la police */
+        padding: 5px !important; /* Réduire l'espacement */
+		min-width: 60px !important;
+		max-height: 200px;
+    }
+
+	.content-scrollable {
+		max-height: 400px;
+		padding-bottom: 20px;
+		overflow-y: auto;
+		margin-bottom: 10px;
+	}
+
+    .container.planning {
+        padding: 10px !important; /* Réduire le padding du conteneur principal sur mobile */
+    }
+
+    .btn {
+        font-size: 16px !important; /* Réduire la taille des boutons */
+        padding: 5px 10px !important;
+    }
+
+    h1 {
+        font-size: 20px !important; /* Ajuster la taille du titre */
+    }
+
+	.btn {
+		padding: 5px !important;
+	}
+
+	.calendrier a, .calendrier p, .calendrier button, .calendrier th {
+		font-size: 10px !important;
+	}
+
+	.calendrier .btn {
+		font-size: 8px !important;
+		padding: 5px 3px !important;
+	}
+
+	.contact .col {
+		width: 100% !important;
+	}
+
+	textarea.form-control {
+		min-width: 100% !important;
+	}
+
+	.connexion .card {
+		margin-top: 20%;
+	}
+
+	.register input, .register textarea, .register label {
+		margin-bottom: 5px;
+	}
+
+	.register .mb-3 {
+		margin-bottom: 0 !important;
+	}
+
+	.register textarea {
+		max-height: 60px;
 	}
 
 	.container {
-		padding: 5px; /* Réduction maximale du padding général */
+		max-width: 100%;
+		padding: 0;
 	}
-
-	.table th,
-	.table td {
-		padding: 5px; /* Réduction maximale des padding des cellules de table pour les petits écrans */
-		font-size: 10px; /* Réduction de la taille de la police des tables */
-	}
-
-	/* Réduction de la taille des boutons pour qu'ils soient encore plus faciles à utiliser sur mobile */
-	.btn {
-		font-size: 12px;
-		padding: 4px 8px;
-	}
-
-	body {
-		min-height: 60vh;
-	}
-
-	.global {
-		min-height: 60vh;
-	}
-
-	th, td {
-		min-width: 0 !important;
-		max-width: 100px !important;
-	}
-
 }
