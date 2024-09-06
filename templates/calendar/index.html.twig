@@ -30,7 +30,7 @@
 			{% set prevDate = startOfWeek|date_modify('-7 days')|date('Y-m-d') %}
 
 			{% if prevDate >= startOfCurrentWeek %}
-				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-general">&laquo;</a>
+				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-general switch">&laquo;</a>
 			{% else %}
 				<button class="btn btn-general switch" disabled>&laquo;</button>
 			{% endif %}
