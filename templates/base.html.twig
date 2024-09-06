@@ -68,13 +68,12 @@
 						</div>
 					</div>
 				</nav>
-
-				<div class="container p-2 flex-grow-1">
+				<div class="container flex-grow-1">
 					{% for message in app.flashes('success') %}
-						<div class="alert alert-success">{{ message }}</div>
+						<div class="p-2 alert alert-success">{{ message }}</div>
 					{% endfor %}
 					{% for message in app.flashes('error') %}
-						<div class="alert alert-danger">{{ message }}</div>
+						<div class="p-2 alert alert-danger">{{ message }}</div>
 					{% endfor %}
 
 					{% block body %}{% endblock %}
@@ -88,8 +87,8 @@
 				<footer class="footer">
 					<nav>
 						<ul>
-							<li><a href="{{ path('reglement_interieur') }}">Règlement Intérieur</a></li>
-							<li><a href="{{ path('nos_cgv') }}">Nos CGV</a></li>
+							<li><ahref="{{path('reglement_interieur')}}">Règlement Intérieur</a></li>
+							<li><ahref="{{path('nos_cgv')}}">Nos CGV</a></li>
 						</ul>
 					</nav>
 					<p class="text-center">©2024 Tous droits réservés. AirStudio73 - Powered by Samuel MÉLINE</p>
