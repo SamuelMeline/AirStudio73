@@ -401,7 +401,7 @@ a.complet:hover {
 
 .content-scrollable {
 	overflow-y: auto;
-	overflow-x: hidden;
+	overflow-x: auto;
 }
 
 h1 {
@@ -427,6 +427,7 @@ h1 {
 /* Pour les navigateurs WebKit (Chrome, Safari, Edge) */
 .content-scrollable::-webkit-scrollbar {
 	width: 6px; /* Largeur de la scrollbar */
+	height: 6px;
 	color: #2c7487;
 }
 
@@ -510,6 +511,10 @@ footer.footer p {
 
 .mobile {
 	display: none;
+}
+
+.edit-planning {
+	max-width: 50%;
 }
 
 @media screen and (max-width: 1500px) {

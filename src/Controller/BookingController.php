@@ -24,6 +24,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class BookingController extends AbstractController
 {
     private const ADMIN_EMAIL = 'smelinepro@gmail.com';
+    private const ADMIN_EMAIL_2 = 'airstudio.73@gmail.com'; // Remplace par la deuxième adresse e-mail
+
     private const SENDER_EMAIL = 'contactAirstudio73@gmail.com';
 
     #[Route('/booking/new/{courseId}', name: 'booking_new')]
@@ -54,7 +56,7 @@ class BookingController extends AbstractController
         }
 
         $validSubscriptionCourse = $this->getValidSubscriptionCourse($subscriptions, $course);
-        
+
         // Récupérer la souscription en cours pour l'utilisateur via Subscription
         $subscriptionCourse = $em->getRepository(SubscriptionCourse::class)->findOneBy([
             'subscription' => $em->getRepository(Subscription::class)->findOneBy(['user' => $user])
@@ -64,7 +66,7 @@ class BookingController extends AbstractController
             // Vérification si la date du cours est avant la date de commencement du forfait
             foreach ($subscriptions as $subscription) {
                 $remainingCredits = $subscriptionCourse->getRemainingCredits();
-                if ($subscription->getStartDate() > $course->getStartTime() && $remainingCredits !=0) {
+                if ($subscription->getStartDate() > $course->getStartTime() && $remainingCredits != 0) {
                     $this->addFlash('error', sprintf(
                         'Votre forfait ne commence que le %s. Vous ne pouvez pas réserver avant cette date.',
                         $subscription->getStartDate()->format('d/m/Y')
@@ -126,27 +128,84 @@ class BookingController extends AbstractController
                 $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscriptionCourse, $course);
             }
 
-            $this->sendEmail(
-                $user->getEmail(),
-                'Confirmation de Réservation',
-                sprintf(
+            if ($isRecurrent) {
+                // Si la réservation est récurrente
+                $dates = [];
+                for ($i = 0; $i < $numOccurrences; $i++) {
+                    // Calculer la date de chaque réservation
+                    $date = (clone $course->getStartTime())->modify("+{$i} week");
+                    $dates[] = $date->format('d/m/Y H:i');
+                }
+                $datesList = implode(", ", $dates); // Liste des dates
+                
+                // Message pour l'utilisateur
+                $emailMessage = sprintf(
                     'Bonjour %s,
-
-Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
-À très vite !
-
-Cordialement,
-Airstudio73',
+        
+        Votre réservation récurrente pour le cours "%s" est confirmée.
+        Les réservations sont programmées aux dates suivantes : %s.
+        
+        À très vite !
+        
+        Cordialement,
+        Airstudio73',
+                    $user->getFirstName(),
+                    $course->getName(),
+                    $datesList
+                );
+            } else {
+                // Si la réservation est unique
+                $emailMessage = sprintf(
+                    'Bonjour %s,
+        
+        Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
+        
+        À très vite !
+        
+        Cordialement,
+        Airstudio73',
                     $user->getFirstName(),
                     $course->getName(),
                     $course->getStartTime()->format('d/m/Y'),
                     $course->getStartTime()->format('H:i')
-                ),
+                );
+            }
+        
+            // Envoi de l'e-mail à l'utilisateur
+            $this->sendEmail(
+                $user->getEmail(),
+                'Confirmation de Réservation',
+                $emailMessage,
                 $logger
             );
-
+        
+            // Préparer le message pour les administrateurs
+            $adminMessage = sprintf(
+                'Une nouvelle réservation a été effectuée.
+        
+        Détails de la réservation :
+        - Utilisateur : %s %s
+        - Cours : %s
+        ',
+                $user->getFirstName(),
+                $user->getLastName(),
+                $course->getName()
+            );
+        
+            if ($isRecurrent) {
+                $adminMessage .= sprintf('Les réservations sont programmées aux dates suivantes : %s', $datesList);
+            }
+        
+            // Envoi de l'e-mail aux administrateurs
+            $this->sendEmail(
+                [self::ADMIN_EMAIL, self::ADMIN_EMAIL_2],
+                'Nouvelle Réservation',
+                $adminMessage,
+                $logger
+            );
+        
             $this->addFlash('success', 'Votre réservation a été prise en compte.');
-
+        
             return $this->redirectToRoute('calendar');
         }
 
@@ -222,7 +281,7 @@ Airstudio73
         );
 
         $this->sendEmail(
-            self::ADMIN_EMAIL,
+            [self::ADMIN_EMAIL, self::ADMIN_EMAIL_2],
             'Annulation de Réservation par un Utilisateur',
             sprintf(
                 'La réservation pour le cours "%s" prévu le %s à %s par l\'utilisateur %s %s a été annulée.',
@@ -349,7 +408,7 @@ Airstudio73',
 
         $em->flush();
 
-        $profEmail = self::ADMIN_EMAIL;
+        $profEmail = [self::ADMIN_EMAIL, self::ADMIN_EMAIL_2];
         $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
         $mailer = new Mailer($transport);
 
@@ -390,9 +449,13 @@ Airstudio73
             $emailToProf = (new Email())
                 ->from(self::SENDER_EMAIL)
                 ->replyTo(self::SENDER_EMAIL)
-                ->to($profEmail)
                 ->subject('Annulation de Réservation par un Utilisateur')
                 ->text($profEmailMessage);
+
+            // Ajouter plusieurs destinataires
+            foreach ($profEmail as $recipient) {
+                $emailToProf->addTo($recipient);
+            }
 
             try {
                 $mailer->send($emailToUser);
@@ -506,25 +569,34 @@ Airstudio73
     }
 
 
-    private function sendEmail(string $to, string $subject, string $message, LoggerInterface $logger): void
+    private function sendEmail($to, string $subject, string $message, LoggerInterface $logger): void
     {
         $email = (new Email())
             ->from(self::SENDER_EMAIL)
             ->replyTo(self::SENDER_EMAIL)
-            ->to($to)
             ->subject($subject)
             ->text($message);
 
+        // Vérifie si $to est un tableau, et ajoute les adresses en conséquence
+        if (is_array($to)) {
+            foreach ($to as $recipient) {
+                $email->addTo($recipient);
+            }
+        } else {
+            $email->to($to);
+        }
+
         try {
-            $logger->info('Envoi d\'un email à : ' . $to);
+            $logger->info('Envoi d\'un email à : ' . implode(', ', (array)$to)); // Log l'adresse
             $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');
             $mailer = new Mailer($transport);
             $mailer->send($email);
-            $logger->info('E-mail envoyé avec succès à : ' . $to);
+            $logger->info('E-mail envoyé avec succès à : ' . implode(', ', (array)$to));
         } catch (\Exception $e) {
-            $logger->error('Échec de l\'envoi d\'un e-mail à ' . $to . ': ' . $e->getMessage());
+            $logger->error('Échec de l\'envoi d\'un e-mail à ' . implode(', ', (array)$to) . ': ' . $e->getMessage());
         }
     }
+
 
     private function getValidSubscriptionCourse(array $subscriptions, Course $course): ?SubscriptionCourse
     {
