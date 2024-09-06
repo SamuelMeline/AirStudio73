@@ -32,14 +32,14 @@
 			{% if prevDate >= startOfCurrentWeek %}
 				<a href="{{ path('calendar', { 'year': prevYear, 'week': prevWeek }) }}" class="btn btn-general">&laquo;</a>
 			{% else %}
-				<button class="btn btn-general" disabled>&laquo;</button>
+				<button class="btn btn-general switch" disabled>&laquo;</button>
 			{% endif %}
 			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn reserve-btn">Semaine en cours</a>
-			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-general">&raquo;</a>
+			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-general switch">&raquo;</a>
 			<a href="{{ path('user_subscription') }}" class="btn btn-general">Mes forfaits</a>
-			<a href="{{ path('booking_manage') }}" class="btn btn-general">Gérer mes réservations</a>
+			<a href="{{ path('booking_manage') }}" class="btn btn-general">Mes réservations</a>
 			{% if is_granted('ROLE_ADMIN') %}
-				<a href="{{ path('course_new') }}" class="btn reserve-btn">Créer un cours</a>
+				<a href="{{ path('course_new') }}" class="btn reserve-btn create-cours">Créer un cours</a>
 			{% endif %}
 		</div>
 

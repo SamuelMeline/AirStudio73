@@ -399,11 +399,6 @@ a.complet:hover {
 	padding-right: 8px;
 }
 
-.content-scrollable {
-	overflow-y: auto;
-	overflow-x: auto;
-}
-
 h1 {
 	font-size: 24px;
 	background-color: #2c7487;
@@ -424,23 +419,23 @@ h1 {
 	border-radius: 5px;
 }
 
-/* Pour les navigateurs WebKit (Chrome, Safari, Edge) */
+.content-scrollable {
+	overflow-y: auto;
+	overflow-x: auto;
+}
+
+/* Personnalisation de la barre de défilement */
 .content-scrollable::-webkit-scrollbar {
-	width: 6px; /* Largeur de la scrollbar */
-	height: 6px;
-	color: #2c7487;
+	width: 7px;
+	height: 7px;
 }
 
 .content-scrollable::-webkit-scrollbar-track {
 	background-color: transparent;
-	/* border-radius: 20px; */
-	margin-top: 20px; /* Ajouter un espace en haut de la piste */
-	margin-bottom: 20px; /* Ajouter un espace en bas de la piste */
 }
 
 .content-scrollable::-webkit-scrollbar-thumb {
-	background-color: #2c7487;
-	border-radius: 20px;
+	background-color: #00000088;
 }
 
 textarea.form-control {
@@ -533,6 +528,10 @@ footer.footer p {
 
 	.col {
 		width: 100%;
+	}
+
+	.switch {
+		min-width: 25px;
 	}
 
 	.jumbotron {
@@ -641,7 +640,8 @@ footer.footer p {
 		padding: 0;
 	}
 
-	footer.footer a, a.nav-link {
+	footer.footer a,
+	a.nav-link {
 		font-size: 16px !important;
 	}
 
@@ -692,7 +692,8 @@ footer.footer p {
 		padding: 5px;
 	}
 
-	.planning .mobile a, .planning .mobile .btn {
+	.planning .mobile a,
+	.planning .mobile .btn {
 		font-size: 10px !important;
 	}
 
@@ -700,7 +701,8 @@ footer.footer p {
 		border: none;
 	}
 
-	.mobile .calendar-navigation, .mobile .day-navigation {
+	.mobile .calendar-navigation,
+	.mobile .day-navigation {
 		display: block;
 		text-align: center;
 	}
@@ -720,5 +722,11 @@ footer.footer p {
 	.calendrier .row {
 		padding-left: 12px;
 		padding-right: 12px;
+	}
+}
+
+@media screen and (max-width: 385px) {
+	.calendrier .create-cours {
+		margin-top: 5px;
 	}
 }
