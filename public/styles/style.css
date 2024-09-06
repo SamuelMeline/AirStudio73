@@ -71,7 +71,7 @@ a.nav-link {
 }
 
 a.reserve:hover {
-	color:#225f6e !important;
+	color: #225f6e !important;
 	transition: all 0.3s ease !important;
 	text-decoration: underline;
 }
@@ -116,7 +116,8 @@ td {
 	min-width: 180px;
 }
 
-.planning td, .calendrier td {
+.planning td,
+.calendrier td {
 	max-width: 180px;
 }
 
@@ -315,7 +316,8 @@ p.complet {
 	margin-bottom: 10px;
 }
 
-p.reserve, a.reserve {
+p.reserve,
+a.reserve {
 	color: #2c7487 !important;
 	margin-bottom: 10px;
 	font-weight: bold !important;
@@ -412,11 +414,13 @@ h1 {
 	margin-bottom: 10px;
 }
 
-.planning h1, .calendrier h1 {
+.planning h1,
+.calendrier h1 {
 	border-radius: 5px;
 }
 
-.connexion h1, .register h1 {
+.connexion h1,
+.register h1 {
 	border-radius: 5px;
 }
 
@@ -439,7 +443,7 @@ h1 {
 }
 
 textarea.form-control {
-    min-width: 400px !important;
+	min-width: 400px !important;
 }
 
 .connexion .card {
@@ -504,17 +508,20 @@ footer.footer p {
 	color: #555;
 }
 
-@media screen and (max-width: 1500px) {
+.mobile {
+	display: none;
+}
 
-	.table th, .table td {
-        font-size: 14px !important; /* Réduire la taille de la police */
-        padding: 5px !important; /* Réduire l'espacement */
+@media screen and (max-width: 1500px) {
+	.table th,
+	.table td {
+		font-size: 14px !important; /* Réduire la taille de la police */
+		padding: 5px !important; /* Réduire l'espacement */
 		min-width: 0px !important;
-    }
+	}
 }
 
 @media screen and (max-width: 768px) {
-
 	body {
 		font-size: 16px !important;
 	}
@@ -531,7 +538,12 @@ footer.footer p {
 		display: flex;
 		flex-direction: column;
 		justify-content: center; /* Centrer verticalement le contenu */
-		background-color: rgba(255, 255, 255, 0.9); /* Léger fond blanc avec transparence */
+		background-color: rgba(
+			255,
+			255,
+			255,
+			0.9
+		); /* Léger fond blanc avec transparence */
 	}
 
 	.jumbotron h1 {
@@ -539,7 +551,8 @@ footer.footer p {
 		max-width: 100%;
 	}
 
-	.jumbotron p, .jumbotron a.reserve {
+	.jumbotron p,
+	.jumbotron a.reserve {
 		font-size: 14px !important;
 	}
 
@@ -552,12 +565,13 @@ footer.footer p {
 		margin-bottom: 0px !important;
 	}
 
-	.table th, .table td {
-        font-size: 10px !important; /* Réduire la taille de la police */
-        padding: 5px !important; /* Réduire l'espacement */
+	.table th,
+	.table td {
+		font-size: 10px !important; /* Réduire la taille de la police */
+		padding: 5px !important; /* Réduire l'espacement */
 		min-width: 60px !important;
 		max-height: 200px;
-    }
+	}
 
 	.content-scrollable {
 		max-height: 400px;
@@ -566,24 +580,27 @@ footer.footer p {
 		margin-bottom: 10px;
 	}
 
-    .container.planning {
-        padding: 10px !important; /* Réduire le padding du conteneur principal sur mobile */
-    }
+	.container.planning {
+		padding: 10px !important; /* Réduire le padding du conteneur principal sur mobile */
+	}
 
-    .btn {
-        font-size: 16px !important; /* Réduire la taille des boutons */
-        padding: 5px 10px !important;
-    }
+	.btn {
+		font-size: 16px !important; /* Réduire la taille des boutons */
+		padding: 5px 10px !important;
+	}
 
-    h1 {
-        font-size: 20px !important; /* Ajuster la taille du titre */
-    }
+	h1 {
+		font-size: 20px !important; /* Ajuster la taille du titre */
+	}
 
 	.btn {
 		padding: 5px !important;
 	}
 
-	.calendrier a, .calendrier p, .calendrier button, .calendrier th {
+	.calendrier a,
+	.calendrier p,
+	.calendrier button,
+	.calendrier th {
 		font-size: 10px !important;
 	}
 
@@ -604,7 +621,9 @@ footer.footer p {
 		margin-top: 20%;
 	}
 
-	.register input, .register textarea, .register label {
+	.register input,
+	.register textarea,
+	.register label {
 		margin-bottom: 5px;
 	}
 
@@ -619,5 +638,69 @@ footer.footer p {
 	.container {
 		max-width: 100%;
 		padding: 0;
+	}
+
+	footer.footer a, a.nav-link {
+		font-size: 16px !important;
+	}
+
+	.desktop {
+		display: none;
+	}
+
+	.mobile {
+		display: block;
+	}
+
+	.mobile .table {
+		width: 100%;
+		font-size: 12px;
+	}
+
+	.mobile h2 {
+		font-size: 18px;
+		text-align: center;
+		margin-bottom: 10px;
+	}
+
+	.mobile .calendar-navigation {
+		display: flex;
+		justify-content: space-around;
+		margin-bottom: 15px;
+	}
+
+	.mobile .calendar-navigation a {
+		padding: 10px;
+		background-color: #2c7487;
+		color: white;
+		text-decoration: none;
+		border-radius: 5px;
+		font-size: 14px;
+	}
+
+	.mobile .calendar-navigation a:hover {
+		background-color: #225f6e;
+	}
+
+	.mobile #planning-content {
+		padding: 10px;
+	}
+
+	.mobile .table th,
+	.mobile .table td {
+		padding: 5px;
+	}
+
+	.planning .mobile a, .planning .mobile .btn {
+		font-size: 10px !important;
+	}
+
+	.mobile button {
+		border: none;
+	}
+
+	.mobile .calendar-navigation, .mobile .day-navigation {
+		display: block;
+		text-align: center;
 	}
 }
