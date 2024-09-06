@@ -735,13 +735,15 @@ footer.footer p {
 	}
 
 	.calendrier .row, .planning .row {
-		padding-left: 12px;
-		padding-right: 12px;
+		padding-left: 0;
+		padding-right: 0;
+		margin-left: 0;
+		margin-right: 0;
 	}
 
-	.hide-date {
+	/* .hide-date {
 		display: none;
-	}
+	} */
 }
 
 @media screen and (max-width: 385px) {
