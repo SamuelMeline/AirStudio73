@@ -580,10 +580,6 @@ footer.footer p {
 		margin-bottom: 10px;
 	}
 
-	.container.planning {
-		padding: 10px !important; /* Réduire le padding du conteneur principal sur mobile */
-	}
-
 	.btn {
 		font-size: 16px !important; /* Réduire la taille des boutons */
 		padding: 5px 10px !important;

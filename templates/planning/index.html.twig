@@ -188,17 +188,9 @@
 				// Vérifie que la variable schedules est correctement définie par Twig
 const schedules = {{ schedules|json_encode|raw }} || [];
 
-let currentDate = new Date();
-// Date actuelle
-
-// Fonction pour obtenir la date du samedi de la semaine courante
-function getSaturday(date) {
-const dayOfWeek = date.getDay(); // 0 (dimanche) à 6 (samedi)
-const saturdayOffset = 6 - dayOfWeek; // Jours jusqu'à samedi
-const saturdayDate = new Date(date);
-saturdayDate.setDate(date.getDate() + saturdayOffset);
-return saturdayDate;
-}
+let currentDate = new Date(); // Date actuelle
+let selectedDay = getCurrentDay();
+// Définit le jour sélectionné par défaut au jour actuel
 
 // Fonction pour formater une date en DD/MM/YYYY
 function formatDate(date) {
@@ -216,13 +208,26 @@ const diff = (end - start) / 60000; // Différence en minutes
 return diff / 15; // Chaque créneau horaire est de 15 minutes
 }
 
-// Fonction pour afficher la semaine courante avec la date du samedi
-function displayCurrentWeek() {
-const saturdayDate = getSaturday(currentDate); // Obtenir la date du samedi courant
-document.getElementById('currentWeekDate').textContent = `Samedi ${
-formatDate(saturdayDate)
+// Fonction pour afficher la semaine courante
+function displayCurrentWeek() { // Met à jour la date pour le jour sélectionné
+const dayDate = getDateForDay(selectedDay);
+document.getElementById('currentWeekDate').textContent = `${selectedDay} ${
+formatDate(dayDate)
 }`;
-showDay('Samedi'); // Afficher le planning du samedi de la semaine courante
+showDay(selectedDay); // Afficher le planning pour le jour sélectionné
+}
+
+// Fonction pour obtenir le jour actuel en texte (ex: 'Lundi')
+function getCurrentDay() {
+const dayNames = [
+'Lundi',
+'Mardi',
+'Mercredi',
+'Jeudi',
+'Vendredi',
+'Samedi'
+];
+return dayNames[currentDate.getDay() - 1]; // Ajuste pour commencer la semaine au lundi
 }
 
 // Fonction pour changer de semaine
@@ -231,7 +236,27 @@ currentDate.setDate(currentDate.getDate() + weekOffset * 7); // Changer la date 
 displayCurrentWeek(); // Mettre à jour l'affichage
 }
 
+// Fonction pour obtenir la date d'un jour spécifique dans la semaine courante
+function getDateForDay(dayName) {
+const dayNames = [
+'Lundi',
+'Mardi',
+'Mercredi',
+'Jeudi',
+'Vendredi',
+'Samedi'
+];
+const targetDayIndex = dayNames.indexOf(dayName);
+const currentDayIndex = currentDate.getDay() - 1; // Ajuste pour commencer la semaine au lundi
+const offset = targetDayIndex - currentDayIndex;
+const targetDate = new Date(currentDate);
+targetDate.setDate(currentDate.getDate() + offset);
+return targetDate;
+}
+
+// Fonction pour afficher le planning d'un jour spécifique
 function showDay(day) {
+selectedDay = day; // Mettre à jour le jour sélectionné
 let content = '';
 content += `<h2>${day}</h2><table class="table table-bordered"><thead><tr><th>Horaires</th><th>${day}</th></tr></thead><tbody>`;
 
@@ -314,6 +339,12 @@ content += `<td>&nbsp;</td>`;
 
 content += `</tbody></table>`;
 document.getElementById('planning-content').innerHTML = content;
+
+// Mettre à jour la date dans la navigation du calendrier
+const dayDate = getDateForDay(day);
+document.getElementById('currentWeekDate').textContent = `${day} ${
+formatDate(dayDate)
+}`;
 }
 
 // Afficher la semaine courante au chargement de la page
