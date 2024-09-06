@@ -704,4 +704,21 @@ footer.footer p {
 		display: block;
 		text-align: center;
 	}
+
+	.calendrier .col-3 {
+		margin-bottom: 10px;
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+
+	.calendrier .col-9 {
+		padding-bottom: 0;
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+
+	.calendrier .row {
+		padding-left: 12px;
+		padding-right: 12px;
+	}
 }
