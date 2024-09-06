@@ -10,7 +10,7 @@
 				</div>
 			{% endfor %}
 		{% endfor %}
-		<div class="mb-3">
+		<div>
 			{% set prevWeek = currentWeek - 1 %}
 			{% set nextWeek = currentWeek + 1 %}
 			{% set prevYear = currentYear %}
@@ -36,11 +36,20 @@
 			{% endif %}
 			<a href="{{ path('calendar', { 'year': 'now'|date('Y'), 'week': 'now'|date('W') }) }}" class="btn reserve-btn">Semaine en cours</a>
 			<a href="{{ path('calendar', { 'year': nextYear, 'week': nextWeek }) }}" class="btn btn-general switch">&raquo;</a>
+			<!-- Ajout de l'affichage des dates de la semaine -->
 			<a href="{{ path('user_subscription') }}" class="btn btn-general">Mes forfaits</a>
 			<a href="{{ path('booking_manage') }}" class="btn btn-general">Mes réservations</a>
 			{% if is_granted('ROLE_ADMIN') %}
 				<a href="{{ path('course_new') }}" class="btn reserve-btn create-cours">Créer un cours</a>
 			{% endif %}
+			<div>
+				<p class="week-day">
+					Lundi
+					{{ startOfWeek|date('d/m/Y') }}
+					- Samedi
+					{{ startOfWeek|date_modify('+5 days')|date('d/m/Y') }}
+				</p>
+			</div>
 		</div>
 
 		<div class="row">
@@ -49,16 +58,21 @@
 					<thead class="thead-light">
 						<tr>
 							<th>Heures</th>
-							<th>Lundi
-								{{ startOfWeek|date('d/m/Y') }}</th>
-							<th>Mardi
-								{{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</th>
-							<th>Mercredi
-								{{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</th>
-							<th>Jeudi
-								{{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</th>
-							<th>Vendredi
-								{{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</th>
+							<th>Lun.
+								<span class="hide-date">{{ startOfWeek|date('d/m/Y') }}</span>
+							</th>
+							<th>Mar.
+								<span class="hide-date">{{ startOfWeek|date_modify('+1 day')|date('d/m/Y') }}</span>
+							</th>
+							<th>Mer.
+								<span class="hide-date">{{ startOfWeek|date_modify('+2 days')|date('d/m/Y') }}</span>
+							</th>
+							<th>Jeu.
+								<span class="hide-date">{{ startOfWeek|date_modify('+3 days')|date('d/m/Y') }}</span>
+							</th>
+							<th>Ven.
+								<span class="hide-date">{{ startOfWeek|date_modify('+4 days')|date('d/m/Y') }}</span>
+							</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -83,6 +97,7 @@
 										{% for course in courses %}
 											{% set course_start_time = course.startTime|date('H:i') %}
 											{% set course_day_of_week = course.startTime|date('N') %}
+											{% set course_end_time = course.endTime|date('H:i') %}
 											{% set course_capacity = course.capacity %}
 											{% set course_bookings = bookings[course.id] %}
 											{% set bookings_count = course_bookings|length %}
@@ -102,7 +117,9 @@
 														<a href="{{ path('course_details_list', { 'courseId': course.id }) }}">
 															{{ course.name }}
 														</a>
-														<br>
+														<p>{{ course_start_time }}
+															-
+															{{ course_end_time  }}</p>
 														{% if user_booking %}
 															<p>
 																{{ bookings_count }}
@@ -148,8 +165,8 @@
 															<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
 																<input type="hidden" name="year" value="{{ currentYear }}">
 																<input type="hidden" name="week" value="{{ currentWeek }}">
-																<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
-																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
+																<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger less">-</button>
+																<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success more">+</button>
 																<span>Capacité :
 																	{{ course_capacity }}</span>
 															</form>
@@ -186,7 +203,7 @@
 					<tbody>
 						{% set saturday_timeslots = [
                             '09:00', '09:30', '10:00', '10:30', 
-                            '11:00', '11:30', '12:00'
+                            '11:00', '11:30',
                         ] %}
 
 						{% set merged_slots = {} %}
@@ -202,6 +219,7 @@
 									{% set course_found = false %}
 									{% for course in courses %}
 										{% set course_start_time = course.startTime|date('H:i') %}
+										{% set course_end_time = course.endTime|date('H:i') %}
 										{% set course_day_of_week = course.startTime|date('N') %}
 										{% set course_capacity = course.capacity %}
 										{% set course_bookings = bookings[course.id] %}
@@ -222,7 +240,9 @@
 													<a href="{{ path('booking_new', { 'courseId': course.id }) }}">
 														{{ course.name }}
 													</a>
-													<br>
+													<p>{{ course_start_time }}
+														-
+														{{ course_end_time  }}</p>
 													{% if user_booking %}
 														<p>
 															{{ bookings_count }}
@@ -268,8 +288,8 @@
 														<form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
 															<input type="hidden" name="year" value="{{ currentYear }}">
 															<input type="hidden" name="week" value="{{ currentWeek }}">
-															<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
-															<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
+															<button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger less">-</button>
+															<button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success more">+</button>
 															<span>Capacité :
 																{{ course_capacity }}</span>
 														</form>
@@ -295,148 +315,148 @@
 		</div>
 	</div>
 
-{# <!-- Vue Mobile (affichage pour mobile) -->
-<div class="mobile">
-    <!-- Navigation pour changer de jour -->
-    <div class="calendar-navigation">
-        <button id="prevDayBtn" class="btn-general" onclick="changeDay(-1)">&lt; Précédent</button>
-        <span id="currentDayDate">{{ selectedDay }} {{ currentDate|date('d/m/Y') }}</span>
-        <button id="nextDayBtn" class="btn-general" onclick="changeDay(1)">Suivant &gt;</button>
-    </div>
-
-    <!-- Liste des jours de la semaine pour navigation rapide -->
-    <div class="day-navigation">
-        <button class="btn-general" onclick="showDay('Lundi'); return false;">Lun.</button>
-        <button class="btn-general" onclick="showDay('Mardi'); return false;">Mar.</button>
-        <button class="btn-general" onclick="showDay('Mercredi'); return false;">Mer.</button>
-        <button class="btn-general" onclick="showDay('Jeudi'); return false;">Jeu.</button>
-        <button class="btn-general" onclick="showDay('Vendredi'); return false;">Ven.</button>
-        <button class="btn-general" onclick="showDay('Samedi'); return false;">Sam.</button>
-    </div>
-
-    <!-- Contenu du calendrier mobile -->
-    <div id="mobile-calendar-content" class="content-scrollable">
-        <table class="table table-bordered">
-            <thead class="thead-light">
-                <tr>
-                    <th>Heures</th>
-                    <th>{{ selectedDay }} {{ currentDate|date('d/m/Y') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set weekday_timeslots = [
-                    '14:30', '15:00', '15:30', '16:00', '16:15', '16:30', '16:45', '17:00',
-                    '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00',
-                    '19:15', '19:30', '19:45', '20:00', '20:15', '20:30'
-                ] %}
-
-                {% set merged_slots = {} %}
-
-                {% for timeslot in weekday_timeslots %}
-                    <tr>
-                        {% set interval = (timeslot >= '16:00') ? 15 : 30 %}
-                        <td>{{ timeslot }} - {{ timeslot|date_modify('+' ~ interval ~ ' minutes')|date('H:i') }}</td>
-                        {% set course_found = false %}
-                        {% for course in courses %}
-                            {% set course_start_time = course.startTime|date('H:i') %}
-                            {% set course_day_of_week = course.startTime|date('N') %}
-                            {% set course_capacity = course.capacity %}
-                            {% set course_bookings = bookings[course.id] %}
-                            {% set bookings_count = course_bookings|length %}
-                            {% set available_spots = course_capacity - bookings_count %}
-                            {% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
-                            {% if app.user is not null %}
-                                {% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
-                            {% else %}
-                                {% set user_booking = null %}
-                            {% endif %}
-
-                            {% if course_day_of_week == selectedDay|date('N') and course_start_time <= timeslot and course.endTime|date('H:i') > timeslot %}
-                                {% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
-                                {% set rowspan = course_duration // interval %}
-                                {% if not course_found %}
-                                    <td rowspan="{{ rowspan }}" class="{{ course.name|replace({ 'Yoga aérien': 'bg-yoga-aerien', 'Pole Dance': 'bg-pole-dance', 'Hammock': 'bg-hammock', 'Souplesse/ Renfo': 'bg-souplesse', 'Cours à la demande Particulier / Essais /Coaching': 'bg-cours-demande' }) }}">
-                                        <a href="{{ path('course_details_list', { 'courseId': course.id }) }}">
-                                            {{ course.name }}
-                                        </a>
-                                        <br>
-                                        {% if user_booking %}
-                                            <p>{{ bookings_count }}/{{ course_capacity }}</p>
-                                            <p class="reserve">Réservé</p>
-                                            {% if interval_until_course >= 6 %}
-                                                <a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm">Annuler</a>
-                                            {% else %}
-                                                <button class="btn btn-sm" disabled>Annulation impossible</button>
-                                            {% endif %}
-                                        {% else %}
-                                            {% if available_spots > 0 %}
-                                                <p class="update">{{ available_spots }} place{{ available_spots > 1 ? 's' : '' }} restante{{ available_spots > 1 ? 's' : '' }}</p>
-                                                <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn reserve-btn btn-sm">Réserver</a>
-                                            {% else %}
-                                                <p class="complet">Complet</p>
-                                            {% endif %}
-                                        {% endif %}
-                                        {% if is_granted('ROLE_ADMIN') %}
-                                            <div class="mt-2">
-                                                <a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn update btn-sm">Modifier</a>
-                                                <form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-                                                    <button type="submit" class="btn complet btn-sm">Annuler</button>
-                                                </form>
-                                                <form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-                                                    <button type="submit" class="btn complet btn-sm">Supprimer</button>
-                                                </form>
-                                            </div>
-                                            <form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
-                                                <input type="hidden" name="year" value="{{ currentYear }}">
-                                                <input type="hidden" name="week" value="{{ currentWeek }}">
-                                                <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
-                                                <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
-                                                <span>Capacité : {{ course_capacity }}</span>
-                                            </form>
-                                        {% endif %}
-                                    </td>
-                                    {% set course_found = true %}
-                                {% endif %}
-                            {% endif %}
-                        {% endfor %}
-                        {% if not course_found %}
-                            <td>&nbsp;</td>
-                        {% endif %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    function changeDay(direction) {
-        const currentDate = new Date(document.getElementById('currentDayDate').innerText.split(' ')[1].split('/').reverse().join('/'));
-        currentDate.setDate(currentDate.getDate() + direction);
-        const dayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' });
-        document.getElementById('currentDayDate').innerText = `${dayName} ${currentDate.toLocaleDateString('fr-FR')}`;
-
-        // Redirection vers la nouvelle route
-        window.location.href = '{{ path('calendar', { 'year': '' }) }}'.replace('year', currentDate.getFullYear()).replace('week', getISOWeek(currentDate));
-    }
-
-    function getISOWeek(date) {
-        const target = new Date(date.valueOf());
-        const dayNumber = (date.getDay() + 6) % 7; // Ajuster pour que la semaine commence le lundi
-        target.setDate(target.getDate() + 4 - dayNumber); // La semaine ISO commence le lundi
-        const yearStart = new Date(target.getFullYear(), 0, 1);
-        return Math.ceil((((target - yearStart) / 86400000) + 1) / 7); // Calculer le numéro de la semaine
-    }
-
-    function showDay(day) {
-        const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-        const currentDate = new Date();
-        const index = dayNames.indexOf(day);
-        currentDate.setDate(currentDate.getDate() - currentDate.getDay() + index + 1); // Ajuster pour obtenir la date du jour choisi
-        window.location.href = '{{ path('calendar', { 'year': '' }) }}'.replace('year', currentDate.getFullYear()).replace('week', getISOWeek(currentDate));
-    }
-</script> #}
+	{# <!-- Vue Mobile (affichage pour mobile) -->
+							<div class="mobile">
+							    <!-- Navigation pour changer de jour -->
+							    <div class="calendar-navigation">
+							        <button id="prevDayBtn" class="btn-general" onclick="changeDay(-1)">&lt; Précédent</button>
+							        <span id="currentDayDate">{{ selectedDay }} {{ currentDate|date('d/m/Y') }}</span>
+							        <button id="nextDayBtn" class="btn-general" onclick="changeDay(1)">Suivant &gt;</button>
+							    </div>
+							
+							    <!-- Liste des jours de la semaine pour navigation rapide -->
+							    <div class="day-navigation">
+							        <button class="btn-general" onclick="showDay('Lundi'); return false;">Lun.</button>
+							        <button class="btn-general" onclick="showDay('Mardi'); return false;">Mar.</button>
+							        <button class="btn-general" onclick="showDay('Mercredi'); return false;">Mer.</button>
+							        <button class="btn-general" onclick="showDay('Jeudi'); return false;">Jeu.</button>
+							        <button class="btn-general" onclick="showDay('Vendredi'); return false;">Ven.</button>
+							        <button class="btn-general" onclick="showDay('Samedi'); return false;">Sam.</button>
+							    </div>
+							
+							    <!-- Contenu du calendrier mobile -->
+							    <div id="mobile-calendar-content" class="content-scrollable">
+							        <table class="table table-bordered">
+							            <thead class="thead-light">
+							                <tr>
+							                    <th>Heures</th>
+							                    <th>{{ selectedDay }} {{ currentDate|date('d/m/Y') }}</th>
+							                </tr>
+							            </thead>
+							            <tbody>
+							                {% set weekday_timeslots = [
+							                    '14:30', '15:00', '15:30', '16:00', '16:15', '16:30', '16:45', '17:00',
+							                    '17:15', '17:30', '17:45', '18:00', '18:15', '18:30', '18:45', '19:00',
+							                    '19:15', '19:30', '19:45', '20:00', '20:15', '20:30'
+							                ] %}
+							
+							                {% set merged_slots = {} %}
+							
+							                {% for timeslot in weekday_timeslots %}
+							                    <tr>
+							                        {% set interval = (timeslot >= '16:00') ? 15 : 30 %}
+							                        <td>{{ timeslot }} - {{ timeslot|date_modify('+' ~ interval ~ ' minutes')|date('H:i') }}</td>
+							                        {% set course_found = false %}
+							                        {% for course in courses %}
+							                            {% set course_start_time = course.startTime|date('H:i') %}
+							                            {% set course_day_of_week = course.startTime|date('N') %}
+							                            {% set course_capacity = course.capacity %}
+							                            {% set course_bookings = bookings[course.id] %}
+							                            {% set bookings_count = course_bookings|length %}
+							                            {% set available_spots = course_capacity - bookings_count %}
+							                            {% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
+							                            {% if app.user is not null %}
+							                                {% set user_booking = course_bookings|filter(b => b.user.id == app.user.id)|first %}
+							                            {% else %}
+							                                {% set user_booking = null %}
+							                            {% endif %}
+							
+							                            {% if course_day_of_week == selectedDay|date('N') and course_start_time <= timeslot and course.endTime|date('H:i') > timeslot %}
+							                                {% set course_duration = (course.endTime|date('U') - course.startTime|date('U')) // 60 %}
+							                                {% set rowspan = course_duration // interval %}
+							                                {% if not course_found %}
+							                                    <td rowspan="{{ rowspan }}" class="{{ course.name|replace({ 'Yoga aérien': 'bg-yoga-aerien', 'Pole Dance': 'bg-pole-dance', 'Hammock': 'bg-hammock', 'Souplesse/ Renfo': 'bg-souplesse', 'Cours à la demande Particulier / Essais /Coaching': 'bg-cours-demande' }) }}">
+							                                        <a href="{{ path('course_details_list', { 'courseId': course.id }) }}">
+							                                            {{ course.name }}
+							                                        </a>
+							                                        <br>
+							                                        {% if user_booking %}
+							                                            <p>{{ bookings_count }}/{{ course_capacity }}</p>
+							                                            <p class="reserve">Réservé</p>
+							                                            {% if interval_until_course >= 6 %}
+							                                                <a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm">Annuler</a>
+							                                            {% else %}
+							                                                <button class="btn btn-sm" disabled>Annulation impossible</button>
+							                                            {% endif %}
+							                                        {% else %}
+							                                            {% if available_spots > 0 %}
+							                                                <p class="update">{{ available_spots }} place{{ available_spots > 1 ? 's' : '' }} restante{{ available_spots > 1 ? 's' : '' }}</p>
+							                                                <a href="{{ path('booking_new', { 'courseId': course.id }) }}" class="btn reserve-btn btn-sm">Réserver</a>
+							                                            {% else %}
+							                                                <p class="complet">Complet</p>
+							                                            {% endif %}
+							                                        {% endif %}
+							                                        {% if is_granted('ROLE_ADMIN') %}
+							                                            <div class="mt-2">
+							                                                <a href="{{ path('course_edit', { 'id': course.id }) }}" class="btn update btn-sm">Modifier</a>
+							                                                <form action="{{ path('admin_course_cancel', { 'courseId': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">
+							                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+							                                                    <button type="submit" class="btn complet btn-sm">Annuler</button>
+							                                                </form>
+							                                                <form action="{{ path('course_delete', { 'id': course.id }) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">
+							                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+							                                                    <button type="submit" class="btn complet btn-sm">Supprimer</button>
+							                                                </form>
+							                                            </div>
+							                                            <form action="{{ path('course_update_capacity', {id: course.id}) }}" method="POST" class="mt-2">
+							                                                <input type="hidden" name="year" value="{{ currentYear }}">
+							                                                <input type="hidden" name="week" value="{{ currentWeek }}">
+							                                                <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-danger">-</button>
+							                                                <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-success">+</button>
+							                                                <span>Capacité : {{ course_capacity }}</span>
+							                                            </form>
+							                                        {% endif %}
+							                                    </td>
+							                                    {% set course_found = true %}
+							                                {% endif %}
+							                            {% endif %}
+							                        {% endfor %}
+							                        {% if not course_found %}
+							                            <td>&nbsp;</td>
+							                        {% endif %}
+							                    </tr>
+							                {% endfor %}
+							            </tbody>
+							        </table>
+							    </div>
+							</div>
+							
+							<script>
+							    function changeDay(direction) {
+							        const currentDate = new Date(document.getElementById('currentDayDate').innerText.split(' ')[1].split('/').reverse().join('/'));
+							        currentDate.setDate(currentDate.getDate() + direction);
+							        const dayName = currentDate.toLocaleDateString('fr-FR', { weekday: 'long' });
+							        document.getElementById('currentDayDate').innerText = `${dayName} ${currentDate.toLocaleDateString('fr-FR')}`;
+							
+							        // Redirection vers la nouvelle route
+							        window.location.href = '{{ path('calendar', { 'year': '' }) }}'.replace('year', currentDate.getFullYear()).replace('week', getISOWeek(currentDate));
+							    }
+							
+							    function getISOWeek(date) {
+							        const target = new Date(date.valueOf());
+							        const dayNumber = (date.getDay() + 6) % 7; // Ajuster pour que la semaine commence le lundi
+							        target.setDate(target.getDate() + 4 - dayNumber); // La semaine ISO commence le lundi
+							        const yearStart = new Date(target.getFullYear(), 0, 1);
+							        return Math.ceil((((target - yearStart) / 86400000) + 1) / 7); // Calculer le numéro de la semaine
+							    }
+							
+							    function showDay(day) {
+							        const dayNames = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+							        const currentDate = new Date();
+							        const index = dayNames.indexOf(day);
+							        currentDate.setDate(currentDate.getDate() - currentDate.getDay() + index + 1); // Ajuster pour obtenir la date du jour choisi
+							        window.location.href = '{{ path('calendar', { 'year': '' }) }}'.replace('year', currentDate.getFullYear()).replace('week', getISOWeek(currentDate));
+							    }
+							</script> #}
 
 {% endblock %}

@@ -12,7 +12,7 @@
 		{% endif %}
 
 		<!-- Vue Desktop -->
-		<div class="row desktop">
+		<div class="row">
 			<div class="col col-9 content-scrollable">
 				<table class="table table-bordered">
 					<thead>
@@ -160,172 +160,174 @@
 				</table>
 			</div>
 		</div>
-
-		<!-- Vue Mobile (affichage pour mobile) -->
-		<div
-			class="mobile">
-			<!-- Boutons pour changer de semaine -->
-			<div class="calendar-navigation">
-				<button id="prevWeekBtn" class="btn-general" onclick="changeWeek(-1)">&lt;</button>
-				<span id="currentWeekDate"></span>
-				<button id="nextWeekBtn" class="btn-general" onclick="changeWeek(1)">&gt;</button>
-			</div>
-
-			<!-- Jours de la semaine avec format abrégé -->
-			<div class="day-navigation">
-				<button class="btn-general" onclick="showDay('Lundi'); return false;">Lun.</button>
-				<button class="btn-general" onclick="showDay('Mardi'); return false;">Mar.</button>
-				<button class="btn-general" onclick="showDay('Mercredi'); return false;">Mer.</button>
-				<button class="btn-general" onclick="showDay('Jeudi'); return false;">Jeu.</button>
-				<button class="btn-general" onclick="showDay('Vendredi'); return false;">Ven.</button>
-				<button class="btn-general" onclick="showDay('Samedi'); return false;">Sam.</button>
-			</div>
-
-			<!-- Contenu du planning mobile -->
-			<div id="planning-content"></div>
-
-			<script>
-				// Vérifie que la variable schedules est correctement définie par Twig
-const schedules = {{ schedules|json_encode|raw }} || [];
-
-let currentDate = new Date(); // Date actuelle
-let selectedDay = 'Lundi';
-// On commence toujours par Lundi
-
-// Fonction pour formater une date en DD/MM/YYYY
-function formatDate(date) {
-const day = String(date.getDate()).padStart(2, '0');
-const month = String(date.getMonth() + 1).padStart(2, '0');
-const year = date.getFullYear();
-return `${day}/${month}/${year}`;
-}
-
-// Fonction pour afficher la semaine courante du lundi au samedi
-function displayCurrentWeek() {
-    const dayDate = currentDate;
-
-    // Calcul du début de la semaine (lundi)
-    const startOfWeek = new Date(dayDate);
-    startOfWeek.setDate(dayDate.getDate() - dayDate.getDay() + 1); // Lundi
-
-    // Calcul de la fin de la semaine (samedi)
-    const endOfWeek = new Date(dayDate);
-    endOfWeek.setDate(dayDate.getDate() - dayDate.getDay() + 6); // Samedi
-
-    // Affiche la plage de dates du lundi au samedi
-    document.getElementById('currentWeekDate').textContent = `Lundi ${formatDate(startOfWeek)} - Samedi ${formatDate(endOfWeek)}`;
-
-    // Afficher le planning pour le jour sélectionné
-    showDay(selectedDay);
-}
-
-// Fonction pour changer de semaine
-function changeWeek(weekOffset) {
-currentDate.setDate(currentDate.getDate() + weekOffset * 7); // Changer la date courante d'une semaine
-displayCurrentWeek(); // Mettre à jour l'affichage de la semaine
-}
-
-// Fonction pour afficher le planning d'un jour spécifique
-function showDay(day) {
-selectedDay = day; // Mettre à jour le jour sélectionné
-let content = '';
-content += `<h2>${day}</h2><table class="table table-bordered"><thead><tr><th>Horaires</th><th>${day}</th></tr></thead><tbody>`;
-
-// Créneaux horaires pour la semaine et le samedi
-const timeslots = day === 'Samedi' ? {{ timeSlotsSaturday|json_encode|raw }} : {{ timeSlots|json_encode|raw }};
-
-let scheduleMap = {};
-// Pour stocker les cours par créneau horaire
-
-// Remplir le plan de cours pour chaque créneau horaire
-schedules.forEach(schedule => {
-if (schedule.day === day) {
-const courseDuration = calculateDuration(schedule.startTime, schedule.endTime);
-for (let i = 0; i < courseDuration; i++) {
-const currentTime = new Date (`1970-01-01T${
-schedule.startTime
-}:00`);
-currentTime.setMinutes(currentTime.getMinutes() + i * 15);
-const timeSlotKey = currentTime.toTimeString().substring(0, 5);
-scheduleMap[timeSlotKey] = {
-id: schedule.id,
-name: schedule.courseName,
-start: schedule.startTime,
-end: schedule.endTime
-};
-}
-}
-});
-
-// Affichage des créneaux horaires
-timeslots.forEach(timeslot => {
-const [startTime, endTime] = timeslot.split(' - ');
-content += `<tr><td>${timeslot}</td>`;
-
-if (scheduleMap[startTime]) {
-const course = scheduleMap[startTime];
-if (course.start === startTime) {
-let className = '';
-// Ajout de la classe de style en fonction du nom du cours
-if (course.name === 'Yoga aérien') 
-className = 'bg-yoga-aerien';
- else if (course.name === 'Pole Dance') 
-className = 'bg-pole-dance';
- else if (course.name === 'Hammock') 
-className = 'bg-hammock';
- else if (course.name === 'Souplesse/ Renfo') 
-className = 'bg-souplesse';
- else if (course.name === 'Cours à la demande Particulier / Essais /Coaching') 
-className = 'bg-cours-demande';
-
-
-const courseDuration = calculateDuration(course.start, course.end);
-content += `<td class="${className}" rowspan="${courseDuration}">
-						${
-course.name
-} (${
-course.start
-} - ${
-course.end
-})`;
-
-// Vérifier si l'utilisateur est admin pour ajouter les boutons d'édition et de suppression
-if ("{{ is_granted('ROLE_ADMIN') }}") {
-content += `
-							<br>
-							<a href="{{ path('planning_edit', {id: '${
-course.id
-}'}) }}" class="btn btn-secondary btn-sm mt-1">Modifier</a>
-							<a href="{{ path('planning_delete', {id: '${
-course.id
-}'}) }}" class="btn btn-danger btn-sm mt-1" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">Supprimer</a>
-						`;
-}
-
-content += `</td>`;
-}
-} else { // Sinon, afficher une cellule vide
-content += `<td>&nbsp;</td>`;
-} content += `</tr>`;
-});
-
-content += `</tbody></table>`;
-document.getElementById('planning-content').innerHTML = content;
-}
-
-// Fonction pour calculer la durée en nombre de créneaux horaires (chaque créneau = 15 minutes)
-function calculateDuration(startTime, endTime) {
-const start = new Date (`1970-01-01T${startTime}:00`);
-const end = new Date (`1970-01-01T${endTime}:00`);
-const diff = (end - start) / 60000; // Différence en minutes
-return diff / 15; // Chaque créneau horaire est de 15 minutes
-}
-
-// Afficher la semaine courante au chargement de la page
-document.addEventListener('DOMContentLoaded', function () {
-displayCurrentWeek();
-});
-			</script>
-		</div>
 	</div>
 {% endblock %}
+
+
+{# <!-- Vue Mobile (affichage pour mobile) -->
+				<div
+					class="mobile">
+					<!-- Boutons pour changer de semaine -->
+					<div class="calendar-navigation">
+						<button id="prevWeekBtn" class="btn-general" onclick="changeWeek(-1)">&lt;</button>
+						<span id="currentWeekDate"></span>
+						<button id="nextWeekBtn" class="btn-general" onclick="changeWeek(1)">&gt;</button>
+					</div>
+		
+					<!-- Jours de la semaine avec format abrégé -->
+					<div class="day-navigation">
+						<button class="btn-general" onclick="showDay('Lundi'); return false;">Lun.</button>
+						<button class="btn-general" onclick="showDay('Mardi'); return false;">Mar.</button>
+						<button class="btn-general" onclick="showDay('Mercredi'); return false;">Mer.</button>
+						<button class="btn-general" onclick="showDay('Jeudi'); return false;">Jeu.</button>
+						<button class="btn-general" onclick="showDay('Vendredi'); return false;">Ven.</button>
+						<button class="btn-general" onclick="showDay('Samedi'); return false;">Sam.</button>
+					</div>
+		
+					<!-- Contenu du planning mobile -->
+					<div id="planning-content"></div>
+		
+					<script>
+						// Vérifie que la variable schedules est correctement définie par Twig
+		const schedules = {{ schedules|json_encode|raw }} || [];
+		
+		let currentDate = new Date(); // Date actuelle
+		let selectedDay = 'Lundi';
+		// On commence toujours par Lundi
+		
+		// Fonction pour formater une date en DD/MM/YYYY
+		function formatDate(date) {
+		const day = String(date.getDate()).padStart(2, '0');
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const year = date.getFullYear();
+		return `${day}/${month}/${year}`;
+		}
+		
+		// Fonction pour afficher la semaine courante du lundi au samedi
+		function displayCurrentWeek() {
+		    const dayDate = currentDate;
+		
+		    // Calcul du début de la semaine (lundi)
+		    const startOfWeek = new Date(dayDate);
+		    startOfWeek.setDate(dayDate.getDate() - dayDate.getDay() + 1); // Lundi
+		
+		    // Calcul de la fin de la semaine (samedi)
+		    const endOfWeek = new Date(dayDate);
+		    endOfWeek.setDate(dayDate.getDate() - dayDate.getDay() + 6); // Samedi
+		
+		    // Affiche la plage de dates du lundi au samedi
+		    document.getElementById('currentWeekDate').textContent = `Lundi ${formatDate(startOfWeek)} - Samedi ${formatDate(endOfWeek)}`;
+		
+		    // Afficher le planning pour le jour sélectionné
+		    showDay(selectedDay);
+		}
+		
+		// Fonction pour changer de semaine
+		function changeWeek(weekOffset) {
+		currentDate.setDate(currentDate.getDate() + weekOffset * 7); // Changer la date courante d'une semaine
+		displayCurrentWeek(); // Mettre à jour l'affichage de la semaine
+		}
+		
+		// Fonction pour afficher le planning d'un jour spécifique
+		function showDay(day) {
+		selectedDay = day; // Mettre à jour le jour sélectionné
+		let content = '';
+		content += `<h2>${day}</h2><table class="table table-bordered"><thead><tr><th>Horaires</th><th>${day}</th></tr></thead><tbody>`;
+		
+		// Créneaux horaires pour la semaine et le samedi
+		const timeslots = day === 'Samedi' ? {{ timeSlotsSaturday|json_encode|raw }} : {{ timeSlots|json_encode|raw }};
+		
+		let scheduleMap = {};
+		// Pour stocker les cours par créneau horaire
+		
+		// Remplir le plan de cours pour chaque créneau horaire
+		schedules.forEach(schedule => {
+		if (schedule.day === day) {
+		const courseDuration = calculateDuration(schedule.startTime, schedule.endTime);
+		for (let i = 0; i < courseDuration; i++) {
+		const currentTime = new Date (`1970-01-01T${
+		schedule.startTime
+		}:00`);
+		currentTime.setMinutes(currentTime.getMinutes() + i * 15);
+		const timeSlotKey = currentTime.toTimeString().substring(0, 5);
+		scheduleMap[timeSlotKey] = {
+		id: schedule.id,
+		name: schedule.courseName,
+		start: schedule.startTime,
+		end: schedule.endTime
+		};
+		}
+		}
+		});
+		
+		// Affichage des créneaux horaires
+		timeslots.forEach(timeslot => {
+		const [startTime, endTime] = timeslot.split(' - ');
+		content += `<tr><td>${timeslot}</td>`;
+		
+		if (scheduleMap[startTime]) {
+		const course = scheduleMap[startTime];
+		if (course.start === startTime) {
+		let className = '';
+		// Ajout de la classe de style en fonction du nom du cours
+		if (course.name === 'Yoga aérien') 
+		className = 'bg-yoga-aerien';
+		 else if (course.name === 'Pole Dance') 
+		className = 'bg-pole-dance';
+		 else if (course.name === 'Hammock') 
+		className = 'bg-hammock';
+		 else if (course.name === 'Souplesse/ Renfo') 
+		className = 'bg-souplesse';
+		 else if (course.name === 'Cours à la demande Particulier / Essais /Coaching') 
+		className = 'bg-cours-demande';
+		
+		
+		const courseDuration = calculateDuration(course.start, course.end);
+		content += `<td class="${className}" rowspan="${courseDuration}">
+								${
+		course.name
+		} (${
+		course.start
+		} - ${
+		course.end
+		})`;
+		
+		// Vérifier si l'utilisateur est admin pour ajouter les boutons d'édition et de suppression
+		if ("{{ is_granted('ROLE_ADMIN') }}") {
+		content += `
+									<br>
+									<a href="{{ path('planning_edit', {id: '${
+		course.id
+		}'}) }}" class="btn btn-secondary btn-sm mt-1">Modifier</a>
+									<a href="{{ path('planning_delete', {id: '${
+		course.id
+		}'}) }}" class="btn btn-danger btn-sm mt-1" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette session ?');">Supprimer</a>
+								`;
+		}
+		
+		content += `</td>`;
+		}
+		} else { // Sinon, afficher une cellule vide
+		content += `<td>&nbsp;</td>`;
+		} content += `</tr>`;
+		});
+		
+		content += `</tbody></table>`;
+		document.getElementById('planning-content').innerHTML = content;
+		}
+		
+		// Fonction pour calculer la durée en nombre de créneaux horaires (chaque créneau = 15 minutes)
+		function calculateDuration(startTime, endTime) {
+		const start = new Date (`1970-01-01T${startTime}:00`);
+		const end = new Date (`1970-01-01T${endTime}:00`);
+		const diff = (end - start) / 60000; // Différence en minutes
+		return diff / 15; // Chaque créneau horaire est de 15 minutes
+		}
+		
+		// Afficher la semaine courante au chargement de la page
+		document.addEventListener('DOMContentLoaded', function () {
+		displayCurrentWeek();
+		});
+					</script>
+				</div>
+			</div> #}
