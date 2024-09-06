@@ -314,8 +314,10 @@
 			</table>
 		</div>
 	</div>
+</div>
+{% endblock %}
 
-	{# <!-- Vue Mobile (affichage pour mobile) -->
+{# <!-- Vue Mobile (affichage pour mobile) -->
 							<div class="mobile">
 							    <!-- Navigation pour changer de jour -->
 							    <div class="calendar-navigation">
@@ -458,5 +460,3 @@
 							        window.location.href = '{{ path('calendar', { 'year': '' }) }}'.replace('year', currentDate.getFullYear()).replace('week', getISOWeek(currentDate));
 							    }
 							</script> #}
-
-{% endblock %}
