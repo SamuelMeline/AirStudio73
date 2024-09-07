@@ -104,7 +104,7 @@
 											{% set course_day_of_week = course.startTime|date('N') %}
 											{% set course_end_time = course.endTime|date('H:i') %}
 											{% set course_capacity = course.capacity %}
-											{% set course_bookings = bookings[course.id] ?? [] %}
+											{% set course_bookings = bookings[course.id] %}
 											{% set bookings_count = course_bookings|length %}
 											{% set available_spots = course_capacity - bookings_count %}
 											{% set interval_until_course = (course.startTime|date('U') - "now"|date('U')) // 3600 %}
@@ -125,6 +125,21 @@
 														<p>{{ course_start_time }}
 															-
 															{{ course_end_time  }}</p>
+														<!-- Affichage de la liste des utilisateurs ayant réservé -->
+														{% if is_granted('ROLE_ADMIN') %}
+															{% if course_bookings is not empty %}
+																<ul class="booking-username">
+																	{% for booking in course_bookings %}
+																		<li>
+																			{{ booking.user.firstName }}
+																			{{ booking.user.lastName }}
+																		</li>
+																	{% endfor %}
+																</ul>
+															{% else %}
+																<span>Aucune réservation pour ce cours.</span>
+															{% endif %}
+														{% endif %}
 														{% if user_booking %}
 															<p>
 																{{ bookings_count }}
@@ -132,24 +147,6 @@
 																{{ course_capacity }}
 															</p>
 															<p class="reserve">Réservé</p>
-															{% if is_granted('ROLE_ADMIN') %}
-																<div>
-																	{% if course_bookings is not empty %}
-																		<ul class="booking-username">
-																			{% for booking in course_bookings %}
-																				{% if booking.user is not null %}
-																					<li>{{ booking.user.firstName }}
-																						{{ booking.user.lastName }}</li>
-																				{% else %}
-																					<li>Utilisateur non trouvé</li>
-																				{% endif %}
-																			{% endfor %}
-																		</ul>
-																	{% else %}
-																		<p>Aucune réservation pour ce cours.</p>
-																	{% endif %}
-																</div>
-															{% endif %}
 															{% if interval_until_course >= 6 %}
 																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm ">Annuler</a>
 															{% else %}
@@ -268,6 +265,21 @@
 													<p>{{ course_start_time }}
 														-
 														{{ course_end_time  }}</p>
+													<!-- Affichage de la liste des utilisateurs ayant réservé -->
+													{% if is_granted('ROLE_ADMIN') %}
+														{% if course_bookings is not empty %}
+															<ul class="booking-username">
+																{% for booking in course_bookings %}
+																	<li>
+																		{{ booking.user.firstName }}
+																		{{ booking.user.lastName }}
+																	</li>
+																{% endfor %}
+															</ul>
+														{% else %}
+															<span>Aucune réservation pour ce cours.</span>
+														{% endif %}
+													{% endif %}
 													{% if user_booking %}
 														<p>
 															{{ bookings_count }}

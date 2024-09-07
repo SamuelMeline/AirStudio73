@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Course;
 use App\Form\CourseType;
+use App\Repository\CourseRepository;
+use App\Repository\BookingRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -149,5 +151,22 @@ class CourseController extends AbstractController
         }
 
         return $this->redirectToRoute('calendar');
+    }
+
+    public function calendar(CourseRepository $courseRepository, BookingRepository $bookingRepository)
+    {
+        // Récupérer tous les cours de la semaine
+        $courses = $courseRepository->findCoursesForCurrentWeek(); // À ajuster en fonction de ta logique
+
+        // Associer les réservations pour chaque cours
+        $bookingsByCourse = [];
+        foreach ($courses as $course) {
+            $bookingsByCourse[$course->getId()] = $bookingRepository->findBy(['course' => $course]);
+        }
+
+        return $this->render('calendar/index.html.twig', [
+            'courses' => $courses,
+            'bookings' => $bookingsByCourse,
+        ]);
     }
 }
