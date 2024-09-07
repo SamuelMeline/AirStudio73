@@ -34,7 +34,7 @@ class ContactController extends AbstractController
             $email = (new Email())
                 ->from('contactAirstudio73@gmail.com') // Utiliser l'adresse email authentifiée
                 ->replyTo($contact->getEmail()) // Utiliser l'email fourni par l'utilisateur pour les réponses
-                ->to('smelinepro@gmail.com') // Adresse de destination
+                ->to('smelinepro@gmail.com', 'airstudio.73@gmail.com') // Adresse de destination
                 ->subject($contact->getSubject())
                 ->text($contact->getMessage());
 

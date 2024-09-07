@@ -104,7 +104,6 @@
 											{% set course_day_of_week = course.startTime|date('N') %}
 											{% set course_end_time = course.endTime|date('H:i') %}
 											{% set course_capacity = course.capacity %}
-											{% set course_bookings = bookings[course.id] %}
 											{% set course_bookings = bookings[course.id] ?? [] %}
 											{% set bookings_count = course_bookings|length %}
 											{% set available_spots = course_capacity - bookings_count %}
