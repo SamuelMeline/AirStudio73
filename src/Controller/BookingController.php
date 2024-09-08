@@ -199,14 +199,16 @@ class BookingController extends AbstractController
         
         Détails de la réservation :
         - Utilisateur : %s %s
-        - Cours : %s
+        - Cours : %s le "%s" à "%s"
         ',
                 $user->getFirstName(),
                 $user->getLastName(),
-                $course->getName()
+                $course->getName(),
+                $course->getStartTime()->format('d/m/Y'),
+                $course->getStartTime()->format('H:i')
             );
 
-            if ($isRecurrent) {
+            if ($isRecurrent && !empty($datesList)) {
                 $adminMessage .= sprintf('Les réservations sont programmées aux dates suivantes : %s', $datesList);
             }
 
