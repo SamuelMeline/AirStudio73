@@ -525,6 +525,20 @@ footer.footer p {
 	margin-bottom: 5px;
 }
 
+.p-2.alert.alert-danger, .p-2.alert.alert-success {
+	margin-top: 12px;
+	margin-left: 12px;
+	max-width: 730px;
+}
+
+.administration a.update {
+	margin-top: 5px;
+}
+
+.booking-manage button.complet {
+	margin-top: 0;
+}
+
 @media screen and (max-width: 1500px) {
 	.table th,
 	.table td {
@@ -756,6 +770,20 @@ footer.footer p {
 	/* .hide-date {
 		display: none;
 	} */
+
+	.administration .btn {
+        padding: 3px !important;
+        font-size: 8px !important;
+    }
+
+	.administration .content-scrollable {
+		max-width: 100%;
+	}
+
+	.administration .editable-notes {
+		min-width: 100px !important;
+		font-size: 8px !important;
+	}
 }
 
 @media screen and (max-width: 385px) {

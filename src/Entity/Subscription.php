@@ -123,10 +123,6 @@ class Subscription
 
     public function setExpiryDate(?\DateTimeInterface $expiryDate): self
     {
-        if ($expiryDate < new \DateTime()) {
-            throw new \Exception("Expiry date cannot be in the past.");
-        }
-
         $this->expiryDate = $expiryDate;
         return $this;
     }

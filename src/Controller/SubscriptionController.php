@@ -36,43 +36,63 @@ class SubscriptionController extends AbstractController
 
         $form->handleRequest($request);
 
-        // Vérifiez si le formulaire est soumis et si la soumission concerne la sélection d'un type
+        $user = $this->getUser();
+
+        // Si le formulaire est soumis
         if ($form->isSubmitted()) {
-            // Si le champ 'plan' n'existe pas encore, cela signifie que le formulaire n'est pas encore dans l'état final
-            if (!$form->has('plan')) {
+            // Vérifiez si le champ 'plan' existe dans le formulaire avant de l'utiliser
+            if (!$form->has('plan') || !$form->get('plan')->getData()) {
                 return $this->render('subscription/new.html.twig', [
                     'form' => $form->createView(),
                 ]);
             }
 
-            // Maintenant que le champ 'plan' existe, vérifiez s'il est rempli
-            if (!$form->get('plan')->getData()) {
-                return $this->render('subscription/new.html.twig', [
-                    'form' => $form->createView(),
-                ]);
+            // Récupérer le plan choisi par l'utilisateur
+            $plan = $form->get('plan')->getData();
+
+            // Vérification des crédits restants et duplication d'abonnement en une seule requête
+            $existingSubscriptions = $em->getRepository(Subscription::class)->createQueryBuilder('s')
+                ->leftJoin('s.subscriptionCourses', 'sc')
+                ->where('s.user = :user')
+                ->andWhere('sc.remainingCredits > 0 OR s.plan = :plan') // Vérification des crédits restants ou abonnement en double
+                ->setParameter('user', $user)
+                ->setParameter('plan', $plan)
+                ->getQuery()
+                ->getResult(); // Utilisation de getResult() pour gérer plusieurs résultats
+
+            // Si l'utilisateur a des abonnements qui répondent aux critères
+            if (count($existingSubscriptions) > 0) {
+                // Vérification des crédits restants sur les abonnements existants
+                foreach ($existingSubscriptions as $existingSubscription) {
+                    if ($existingSubscription->getSubscriptionCourses()[0]->getRemainingCredits() > 0) {
+                        $this->addFlash('error', 'Vous ne pouvez pas acheter un nouvel abonnement tant que vous avez encore des crédits sur votre abonnement actuel.');
+                        return $this->redirectToRoute('subscription_new');
+                    }
+                }
+
+                // Si aucun abonnement n'a de crédits restants mais qu'il existe une souscription pour le même plan
+                $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois au même abonnement.');
+                return $this->redirectToRoute('subscription_new');
             }
 
-            // Si tout va bien, passez à la validation et au traitement
+            // Si tout est bon, traiter la soumission du formulaire et la création de la session Stripe
             if ($form->isValid()) {
                 Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
-                $user = $this->getUser();
-                $plan = $form->get('plan')->getData();
-
-                // Associez le plan à la souscription et définissez la startDate et l'expiryDate
+                // Associer le plan à la souscription
                 $subscription->setUser($user);
                 $subscription->setPlan($plan);
 
-                // Récupérer la startDate depuis le plan
+                // Définir les dates de début et de fin de la souscription depuis le plan
                 if ($plan->getStartDate() !== null) {
                     $subscription->setStartDate($plan->getStartDate());
                 }
 
-                // Récupérer l'expiryDate depuis le plan
                 if ($plan->getEndDate() !== null) {
                     $subscription->setExpiryDate($plan->getEndDate());
                 }
 
+                // Gérer le code promo s'il est présent
                 $promoCode = $form->get('promoCode')->getData();
                 $stripePriceId = $plan->getStripePriceId();
 
@@ -87,6 +107,7 @@ class SubscriptionController extends AbstractController
                     }
                 }
 
+                // Création de la session Stripe
                 $lineItem = [
                     'price' => $stripePriceId,
                     'quantity' => 1,
@@ -164,9 +185,17 @@ class SubscriptionController extends AbstractController
         if ($plan->getEndDate() !== null) {
             $subscription->setExpiryDate($plan->getEndDate());
         } else {
-            throw new \Exception("La souscription ne peut pas être validée car la date de fin du forfait est déjà passé.");
+            throw new \Exception("La souscription ne peut pas être validée car la date de fin du forfait est déjà passée.");
         }
 
+        $subscription->setStripeSubscriptionId($session->subscription);
+        $subscription->incrementPaymentsCount();
+        $subscription->setMaxPayments($plan->getMaxPayments());
+        $subscription->setPurchaseDate(new \DateTime());
+        $subscription->setPromoCode($promoCode);
+        $subscription->setPaymentMode($plan->getName());
+
+        // Parcourir les cours du plan
         $subscription->setExpiryDate($plan->getEndDate());
         $subscription->setStripeSubscriptionId($session->subscription);
         $subscription->incrementPaymentsCount();
@@ -204,6 +233,7 @@ class SubscriptionController extends AbstractController
 
         $this->addFlash('success', 'Votre forfait a bien été créé, vous pouvez maintenant réserver.');
 
+        // Envoyer un email de confirmation à l'utilisateur
         $userEmail = $user->getEmail();
         $planName = $plan->getName();
         $expiryDateFormatted = $subscription->getExpiryDate()->format('d/m/Y');
@@ -224,6 +254,7 @@ AirStudio73',
 
         return $this->redirectToRoute('calendar');
     }
+
 
     #[Route('/subscription/cancel', name: 'subscription_cancel')]
     public function cancel(): Response

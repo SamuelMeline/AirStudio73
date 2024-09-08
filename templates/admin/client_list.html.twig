@@ -1,45 +1,50 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container mt-5">
+	<div class="container administration mt-5">
 		<h1>Liste des Clients</h1>
-		<table class="table table-bordered">
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Email</th>
-					<th>Prénom</th>
-					<th>Nom</th>
-					<th>Numéro de téléphone</th>
-					<th>Adresse postale</th>
-					<th>Notes</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for user in users %}
+
+		<div class="content-scrollable">
+			<table class="col table table-bordered">
+				<thead>
 					<tr>
-						<td>{{ user.id }}</td>
-						<td>{{ user.email }}</td>
-						<td>{{ user.firstName }}</td>
-						<td>{{ user.lastName }}</td>
-						<td>{{ user.phoneNumber }}</td>
-						<td>{{ user.address }}</td>
-						<td>
-							<textarea class="form-control editable-notes" data-id="{{ user.id }}" rows="5">{{ user.notes }}</textarea>
-						</td>
-						<td>
-							<a href="{{ path('admin_client_edit', {'id': user.id}) }}" class="btn btn-info btn-sm">Modifier</a>
-							<a href="{{ path('admin_client_delete', {'id': user.id}) }}" class="btn btn-danger btn-sm mt-1" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">Supprimer</a>
-						</td>
+						<th>ID</th>
+						<th>Email</th>
+						<th>Prénom</th>
+						<th>Nom</th>
+						<th>Numéro de téléphone</th>
+						<th>Adresse postale</th>
+						<th>Notes</th>
+						<th>Actions</th>
 					</tr>
-				{% else %}
-					<tr>
-						<td colspan="8">Aucun client trouvé.</td>
-					</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					{% for user in users %}
+						<tr>
+							<td>{{ user.id }}</td>
+							<td>{{ user.email }}</td>
+							<td>{{ user.firstName }}</td>
+							<td>{{ user.lastName }}</td>
+							<td>{{ user.phoneNumber }}</td>
+							<td>{{ user.address }}</td>
+							<td>
+								<textarea class="form-control editable-notes" data-id="{{ user.id }}" rows="5">{{ user.notes }}</textarea>
+							</td>
+							<td>
+								<!-- Bouton pour réserver un cours pour le client -->
+								<a href="{{ path('admin_booking_client', {'userId': user.id}) }}" class="btn btn-general btn-sm mt-1">Réserver pour un client</a>
+								<a href="{{ path('admin_client_edit', {'id': user.id}) }}" class="btn update btn-sm">Modifier</a>
+								<a href="{{ path('admin_client_delete', {'id': user.id}) }}" class="btn complet btn-sm mt-1" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">Supprimer</a>
+							</td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="8">Aucun client trouvé.</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 		<a href="{{ path('admin_client_new') }}" class="btn reserve-btn mb-3">Ajouter un nouveau client</a>
 	</div>
 	<script>
@@ -52,7 +57,7 @@ fetch (`/admin/clients/${userId}/edit_notes`, {
 method: 'POST',
 headers: {
 'Content-Type': 'application/x-www-form-urlencoded',
-'X-Requested-With': 'XMLHttpRequest', // Indique que la requête est AJAX
+'X-Requested-With': 'XMLHttpRequest'
 },
 body: `notes=${
 encodeURIComponent(newNotes)

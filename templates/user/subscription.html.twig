@@ -43,7 +43,7 @@
 							<p class="text-danger">Ce forfait a expiré.</p>
 						{% elseif isNotStarted %}
 							<p class="text-warning">Ce forfait vous permet de réserver des cours à partir du
-								{{ subscription.startDate|date('d-m-Y') }}.</p>
+								{{ subscription.startDate|date('d-m-Y') }} et jusqu'au {{ subscription.expiryDate|date('d-m-Y') }}.</p>
 						{% else %}
 							<p class="text-success">Vous avez des crédits restants pour ce forfait.</p>
 						{% endif %}

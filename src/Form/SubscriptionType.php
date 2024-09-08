@@ -51,7 +51,9 @@ class SubscriptionType extends AbstractType
                     'query_builder' => function (EntityRepository $er) use ($type) {
                         return $er->createQueryBuilder('p')
                             ->where('p.type = :type')
+                            ->andWhere('p.name LIKE :name')
                             ->setParameter('type', $type)
+                            ->setParameter('name', 'Formule Découverte%')
                             ->orderBy('p.name', 'ASC');
                     },
                 ]);

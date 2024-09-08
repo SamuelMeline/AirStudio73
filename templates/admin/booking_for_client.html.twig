@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="container mt-5">
+		<h1>Réserver un cours pour un client</h1>
+
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label }}">
+					{{ message }}
+				</div>
+			{% endfor %}
+		{% endfor %}
+		<!-- Afficher les crédits restants si un client est sélectionné -->
+		{% if remainingCredits is not null %}
+			<div class="mt-3">
+				<p>Crédits restants pour ce client :
+					{{ remainingCredits }}</p>
+			</div>
+		{% endif %}
+		<!-- Sélectionner un client pour afficher ses cours disponibles -->
+		<form method="GET" action="{{ path('admin_booking_client') }}">
+			<div class="form-group">
+				<label for="client">Sélectionner un client</label>
+				<select name="userId" id="client" class="form-control" onchange="this.form.submit()">
+					<option value="">-- Choisissez un client --</option>
+					{% for client in clients %}
+						<option value="{{ client.id }}" {% if client.id == app.request.query.get('userId') %} selected {% endif %}>
+							{{ client.firstName }}
+							{{ client.lastName }}
+						</option>
+					{% endfor %}
+				</select>
+			</div>
+		</form>
+
+		<!-- Si un client est sélectionné, afficher les cours disponibles -->
+		{% if courses is not empty %}
+			<form method="POST" action="{{ path('admin_booking_client') }}">
+				<input type="hidden" name="userId" value="{{ app.request.query.get('userId') }}">
+				<div class="form-group">
+					<label for="course">Sélectionner un cours</label>
+					<select name="courseId" id="course" class="form-control" required>
+						<option value="">-- Choisissez un cours --</option>
+						{% for course in courses %}
+							<option value="{{ course.id }}">{{ course.name }}
+								-
+								{{ course.startTime|date('d/m/Y H:i') }}</option>
+						{% endfor %}
+					</select>
+				</div>
+
+				<button type="submit" class="btn btn-primary mt-3">Réserver pour ce client</button>
+			</form>
+		{% else %}
+			<p>Aucun cours disponible pour ce client.</p>
+		{% endif %}
+	</div>
+{% endblock %}
