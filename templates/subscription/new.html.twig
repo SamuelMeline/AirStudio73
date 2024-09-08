@@ -6,30 +6,47 @@
 			<h1>Sélectionner votre forfait</h1>
 			<div class="card-body">
 
+				<!-- Affichage des messages flash -->
+				{% for label, messages in app.flashes %}
+					<div class="alert alert-{{ label }}">
+						{% for message in messages %}
+							{{ message }}
+						{% endfor %}
+					</div>
+				{% endfor %}
+
+				<!-- Début du formulaire -->
 				{{ form_start(form) }}
 
+				<!-- Sélection du type de forfait -->
 				<div class="form-group">
 					{{ form_label(form.type, null, {'label_attr': {'class': 'form-label'}}) }}
-					{{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+					{{ form_widget(form.type, {'attr': {'class': 'form-control', 'onchange': 'this.form.submit();'}}) }}
 				</div>
 
+				<!-- Sélection du plan, affiché seulement si défini -->
 				{% if form.plan is defined %}
 					<div class="form-group">
 						{{ form_label(form.plan, null, {'label_attr': {'class': 'form-label'}}) }}
-						{{ form_widget(form.plan, {'attr': {'class': 'form-control'}}) }}
+						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'checkPlanExpiry(this.value);'}}) }}
 					</div>
 				{% endif %}
 
+				<!-- Champ de code promotionnel -->
 				<div class="form-group">
 					{{ form_label(form.promoCode, null, {'label_attr': {'class': 'form-label'}}) }}
 					{{ form_widget(form.promoCode, {'attr': {'class': 'form-control'}}) }}
 				</div>
 
+				<!-- Autres champs du formulaire -->
 				{{ form_rest(form) }}
 
+				<!-- Bouton de soumission -->
 				<button type="submit" class="btn btn-general mt-2">Réserver et payer</button>
+
 				{{ form_end(form) }}
 
+				<!-- Lien pour ajouter un nouveau forfait, visible seulement pour l'administrateur -->
 				{% if is_granted('ROLE_ADMIN') %}
 					<div class="mt-3">
 						<a href="{{ path('plan_new') }}" class="btn reserve-btn">Ajouter un nouveau forfait</a>
@@ -38,4 +55,25 @@
 			</div>
 		</div>
 	</div>
+
+	<script>
+		function checkPlanExpiry(planId) {
+			// Envoie une requête AJAX au serveur pour vérifier l'expiration du forfait
+			fetch('{{ path('check_plan_expiry') }}', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRF-Token': '{{ csrf_token('check_plan_expiry') }}'
+				},
+				body: JSON.stringify({ planId: planId })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.warning) {
+					// Affiche l'alerte si le forfait est proche de l'expiration
+					alert(data.warning);
+				}
+			});
+		}
+	</script>
 {% endblock %}

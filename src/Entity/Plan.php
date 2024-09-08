@@ -36,8 +36,12 @@ class Plan
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $type = null;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isRecurring = false;
+
     #[ORM\OneToMany(targetEntity: PlanCourse::class, mappedBy: 'plan', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $planCourses;
+
 
     public function __construct()
     {
@@ -123,6 +127,17 @@ class Plan
     public function setType(string $type): self
     {
         $this->type = $type;
+        return $this;
+    }
+
+    public function isRecurring(): bool
+    {
+        return $this->isRecurring;
+    }
+
+    public function setIsRecurring(bool $isRecurring): self
+    {
+        $this->isRecurring = $isRecurring;
         return $this;
     }
 

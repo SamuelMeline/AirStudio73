@@ -9,8 +9,8 @@ use Stripe\PromotionCode;
 use App\Entity\Subscription;
 use App\Entity\PromoCodeUsage;
 use App\Form\SubscriptionType;
-use App\Entity\SubscriptionCourse;
 use Symfony\Component\Mime\Email;
+use App\Entity\SubscriptionCourse;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,6 +50,15 @@ class SubscriptionController extends AbstractController
 
             // Récupérer le plan choisi par l'utilisateur
             $plan = $form->get('plan')->getData();
+
+            // Vérifier si le plan est expiré
+            $currentDate = new \DateTime();
+            $expiryDate = $plan->getEndDate();
+
+            if ($expiryDate < $currentDate) {
+                $this->addFlash('error', 'Ce forfait est expiré et ne peut plus être souscrit.');
+                return $this->redirectToRoute('subscription_new');
+            }
 
             // Vérification des crédits restants et duplication d'abonnement en une seule requête
             $existingSubscriptions = $em->getRepository(Subscription::class)->createQueryBuilder('s')
@@ -107,6 +117,17 @@ class SubscriptionController extends AbstractController
                     }
                 }
 
+                // Logique pour déterminer le type de paiement basé sur le plan (récurrent ou ponctuel)
+                $isPlanRecurring = $plan->isRecurring();
+
+                if ($isPlanRecurring) {
+                    // Plan récurrent : mode subscription
+                    $sessionMode = 'subscription';
+                } else {
+                    // Plan ponctuel : mode payment
+                    $sessionMode = 'payment';
+                }
+
                 // Création de la session Stripe
                 $lineItem = [
                     'price' => $stripePriceId,
@@ -116,7 +137,7 @@ class SubscriptionController extends AbstractController
                 $session = StripeSession::create([
                     'payment_method_types' => ['card'],
                     'line_items' => [$lineItem],
-                    'mode' => 'subscription',
+                    'mode' => $sessionMode,
                     'discounts' => $discounts,
                     'client_reference_id' => json_encode([
                         'planId' => $plan->getId(),
@@ -136,39 +157,79 @@ class SubscriptionController extends AbstractController
         ]);
     }
 
+    #[Route('/check-plan-expiry', name: 'check_plan_expiry', methods: ['POST'])]
+    public function checkPlanExpiry(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $planId = $data['planId'] ?? null;
+
+        if (!$planId) {
+            return new JsonResponse(['error' => 'Plan ID is required'], 400);
+        }
+
+        $plan = $em->getRepository(Plan::class)->find($planId);
+
+        if (!$plan) {
+            return new JsonResponse(['error' => 'Plan not found'], 404);
+        }
+
+        $currentDate = new \DateTime();
+        $expiryDate = $plan->getEndDate();
+        $warningPeriod = new \DateInterval('P14D');
+        $warningDate = (clone $currentDate)->add($warningPeriod);
+
+        if ($expiryDate <= $warningDate && $expiryDate > $currentDate) {
+            return new JsonResponse([
+                'warning' => sprintf(
+                    'Attention, ce forfait expire le %s. Si vous achetez ce forfait, vous ne pourrez pas utiliser vos crédits après cette date.',
+                    $expiryDate->format('d/m/Y')
+                )
+            ]);
+        }
+
+        return new JsonResponse(['warning' => null]);
+    }
+
     #[Route('/subscription/success', name: 'subscription_success')]
     #[IsGranted('ROLE_USER')]
     public function success(Request $request, EntityManagerInterface $em): Response
     {
+        // Récupération de l'ID de session Stripe depuis les paramètres de la requête
         $sessionId = $request->query->get('session_id');
         if (!$sessionId) {
             $this->addFlash('error', 'L\'ID de la session n\'existe pas.');
             return $this->redirectToRoute('subscription_new');
         }
 
+        // Configuration de l'API Stripe
         Stripe::setApiKey($this->getParameter('stripe.secret_key'));
 
+        // Récupération de la session Stripe
         $session = StripeSession::retrieve($sessionId);
         if (!$session) {
             $this->addFlash('error', 'La session n\'existe pas.');
             return $this->redirectToRoute('subscription_new');
         }
 
+        // Vérification et décryptage des données client dans la session Stripe
         $sessionData = json_decode($session->client_reference_id, true);
         if (!$sessionData) {
             $this->addFlash('error', 'Les données de session sont manquantes.');
             return $this->redirectToRoute('subscription_new');
         }
 
+        // Extraction des données de la session
         $planId = $sessionData['planId'] ?? null;
         $userId = $sessionData['userId'] ?? null;
         $promoCode = $sessionData['promoCode'] ?? null;
 
+        // Vérification de la validité des données
         if (!$planId || !$userId) {
             $this->addFlash('error', 'Données de session invalides.');
             return $this->redirectToRoute('subscription_new');
         }
 
+        // Recherche du plan et de l'utilisateur dans la base de données
         $plan = $em->getRepository(Plan::class)->find($planId);
         $user = $em->getRepository(User::class)->findOneBy(['email' => $userId]);
 
@@ -177,33 +238,35 @@ class SubscriptionController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
+        // Création de la nouvelle souscription
         $subscription = new Subscription();
         $subscription->setUser($user);
         $subscription->setPlan($plan);
 
-        // Vérification de l'endDate ici
+        // Vérification et définition de la date de fin du plan
         if ($plan->getEndDate() !== null) {
             $subscription->setExpiryDate($plan->getEndDate());
         } else {
             throw new \Exception("La souscription ne peut pas être validée car la date de fin du forfait est déjà passée.");
         }
 
-        $subscription->setStripeSubscriptionId($session->subscription);
+        // Vérification de l'ID d'abonnement Stripe pour un abonnement récurrent
+        if (isset($session->subscription) && !empty($session->subscription)) {
+            // C'est un abonnement récurrent
+            $subscription->setStripeSubscriptionId($session->subscription);
+        } else {
+            // Si c'est un paiement unique, l'ID d'abonnement est vide ou une valeur par défaut est utilisée
+            $subscription->setStripeSubscriptionId(''); // Vous pouvez mettre une logique alternative si nécessaire
+        }
+
+        // Définition des autres détails de la souscription
         $subscription->incrementPaymentsCount();
         $subscription->setMaxPayments($plan->getMaxPayments());
         $subscription->setPurchaseDate(new \DateTime());
         $subscription->setPromoCode($promoCode);
         $subscription->setPaymentMode($plan->getName());
 
-        // Parcourir les cours du plan
-        $subscription->setExpiryDate($plan->getEndDate());
-        $subscription->setStripeSubscriptionId($session->subscription);
-        $subscription->incrementPaymentsCount();
-        $subscription->setMaxPayments($plan->getMaxPayments());
-        $subscription->setPurchaseDate(new \DateTime());
-        $subscription->setPromoCode($promoCode);
-        $subscription->setPaymentMode($plan->getName());
-
+        // Association des cours du plan à la souscription
         foreach ($plan->getPlanCourses() as $planCourse) {
             $subscriptionCourse = new SubscriptionCourse();
             $subscriptionCourse->setSubscription($subscription);
@@ -212,25 +275,13 @@ class SubscriptionController extends AbstractController
             $subscription->addSubscriptionCourse($subscriptionCourse);
         }
 
+        // Persistance de la souscription dans la base de données
         $em->persist($subscription);
 
-        // Si le paiement est unique, annuler l'abonnement sur Stripe et désactiver l'abonnement
-        if ($subscription->getMaxPayments() == 1) {
-            $this->cancelStripeSubscription($subscription->getStripeSubscriptionId());
-            $subscription->setIsActive(false);
-        }
-
-        if ($promoCode) {
-            $promoCodeUsage = new PromoCodeUsage();
-            $promoCodeUsage->setUser($user);
-            $promoCodeUsage->setPromoCode($promoCode);
-            $promoCodeUsage->setUsedAt(new \DateTime());
-
-            $em->persist($promoCodeUsage);
-        }
-
+        // Enregistrement final de toutes les données
         $em->flush();
 
+        // Affichage du message de succès
         $this->addFlash('success', 'Votre forfait a bien été créé, vous pouvez maintenant réserver.');
 
         // Envoyer un email de confirmation à l'utilisateur
@@ -239,22 +290,23 @@ class SubscriptionController extends AbstractController
         $expiryDateFormatted = $subscription->getExpiryDate()->format('d/m/Y');
         $userEmailMessage = sprintf(
             'Bonjour %s,
-
-Votre achat concernant l\'abonnement du forfait "%s" a bien été pris en compte et expirera le %s.
-Nous vous remercions et vous souhaitons une très bonne journée.
-
-Cordialement,
-AirStudio73',
+    
+    Votre achat concernant l\'abonnement du forfait "%s" a bien été pris en compte et expirera le %s.
+    Nous vous remercions et vous souhaitons une très bonne journée.
+    
+    Cordialement,
+    AirStudio73',
             $user->getFirstName(),
             $planName,
             $expiryDateFormatted
         );
 
+        // Envoi de l'email de confirmation
         $this->sendEmail($userEmail, 'Confirmation d\'Achat de Forfait', $userEmailMessage);
 
+        // Redirection vers le calendrier après succès
         return $this->redirectToRoute('calendar');
     }
-
 
     #[Route('/subscription/cancel', name: 'subscription_cancel')]
     public function cancel(): Response

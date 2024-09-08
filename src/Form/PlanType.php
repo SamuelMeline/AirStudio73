@@ -65,6 +65,15 @@ class PlanType extends AbstractType
                 ],
                 'placeholder' => 'Sélectionnez un mode de paiement',
             ])
+            ->add('isRecurring', ChoiceType::class, [
+                'label' => 'Est-ce un abonnement récurrent ?',
+                'choices' => [
+                    'Oui' => true,
+                    'Non' => false,
+                ],
+                'expanded' => true, // Pour afficher des boutons radio
+                'required' => true,
+            ])
             ->add('stripePriceId', TextType::class, [
                 'label' => 'ID du prix Stripe',
             ])

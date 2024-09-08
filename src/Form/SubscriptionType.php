@@ -52,8 +52,10 @@ class SubscriptionType extends AbstractType
                         return $er->createQueryBuilder('p')
                             ->where('p.type = :type')
                             ->andWhere('p.name LIKE :name')
+                            ->andWhere('p.endDate >= :currentDate')
                             ->setParameter('type', $type)
                             ->setParameter('name', 'Formule Découverte%')
+                            ->setParameter('currentDate', new \DateTime())
                             ->orderBy('p.name', 'ASC');
                     },
                 ]);
