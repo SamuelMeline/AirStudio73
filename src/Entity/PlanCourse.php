@@ -23,8 +23,8 @@ class PlanCourse
     #[ORM\Column(type: 'integer')]
     private int $credits;
 
-    #[ORM\Column(type: 'integer')]
-    private int $pricePerCredit;
+    #[ORM\Column(type: 'float')]
+    private float $pricePerCredit;
 
     public function getId(): ?int
     {
@@ -64,12 +64,12 @@ class PlanCourse
         return $this;
     }
 
-    public function getPricePerCredit(): int
+    public function getPricePerCredit(): float
     {
         return $this->pricePerCredit;
     }
 
-    public function setPricePerCredit(int $pricePerCredit): self
+    public function setPricePerCredit(float $pricePerCredit): self
     {
         $this->pricePerCredit = $pricePerCredit;
 

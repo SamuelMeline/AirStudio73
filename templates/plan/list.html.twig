@@ -18,6 +18,9 @@
 									Type de forfait :
 									{{ plan.type }}
 									<br>
+									Type d'abonnement :
+									{{ plan.subscriptionType }}
+									<br>
 									Date de début :
 									{{ plan.startDate|date('d/m/Y') }}
 									<br>
@@ -27,8 +30,8 @@
 									Récurrent :
 									{{ plan.isRecurring ? 'Oui' : 'Non' }}
 									<br>
-									Mode de paiement :
-									{{ paymentModes[plan.maxPayments] }}
+									ID du produit Stripe :
+									{{ plan.stripeProductId }}
 									<br>
 									ID du prix Stripe :
 									{{ plan.stripePriceId }}

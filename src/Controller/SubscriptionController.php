@@ -208,9 +208,21 @@ class SubscriptionController extends AbstractController
 
     public function adjustSubscriptionCredits(Plan $plan): int
     {
+        // Récupérer les crédits du plan
+        $planCourses = $plan->getPlanCourses();
+
+        if (empty($planCourses) || !isset($planCourses[0])) {
+            throw new \Exception('Aucun cours associé à ce plan.');
+        }
+
         $totalCredits = $plan->getPlanCourses()[0]->getCredits(); // Récupérer le total des crédits du plan
         $currentDate = new \DateTime();
         $startDate = $plan->getStartDate();
+
+        // Vérifier que la date de début n'est pas nulle
+        if ($startDate === null) {
+            throw new \Exception('La date de début du plan est introuvable.');
+        }
 
         // Calculer la différence en semaines entre la date de début et la date actuelle
         $weeksElapsed = floor($startDate->diff($currentDate)->days / 7);
@@ -242,47 +254,49 @@ class SubscriptionController extends AbstractController
     public function adjustSubscriptionPrice(Plan $plan, Subscription $subscription, int $remainingCredits, int $paymentInstallments, EntityManagerInterface $em): int
     {
         $pricePerCredit = 0;
+        $initialTotalPrice = 0;
 
-        // Récupérer le prix par crédit depuis l'entité PlanCourse
+        // Récupérer le prix total pour tous les cours du plan
         foreach ($plan->getPlanCourses() as $planCourse) {
-            $pricePerCredit += $planCourse->getPricePerCredit();
+            $initialTotalPrice += $planCourse->getPricePerCredit() * $planCourse->getCredits() * 100; // Convertir en centimes
         }
 
         $currentDate = new \DateTime();
         $expiryDate = $subscription->getExpiryDate();
 
         // Calculer le nombre de mois restants jusqu'à la date d'expiration
-        $monthsRemaining = $expiryDate->diff($currentDate)->m + ($expiryDate->diff($currentDate)->y * 12);
+        $interval = $expiryDate->diff($currentDate);
+        $monthsRemaining = $interval->m + ($interval->y * 12);
 
-        // Si le nombre de paiements est supérieur à 3, ignorer les crédits restants et utiliser les crédits de base
+        // Ajouter un mois si le mois en cours est incomplet (pour compter le mois en cours)
+        if ($interval->d > 0) {
+            $monthsRemaining++;
+        }
+
+        // Si le nombre de paiements est supérieur à 3, ignorer les crédits restants et utiliser le prix total
         if ($paymentInstallments > 3) {
-            // Récupérer les crédits de base du plan (PlanCourse::getCredits)
-            $totalCredits = 0;
-            foreach ($plan->getPlanCourses() as $planCourse) {
-                $totalCredits += $planCourse->getCredits();
-            }
-
-            // Calculer le prix total sans ajustement en fonction des crédits restants
-            $initialTotalPrice = $totalCredits * $pricePerCredit * 100; // Convertir en centimes
-
             // Si le nombre de paiements est supérieur au nombre de mois restants, ajuster le nombre de paiements
             $maxPayments = min($paymentInstallments, $monthsRemaining);
 
-            // Calculer le montant par versement
+            // Calculer le montant par versement en fonction du prix total
             $amountPerInstallment = $initialTotalPrice;
         } else {
             // Sinon, utiliser la logique actuelle basée sur les crédits restants
+            $pricePerCredit = 0;
+
+            // Calculer le prix par crédit pour les paiements en moins de 4 fois
+            foreach ($plan->getPlanCourses() as $planCourse) {
+                $pricePerCredit += $planCourse->getPricePerCredit();
+            }
+
+            // Calculer le prix ajusté en fonction des crédits restants
             $adjustedPrice = $remainingCredits * $pricePerCredit * 100; // Convertir en centimes
 
-            // Si les paiements sont répartis sur plus d'un mois, calculer le montant par mois
-            $maxPayments = $subscription->getMaxPayments();
-            if ($maxPayments > 1) {
-                $amountPerInstallment = $adjustedPrice / $maxPayments;
-            } else {
-                $amountPerInstallment = $adjustedPrice; // Paiement en une seule fois
-            }
+            // Ne pas diviser ici à nouveau, car cela est déjà fait
+            $amountPerInstallment = $adjustedPrice; // On utilise directement le prix ajusté
         }
 
+        // Arrondir le montant par versement et retourner
         return round($amountPerInstallment); // Retourner le montant par versement en centimes
     }
 

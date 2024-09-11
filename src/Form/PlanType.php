@@ -66,25 +66,25 @@ class PlanType extends AbstractType
                 'widget' => 'single_text',
                 'required' => true,
             ])
-            ->add('maxPayments', ChoiceType::class, [
-                'label' => 'Mode de paiement',
-                'choices' => [
-                    'Paiement Comptant' => 1,
-                    'Paiement en 2 fois' => 2,
-                    'Paiement en 3 fois' => 3,
-                    'Paiement en 10 fois' => 10,
-                ],
-                'placeholder' => 'Sélectionnez un mode de paiement',
-            ])
-            ->add('isRecurring', ChoiceType::class, [
-                'label' => 'Est-ce un abonnement récurrent ?',
-                'choices' => [
-                    'Oui' => true,
-                    'Non' => false,
-                ],
-                'expanded' => true, // Pour afficher des boutons radio
-                'required' => true,
-            ])
+            // ->add('maxPayments', ChoiceType::class, [
+            //     'label' => 'Mode de paiement',
+            //     'choices' => [
+            //         'Paiement Comptant' => 1,
+            //         'Paiement en 2 fois' => 2,
+            //         'Paiement en 3 fois' => 3,
+            //         'Paiement en 10 fois' => 10,
+            //     ],
+            //     'placeholder' => 'Sélectionnez un mode de paiement',
+            // ])
+            // ->add('isRecurring', ChoiceType::class, [
+            //     'label' => 'Est-ce un abonnement récurrent ?',
+            //     'choices' => [
+            //         'Oui' => true,
+            //         'Non' => false,
+            //     ],
+            //     'expanded' => true, // Pour afficher des boutons radio
+            //     'required' => true,
+            // ])
             ->add('stripeProductId', TextType::class, [
                 'label' => 'ID du produit Stripe',
             ])

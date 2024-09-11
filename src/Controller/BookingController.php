@@ -23,8 +23,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class BookingController extends AbstractController
 {
-    private const ADMIN_EMAIL = 'smelinepro@gmail.com';
-    private const ADMIN_EMAIL_2 = 'airstudio73@gmail.com'; // Remplace par la deuxième adresse e-mail
+    private const ADMIN_EMAIL = 'smelineepro@gmail.com';
+    private const ADMIN_EMAIL_2 = 'airstudioo.73@gmail.com'; // Remplace par la deuxième adresse e-mail
 
     private const SENDER_EMAIL = 'contactAirstudio73@gmail.com';
 
@@ -99,8 +99,9 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
-        // Vérifier le type de l'abonnement, et limiter à 1 cours par semaine si nécessaire
+        // Vérifier le type de l'abonnement, et limiter à 1 ou 2 cours par semaine si nécessaire
         $subscription = $validSubscriptionCourse->getSubscription();
+
         if ($subscription->getPlan()->getSubscriptionType() === 'weekly' || $subscription->getPlan()->getSubscriptionType() === 'bi-weekly') {
 
             // Récupérer l'utilisateur actuellement connecté
@@ -114,40 +115,53 @@ class BookingController extends AbstractController
             $startOfWeek = (clone $courseDate)->modify('monday this week');
             $endOfWeek = (clone $courseDate)->modify('sunday this week 23:59:59');
 
-            // Récupérer l'abonnement de l'utilisateur pour le cours
-            $subscription = $this->entityManager->getRepository(Subscription::class)->findOneBy(['user' => $currentUser]);
-            $subscriptionId = $subscription->getId();
+            // Récupérer les SubscriptionCourses de l'utilisateur pour cette Subscription
+            $subscriptionCourses = $subscription->getSubscriptionCourses();
 
-            // Log des valeurs de startOfWeek et endOfWeek
-            $logger->info('Start of week: ' . $startOfWeek->format('Y-m-d H:i:s'));
-            $logger->info('End of week: ' . $endOfWeek->format('Y-m-d H:i:s'));
-
-            // Vérifier si l'utilisateur a déjà réservé un ou plusieurs cours cette semaine avec le même abonnement via SubscriptionCourse
+            // Si la souscription a 2 cours ou plus, on applique la règle pour bloquer une réservation du même type de cours
+            // Récupérer toutes les réservations faites cette semaine pour cet abonnement
             $existingReservations = $this->entityManager->createQuery(
-                'SELECT COUNT(b.id)
+                'SELECT b
                 FROM App\Entity\Booking b
                 JOIN b.course c
                 JOIN b.subscriptionCourse sc
-                JOIN sc.subscription s
                 WHERE b.user = :user
-                AND s.id = :subscriptionId
+                AND sc.subscription = :subscription
                 AND c.startTime BETWEEN :startOfWeek AND :endOfWeek'
             )
                 ->setParameter('user', $currentUser)
-                ->setParameter('subscriptionId', $subscriptionId)
+                ->setParameter('subscription', $subscription)
                 ->setParameter('startOfWeek', $startOfWeek)
                 ->setParameter('endOfWeek', $endOfWeek)
-                ->getSingleScalarResult();
+                ->getResult();
 
-            // Vérifier si l'utilisateur a déjà réservé un ou deux cours cette semaine-là
-            if ($subscription->getPlan()->getSubscriptionType() === 'weekly' && $existingReservations > 0) {
-                $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
+            // Vérifier si la subscription a 2 courses ou plus
+            if (count($subscriptionCourses) >= 2) {
+                // Parcourir les réservations existantes pour voir si un cours du même nom a déjà été réservé
+                foreach ($existingReservations as $reservation) {
+                    $reservedCourse = $reservation->getCourse();
+                    if ($reservedCourse->getName() === $course->getName()) {
+                        // Si un cours du même nom a déjà été réservé, bloquer la réservation
+                        $this->addFlash('error', 'Vous avez déjà réservé un cours de ce type cette semaine.');
+                        return $this->redirectToRoute('calendar');
+                    }
+                }
+                // Vérifier les règles pour les abonnements bi-weekly (deux cours par semaine maximum)
+                if ($subscription->getPlan()->getSubscriptionType() === 'bi-weekly' && count($existingReservations) >= 2) {
+                    $this->addFlash('error', 'Vous avez déjà réservé deux cours cette semaine.');
+                    return $this->redirectToRoute('calendar');
+                }
+            }
+
+            // Vérifier les règles pour les abonnements bi-weekly (2 cours par semaine maximum)
+            if ($subscription->getPlan()->getSubscriptionType() === 'bi-weekly' && count($existingReservations) >= 2) {
+                $this->addFlash('error', 'Vous avez déjà réservé deux cours cette semaine.');
                 return $this->redirectToRoute('calendar');
             }
 
-            // Si l'abonnement est bi-weekly, permettre jusqu'à deux réservations par semaine
-            if ($subscription->getPlan()->getSubscriptionType() === 'bi-weekly' && $existingReservations >= 2) {
-                $this->addFlash('error', 'Vous avez déjà réservé deux cours cette semaine.');
+            // Vérifier les règles pour les abonnements weekly (un seul cours par semaine)
+            if ($subscription->getPlan()->getSubscriptionType() === 'weekly' && count($existingReservations) >= 1) {
+                $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
                 return $this->redirectToRoute('calendar');
             }
         }

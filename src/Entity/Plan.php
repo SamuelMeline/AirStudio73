@@ -24,8 +24,8 @@ class Plan
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $stripePriceId = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $maxPayments = null;
+    // #[ORM\Column(length: 255, nullable: true)]
+    // private ?string $maxPayments = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $startDate = null;
@@ -81,16 +81,16 @@ class Plan
     //     return $this;
     // }
 
-    public function getMaxPayments(): ?string
-    {
-        return $this->maxPayments;
-    }
+    // public function getMaxPayments(): ?string
+    // {
+    //     return $this->maxPayments;
+    // }
 
-    public function setMaxPayments(string $maxPayments): self
-    {
-        $this->maxPayments = $maxPayments;
-        return $this;
-    }
+    // public function setMaxPayments(string $maxPayments): self
+    // {
+    //     $this->maxPayments = $maxPayments;
+    //     return $this;
+    // }
 
     public function getStripePriceId(): ?string
     {

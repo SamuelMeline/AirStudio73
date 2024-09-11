@@ -99,6 +99,7 @@
         }
     },
     "require-dev": {
+        "doctrine/data-fixtures": "^1.7",
         "doctrine/doctrine-fixtures-bundle": "^3.6",
         "phpunit/phpunit": "^9.5",
         "symfony/browser-kit": "7.1.*",
