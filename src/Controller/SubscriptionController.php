@@ -92,20 +92,21 @@ class SubscriptionController extends AbstractController
                 ->setParameter('user', $user)
                 ->setParameter('plan', $plan)
                 ->getQuery()
-                ->getResult();
+                ->getResult(); // Utilisation de getResult() pour gérer plusieurs résultats
 
+            // Si l'utilisateur a des abonnements qui répondent aux critères
             if (count($existingSubscriptions) > 0) {
+                // Vérification des crédits restants sur les abonnements existants
                 foreach ($existingSubscriptions as $existingSubscription) {
-                    if ($existingSubscription->getPlan()->getId() === $plan->getId()) {
-                        if ($existingSubscription->getSubscriptionCourses()[0]->getRemainingCredits() > 0) {
-                            $this->addFlash('error', 'Vous ne pouvez pas acheter un nouvel abonnement tant que vous avez encore des crédits sur votre abonnement actuel.');
-                            return $this->redirectToRoute('subscription_new');
-                        }
-
-                        $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois au même abonnement.');
+                    if ($existingSubscription->getSubscriptionCourses()[0]->getRemainingCredits() > 0) {
+                        $this->addFlash('error', 'Vous ne pouvez pas acheter un nouvel abonnement tant que vous avez encore des crédits sur votre abonnement actuel.');
                         return $this->redirectToRoute('subscription_new');
                     }
                 }
+
+                // Si aucun abonnement n'a de crédits restants mais qu'il existe une souscription pour le même plan
+                $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois au même abonnement.');
+                return $this->redirectToRoute('subscription_new');
             }
 
             // Si tout est bon, traiter la soumission du formulaire et la création de la session Stripe
@@ -130,7 +131,24 @@ class SubscriptionController extends AbstractController
                 $stripePriceId = $plan->getStripePriceId();
 
                 $discounts = [];
+
                 if ($promoCode) {
+                    // Vérifier si l'utilisateur a déjà utilisé ce code promo
+                    $existingPromoUsage = $em->getRepository(Subscription::class)->createQueryBuilder('s')
+                        ->where('s.user = :user')
+                        ->andWhere('s.promoCode = :promoCode') // Vérifier le code promo
+                        ->setParameter('user', $user)
+                        ->setParameter('promoCode', $promoCode)
+                        ->getQuery()
+                        ->getResult();
+
+                    // Si le code promo a déjà été utilisé, on bloque l'utilisation
+                    if (count($existingPromoUsage) > 0) {
+                        $this->addFlash('error', 'Vous avez déjà utilisé ce code promo.');
+                        return $this->redirectToRoute('subscription_new');
+                    }
+
+                    // Si le code promo est valide, on l'applique
                     $promotionCodeId = $this->validatePromoCode($promoCode);
                     if ($promotionCodeId) {
                         $discounts = [['promotion_code' => $promotionCodeId]];
