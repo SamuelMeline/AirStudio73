@@ -35,6 +35,9 @@ class Subscription
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $paymentMode = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $paymentInstallments = 1;
+
     #[ORM\Column(type: 'integer')]
     private int $paymentsCount = 0;
 
@@ -43,6 +46,9 @@ class Subscription
 
     #[ORM\Column(type: 'boolean')]
     private bool $isActive = true;
+
+    #[ORM\Column(name: 'stripe_product_id', type: 'string', length: 255, nullable: true)]
+    private ?string $stripeProductId = null;
 
     #[ORM\Column(name: 'stripe_subscription_id', type: 'string', length: 255, nullable: true)]
     private ?string $stripeSubscriptionId = null;
@@ -149,6 +155,18 @@ class Subscription
         return $this;
     }
 
+    // Getter et setter pour la propriété paymentInstallments
+    public function getPaymentInstallments(): ?int
+    {
+        return $this->paymentInstallments;
+    }
+
+    public function setPaymentInstallments(?int $paymentInstallments): self
+    {
+        $this->paymentInstallments = $paymentInstallments;
+        return $this;
+    }
+
     public function incrementPaymentsCount(): self
     {
         $this->paymentsCount++;
@@ -185,6 +203,17 @@ class Subscription
     public function setIsActive(bool $isActive): self
     {
         $this->isActive = $isActive;
+        return $this;
+    }
+
+    public function getStripeProductId(): ?string
+    {
+        return $this->stripeProductId;
+    }
+
+    public function setStripeProductId(string $stripe_product_id): self
+    {
+        $this->stripeProductId = $stripe_product_id;
         return $this;
     }
 

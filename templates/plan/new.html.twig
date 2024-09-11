@@ -1,118 +1,125 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container mt-5">
-		<div class="col-md-12 w-50 mx-auto">
-			<div class="card">
-				<div class="card-body">
-					<h1>Créer un nouveau forfait</h1>
+    <div class="container mt-5">
+        <div class="col-md-12 w-50 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h1>Créer un nouveau forfait</h1>
 
-					{{ form_start(form) }}
-					<div class="form-group">
-						{{ form_label(form.name) }}
-						{{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<div class="form-group">
-						{{ form_label(form.type) }}
-						{{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<div class="form-group">
-						{{ form_label(form.startDate) }}
-						{{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<div class="form-group">
-						{{ form_label(form.endDate) }}
-						{{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<div class="form-group">
-						{{ form_label(form.isRecurring, 'Est-ce un abonnement récurrent ?') }}
-						{{ form_widget(form.isRecurring, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<div class="form-group">
-						{{ form_label(form.maxPayments) }}
-						{{ form_widget(form.maxPayments, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<div class="form-group">
-						{{ form_label(form.stripePriceId) }}
-						{{ form_widget(form.stripePriceId, {'attr': {'class': 'form-control'}}) }}
-					</div>
-					<h2>Cours</h2>
-					<div class="plan-courses-collection" data-prototype="{{ form_widget(form.planCourses.vars.prototype)|e('html_attr') }}">
-						{% for planCourse in form.planCourses %}
-							<div class="plan-course-item mb-3">
-								<div class="form-row align-items-end">
-									<div class="col-md-5">
-										{{ form_label(planCourse.course) }}
-										{{ form_widget(planCourse.course, {'attr': {'class': 'form-control'}}) }}
-									</div>
-									<div class="col-md-5">
-										{{ form_label(planCourse.credits) }}
-										{{ form_widget(planCourse.credits, {'attr': {'class': 'form-control'}}) }}
-									</div>
-									<div class="col-md-2">
-										<button type="button" class="btn complet remove-course">Supprimer</button>
-									</div>
-								</div>
-							</div>
-						{% endfor %}
-					</div>
-					<div class="form-group">
-						<button type="button" class="btn reserve-btn add-course">Ajouter un cours</button>
-						<button type="submit" class="btn btn-general">Enregistrer</button>
-					</div>
-					{{ form_end(form) }}
-				</div>
-			</div>
-		</div>
-	</div>
+                    {{ form_start(form) }}
+                    <div class="form-group">
+                        {{ form_label(form.name) }}
+                        {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.type) }}
+                        {{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.subscriptionType, 'Type d\'abonnement') }}
+                        {{ form_widget(form.subscriptionType, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.startDate) }}
+                        {{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.endDate) }}
+                        {{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.isRecurring, 'Est-ce un abonnement récurrent ?') }}
+                        {{ form_widget(form.isRecurring, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.maxPayments, 'Nombre maximum de paiements') }}
+                        {{ form_widget(form.maxPayments, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_label(form.stripePriceId, 'ID Stripe du prix') }}
+                        {{ form_widget(form.stripePriceId, {'attr': {'class': 'form-control'}}) }}
+                    </div>
 
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-let collectionHolder = document.querySelector('.plan-courses-collection');
-let addCourseButton = document.querySelector('.add-course');
-let index = collectionHolder.querySelectorAll('.plan-course-item').length;
+                    <h2>Cours</h2>
+                    <div class="plan-courses-collection" data-prototype="{{ form_widget(form.planCourses.vars.prototype)|e('html_attr') }}">
+                        {% for planCourse in form.planCourses %}
+                            <div class="plan-course-item mb-3">
+                                <div class="form-row align-items-end">
+                                    <div class="col-md-5">
+                                        {{ form_label(planCourse.course) }}
+                                        {{ form_widget(planCourse.course, {'attr': {'class': 'form-control'}}) }}
+                                    </div>
+                                    <div class="col-md-5">
+                                        {{ form_label(planCourse.credits, 'Crédits pour ce cours') }}
+                                        {{ form_widget(planCourse.credits, {'attr': {'class': 'form-control'}}) }}
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn complet remove-course">Supprimer</button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
 
-collectionHolder.dataset.index = index;
+                    <div class="form-group mt-4">
+                        <button type="button" class="btn reserve-btn add-course">Ajouter un cours</button>
+                        <button type="submit" class="btn btn-general">Enregistrer</button>
+                    </div>
 
-addCourseButton.addEventListener('click', function () {
-addForm(collectionHolder);
-});
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
 
-collectionHolder.addEventListener('click', function (e) {
-if (e.target.classList.contains('remove-course')) {
-e.preventDefault();
-let item = e.target.closest('.plan-course-item');
-if (item) {
-item.remove();
-}
-}
-});
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let collectionHolder = document.querySelector('.plan-courses-collection');
+            let addCourseButton = document.querySelector('.add-course');
+            let index = collectionHolder.querySelectorAll('.plan-course-item').length;
 
-function addForm(collectionHolder) {
-let prototype = collectionHolder.dataset.prototype;
-let index = collectionHolder.dataset.index;
-let newForm = prototype.replace(/__name__/g, index);
-collectionHolder.dataset.index = parseInt(index) + 1;
+            collectionHolder.dataset.index = index;
 
-let newFormElement = document.createElement('div');
-newFormElement.classList.add('plan-course-item', 'mb-3');
-newFormElement.innerHTML = newForm;
+            addCourseButton.addEventListener('click', function () {
+                addForm(collectionHolder);
+            });
 
-let formRow = newFormElement.querySelector('.form-row');
-if (! formRow) {
-formRow = document.createElement('div');
-formRow.classList.add('form-row', 'align-items-end');
-newFormElement.appendChild(formRow);
-}
+            collectionHolder.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-course')) {
+                    e.preventDefault();
+                    let item = e.target.closest('.plan-course-item');
+                    if (item) {
+                        item.remove();
+                    }
+                }
+            });
 
-let removeButton = document.createElement('button');
-removeButton.type = 'button';
-removeButton.classList.add('btn', 'complet', 'remove-course');
-removeButton.textContent = 'Supprimer';
+            function addForm(collectionHolder) {
+                let prototype = collectionHolder.dataset.prototype;
+                let index = collectionHolder.dataset.index;
+                let newForm = prototype.replace(/__name__/g, index);
+                collectionHolder.dataset.index = parseInt(index) + 1;
 
-formRow.appendChild(removeButton);
-collectionHolder.appendChild(newFormElement);
-}
-});
-	</script>
+                let newFormElement = document.createElement('div');
+                newFormElement.classList.add('plan-course-item', 'mb-3');
+                newFormElement.innerHTML = newForm;
+
+                let formRow = newFormElement.querySelector('.form-row');
+                if (! formRow) {
+                    formRow = document.createElement('div');
+                    formRow.classList.add('form-row', 'align-items-end');
+                    newFormElement.appendChild(formRow);
+                }
+
+                let removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.classList.add('btn', 'complet', 'remove-course');
+                removeButton.textContent = 'Supprimer';
+
+                formRow.appendChild(removeButton);
+                collectionHolder.appendChild(newFormElement);
+            }
+        });
+    </script>
 {% endblock %}

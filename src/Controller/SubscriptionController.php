@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Stripe\Stripe;
 use App\Entity\Plan;
+use App\Entity\PlanCourse;
 use App\Entity\User;
 use Stripe\PromotionCode;
 use App\Entity\Subscription;
@@ -11,6 +12,7 @@ use App\Entity\PromoCodeUsage;
 use App\Form\SubscriptionType;
 use Symfony\Component\Mime\Email;
 use App\Entity\SubscriptionCourse;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,6 +29,28 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class SubscriptionController extends AbstractController
 {
     private const SENDER_EMAIL = 'contactAirstudio73@gmail.com';
+
+    #[Route('/subscription/remaining-credits', name: 'fetch_remaining_credits', methods: ['POST'])]
+    public function fetchRemainingCredits(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $planId = $data['planId'] ?? null;
+
+        if (!$planId) {
+            return new JsonResponse(['error' => 'Plan ID is required'], 400);
+        }
+
+        $plan = $em->getRepository(Plan::class)->find($planId);
+
+        if (!$plan) {
+            return new JsonResponse(['error' => 'Plan not found'], 404);
+        }
+
+        // Calculer les crédits restants
+        $remainingCredits = $this->adjustSubscriptionCredits($plan);
+
+        return new JsonResponse(['remainingCredits' => $remainingCredits]);
+    }
 
     #[Route('/subscription/new', name: 'subscription_new')]
     #[IsGranted('ROLE_USER')]
@@ -68,21 +92,20 @@ class SubscriptionController extends AbstractController
                 ->setParameter('user', $user)
                 ->setParameter('plan', $plan)
                 ->getQuery()
-                ->getResult(); // Utilisation de getResult() pour gérer plusieurs résultats
+                ->getResult();
 
-            // Si l'utilisateur a des abonnements qui répondent aux critères
             if (count($existingSubscriptions) > 0) {
-                // Vérification des crédits restants sur les abonnements existants
                 foreach ($existingSubscriptions as $existingSubscription) {
-                    if ($existingSubscription->getSubscriptionCourses()[0]->getRemainingCredits() > 0) {
-                        $this->addFlash('error', 'Vous ne pouvez pas acheter un nouvel abonnement tant que vous avez encore des crédits sur votre abonnement actuel.');
+                    if ($existingSubscription->getPlan()->getId() === $plan->getId()) {
+                        if ($existingSubscription->getSubscriptionCourses()[0]->getRemainingCredits() > 0) {
+                            $this->addFlash('error', 'Vous ne pouvez pas acheter un nouvel abonnement tant que vous avez encore des crédits sur votre abonnement actuel.');
+                            return $this->redirectToRoute('subscription_new');
+                        }
+
+                        $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois au même abonnement.');
                         return $this->redirectToRoute('subscription_new');
                     }
                 }
-
-                // Si aucun abonnement n'a de crédits restants mais qu'il existe une souscription pour le même plan
-                $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois au même abonnement.');
-                return $this->redirectToRoute('subscription_new');
             }
 
             // Si tout est bon, traiter la soumission du formulaire et la création de la session Stripe
@@ -117,32 +140,58 @@ class SubscriptionController extends AbstractController
                     }
                 }
 
-                // Logique pour déterminer le type de paiement basé sur le plan (récurrent ou ponctuel)
-                $isPlanRecurring = $plan->isRecurring();
+                // Calculer les crédits restants
+                $remainingCredits = $this->adjustSubscriptionCredits($plan);
 
-                if ($isPlanRecurring) {
-                    // Plan récurrent : mode subscription
-                    $sessionMode = 'subscription';
+
+                // Gérer le choix du nombre de paiements
+                $installments = $form->get('paymentInstallments')->getData() ?: 1;
+
+                // Calculer le prix ajusté en fonction du temps restant
+                $newAmount = $this->adjustSubscriptionPrice($plan, $subscription, $remainingCredits, $installments, $em);
+
+                $amountPerInstallment = round($newAmount / $installments);
+
+                // Mettre à jour la propriété maxPayments
+                $subscription->setMaxPayments($installments);
+
+                // Si paiement en plusieurs fois, on configure l'abonnement en mode récurrent
+                if ($installments > 1) {
+                    $plan->setIsRecurring(true);
+                    $subscription->setMaxPayments($installments);
                 } else {
-                    // Plan ponctuel : mode payment
-                    $sessionMode = 'payment';
+                    $plan->setIsRecurring(false);
+                    $subscription->setMaxPayments(1);
                 }
 
-                // Création de la session Stripe
-                $lineItem = [
-                    'price' => $stripePriceId,
-                    'quantity' => 1,
-                ];
+                // Créer un prix dynamique dans Stripe avec le montant ajusté
+                $price = \Stripe\Price::create([
+                    'unit_amount' => $amountPerInstallment, // Le prix ajusté par versement
+                    'currency' => 'eur',
+                    'product' => $plan->getStripeProductId(), // L'ID du produit Stripe
+                    'recurring' => $installments > 1 ? ['interval' => 'month'] : null, // Réccurrence si paiement en plusieurs fois
+                ]);
 
+                // Utiliser le nouveau prix créé dans Stripe
+                $stripePriceId = $price->id;
+
+                // Déterminer le mode en fonction du nombre de paiements
+                $mode = ($installments > 1) ? 'subscription' : 'payment';
+
+                // Création de la session Stripe
                 $session = StripeSession::create([
                     'payment_method_types' => ['card'],
-                    'line_items' => [$lineItem],
-                    'mode' => $sessionMode,
+                    'line_items' => [[
+                        'price' => $stripePriceId, // Utiliser le prix dynamique créé
+                        'quantity' => 1,
+                    ]],
+                    'mode' => $mode, // 'payment' pour un paiement unique, 'subscription' pour plusieurs paiements
                     'discounts' => $discounts,
                     'client_reference_id' => json_encode([
                         'planId' => $plan->getId(),
                         'userId' => $user->getUserIdentifier(),
                         'promoCode' => $promoCode,
+                        'installments' => $installments,
                     ]),
                     'success_url' => $this->generateUrl('subscription_success', [], UrlGeneratorInterface::ABSOLUTE_URL) . '?session_id={CHECKOUT_SESSION_ID}',
                     'cancel_url' => $this->generateUrl('subscription_cancel', [], UrlGeneratorInterface::ABSOLUTE_URL),
@@ -155,6 +204,86 @@ class SubscriptionController extends AbstractController
         return $this->render('subscription/new.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    public function adjustSubscriptionCredits(Plan $plan): int
+    {
+        $totalCredits = $plan->getPlanCourses()[0]->getCredits(); // Récupérer le total des crédits du plan
+        $currentDate = new \DateTime();
+        $startDate = $plan->getStartDate();
+
+        // Calculer la différence en semaines entre la date de début et la date actuelle
+        $weeksElapsed = floor($startDate->diff($currentDate)->days / 7);
+
+        // Calculer le début et la fin de la semaine en cours
+        $startOfWeek = (clone $currentDate)->modify('monday this week');
+        $endOfWeek = (clone $startOfWeek)->modify('+6 days');
+
+        // Si la date de début est dans la semaine en cours, ne pas compter cette semaine comme écoulée
+        if ($startDate >= $startOfWeek && $startDate <= $endOfWeek) {
+            $weeksElapsed--;
+        }
+
+        // Ajuster en fonction du type d'abonnement
+        if ($plan->getSubscriptionType() === 'weekly') {
+            // Pour un abonnement hebdomadaire, ne rien changer
+            $remainingCredits = max(0, $totalCredits - $weeksElapsed);
+        } elseif ($plan->getSubscriptionType() === 'bi-weekly') {
+            // Pour un abonnement bi-hebdomadaire, deux crédits par semaine
+            $remainingCredits = max(0, $totalCredits - ($weeksElapsed * 2));
+        } else {
+            // Autres types d'abonnement, on peut appliquer une logique par défaut si besoin
+            $remainingCredits = $totalCredits;
+        }
+
+        return $remainingCredits;
+    }
+
+    public function adjustSubscriptionPrice(Plan $plan, Subscription $subscription, int $remainingCredits, int $paymentInstallments, EntityManagerInterface $em): int
+    {
+        $pricePerCredit = 0;
+
+        // Récupérer le prix par crédit depuis l'entité PlanCourse
+        foreach ($plan->getPlanCourses() as $planCourse) {
+            $pricePerCredit += $planCourse->getPricePerCredit();
+        }
+
+        $currentDate = new \DateTime();
+        $expiryDate = $subscription->getExpiryDate();
+
+        // Calculer le nombre de mois restants jusqu'à la date d'expiration
+        $monthsRemaining = $expiryDate->diff($currentDate)->m + ($expiryDate->diff($currentDate)->y * 12);
+
+        // Si le nombre de paiements est supérieur à 3, ignorer les crédits restants et utiliser les crédits de base
+        if ($paymentInstallments > 3) {
+            // Récupérer les crédits de base du plan (PlanCourse::getCredits)
+            $totalCredits = 0;
+            foreach ($plan->getPlanCourses() as $planCourse) {
+                $totalCredits += $planCourse->getCredits();
+            }
+
+            // Calculer le prix total sans ajustement en fonction des crédits restants
+            $initialTotalPrice = $totalCredits * $pricePerCredit * 100; // Convertir en centimes
+
+            // Si le nombre de paiements est supérieur au nombre de mois restants, ajuster le nombre de paiements
+            $maxPayments = min($paymentInstallments, $monthsRemaining);
+
+            // Calculer le montant par versement
+            $amountPerInstallment = $initialTotalPrice;
+        } else {
+            // Sinon, utiliser la logique actuelle basée sur les crédits restants
+            $adjustedPrice = $remainingCredits * $pricePerCredit * 100; // Convertir en centimes
+
+            // Si les paiements sont répartis sur plus d'un mois, calculer le montant par mois
+            $maxPayments = $subscription->getMaxPayments();
+            if ($maxPayments > 1) {
+                $amountPerInstallment = $adjustedPrice / $maxPayments;
+            } else {
+                $amountPerInstallment = $adjustedPrice; // Paiement en une seule fois
+            }
+        }
+
+        return round($amountPerInstallment); // Retourner le montant par versement en centimes
     }
 
     #[Route('/check-plan-expiry', name: 'check_plan_expiry', methods: ['POST'])]
@@ -222,6 +351,7 @@ class SubscriptionController extends AbstractController
         $planId = $sessionData['planId'] ?? null;
         $userId = $sessionData['userId'] ?? null;
         $promoCode = $sessionData['promoCode'] ?? null;
+        $installments = $sessionData['installments'] ?? 1;
 
         // Vérification de la validité des données
         if (!$planId || !$userId) {
@@ -259,9 +389,31 @@ class SubscriptionController extends AbstractController
             $subscription->setStripeSubscriptionId(''); // Vous pouvez mettre une logique alternative si nécessaire
         }
 
+        $currentDate = new \DateTime();
+
+        // Calcul des crédits restants en fonction du temps écoulé
+        $remainingCredits = $this->adjustSubscriptionCredits($plan);
+
         // Définition des autres détails de la souscription
         $subscription->incrementPaymentsCount();
-        $subscription->setMaxPayments($plan->getMaxPayments());
+
+        // Vérification du nombre d'échéances (installments)
+        if ($installments > 3) {
+            // Calcul du nombre de paiements en fonction des mois restants
+            $currentDate = new \DateTime();
+            $expiryDate = $subscription->getExpiryDate();
+            // Inclure le mois en cours et le dernier mois dans le calcul
+            $monthsRemaining = $expiryDate->diff($currentDate)->m + ($expiryDate->diff($currentDate)->y * 12) + 1;
+
+            // Ajuster le nombre de paiements à la valeur minimale entre les échéances choisies et les mois restants
+            $maxPayments = min($installments, $monthsRemaining);
+
+            // Mettre à jour maxPayments dans l'entité Subscription
+            $subscription->setMaxPayments($maxPayments);
+        } else {
+            // Sinon, on garde le nombre de paiements tel quel
+            $subscription->setMaxPayments($installments);
+        }
         $subscription->setPurchaseDate(new \DateTime());
         $subscription->setPromoCode($promoCode);
         $subscription->setPaymentMode($plan->getName());
@@ -269,9 +421,36 @@ class SubscriptionController extends AbstractController
         // Association des cours du plan à la souscription
         foreach ($plan->getPlanCourses() as $planCourse) {
             $subscriptionCourse = new SubscriptionCourse();
+
+            if ($plan->getSubscriptionType() === 'souple') {
+                // Si l'abonnement est de type "souple"
+                // Ne pas limiter les réservations et ajuster la période de validité à un trimestre ou à la date d'expiration
+                $subscriptionStartDate = $subscription->getStartDate();
+
+                // Vérifier que la date de début est bien un objet DateTime
+                if (!$subscriptionStartDate instanceof \DateTime) {
+                    throw new \Exception('La date de début de l\'abonnement n\'est pas valide.');
+                }
+
+                // Calcul du trimestre : ajouter 3 mois à la date de début
+                $trimestreEndDate = (clone $subscriptionStartDate)->modify('+3 months');
+
+                // Comparer la date de fin du plan avec la date de fin de trimestre
+                $finalEndDate = $plan->getEndDate() < $trimestreEndDate ? $plan->getEndDate() : $trimestreEndDate;
+
+                // Vérification si l'abonnement est expiré
+                if ($currentDate > $finalEndDate) {
+                    $this->addFlash('error', 'Votre abonnement souple a expiré.');
+                    return $this->redirectToRoute('subscription_new');
+                }
+
+                // Mettre à jour la date d'expiration de l'abonnement
+                $subscription->setExpiryDate($finalEndDate);
+            }
+
             $subscriptionCourse->setSubscription($subscription);
             $subscriptionCourse->setCourse($planCourse->getCourse());
-            $subscriptionCourse->setRemainingCredits($planCourse->getCredits());
+            $subscriptionCourse->setRemainingCredits($remainingCredits);
             $subscription->addSubscriptionCourse($subscriptionCourse);
         }
 

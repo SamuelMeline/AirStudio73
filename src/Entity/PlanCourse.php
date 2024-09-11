@@ -23,6 +23,9 @@ class PlanCourse
     #[ORM\Column(type: 'integer')]
     private int $credits;
 
+    #[ORM\Column(type: 'integer')]
+    private int $pricePerCredit;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -58,6 +61,18 @@ class PlanCourse
     public function setCredits(int $credits): self
     {
         $this->credits = $credits;
+        return $this;
+    }
+
+    public function getPricePerCredit(): int
+    {
+        return $this->pricePerCredit;
+    }
+
+    public function setPricePerCredit(int $pricePerCredit): self
+    {
+        $this->pricePerCredit = $pricePerCredit;
+
         return $this;
     }
 }

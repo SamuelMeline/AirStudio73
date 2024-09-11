@@ -8,9 +8,9 @@ use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 
@@ -18,22 +18,19 @@ class SubscriptionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        // Ajout du champ type avec un placeholder
+        // Sélection du type de forfait
         $builder->add('type', ChoiceType::class, [
             'label' => 'Type de Forfait',
-            'placeholder' => 'Sélectionnez un type', // Ajoute un placeholder
+            'placeholder' => 'Sélectionnez un type',
             'choices' => $this->getPlanTypes($options['em']),
-            'mapped' => false, // Ce champ n'est pas lié à l'entité Subscription
+            'mapped' => false,
             'required' => true,
             'attr' => [
                 'onchange' => 'this.form.submit()', // Soumettre automatiquement le formulaire
             ],
-            'choice_attr' => function ($choice, $key, $value) {
-                return $key === 'Sélectionnez un type' ? ['disabled' => true, 'style' => 'display:none;'] : [];
-            },
         ]);
 
-        // Utiliser PRE_SUBMIT pour capturer la soumission du formulaire avec le type sélectionné
+        // Sélection du plan
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($options) {
             $form = $event->getForm();
             $data = $event->getData();
@@ -45,16 +42,12 @@ class SubscriptionType extends AbstractType
                     'choice_label' => 'name',
                     'label' => 'Forfait',
                     'placeholder' => 'Sélectionnez un forfait',
-                    'expanded' => false,
-                    'multiple' => false,
                     'required' => true,
                     'query_builder' => function (EntityRepository $er) use ($type) {
                         return $er->createQueryBuilder('p')
                             ->where('p.type = :type')
-                            ->andWhere('p.name LIKE :name')
                             ->andWhere('p.endDate >= :currentDate')
                             ->setParameter('type', $type)
-                            ->setParameter('name', 'Formule Découverte%')
                             ->setParameter('currentDate', new \DateTime())
                             ->orderBy('p.name', 'ASC');
                     },
@@ -62,9 +55,23 @@ class SubscriptionType extends AbstractType
             }
         });
 
+        // Champ pour entrer un code promo
         $builder->add('promoCode', TextType::class, [
             'label' => 'Code Promotionnel',
             'required' => false,
+        ]);
+
+        // Choix du nombre de paiements
+        $builder->add('paymentInstallments', ChoiceType::class, [
+            'label' => 'Nombre de paiements',
+            'choices' => [
+                'Payer en une fois' => 1,
+                'Payer en 2 fois' => 2,
+                'Payer en 3 fois' => 3,
+                'Payer en 10 fois' => 10,
+            ],
+            'required' => true,
+            'attr' => ['class' => 'form-control'],
         ]);
     }
 
@@ -89,7 +96,7 @@ class SubscriptionType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Subscription::class,
-            'em' => null, // Ceci permet de passer l'EntityManager à travers les options
+            'em' => null,
         ]);
     }
 }

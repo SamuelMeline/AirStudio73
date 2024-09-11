@@ -27,6 +27,9 @@ class PlanCourseType extends AbstractType
             ])
             ->add('credits', IntegerType::class, [
                 'label' => 'Crédits',
+            ])
+            ->add('pricePerCredit', IntegerType::class, [
+                'label' => 'Prix du Crédit',
             ]);
     }
 

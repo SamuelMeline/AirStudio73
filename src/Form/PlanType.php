@@ -45,6 +45,17 @@ class PlanType extends AbstractType
                 'placeholder' => 'Sélectionnez un type de forfait',
                 'required' => false, // Permet la création d'un nouveau type s'il n'existe pas encore
             ])
+            ->add('subscriptionType', ChoiceType::class, [
+                'label' => 'Type d\'abonnement',
+                'choices' => [
+                    'Abonnement classique' => 'weekly',
+                    'Abonnement classique + activité' => 'bi-weekly',
+                    'Abonnement souple' => 'souple',
+                    'Abonnement illimité' => 'unlimited',
+                    'Cours à l\'unité' => 'unit'
+                ],
+                'required' => true,
+            ])
             ->add('startDate', DateType::class, [
                 'label' => 'Date de début',
                 'widget' => 'single_text',
@@ -73,6 +84,9 @@ class PlanType extends AbstractType
                 ],
                 'expanded' => true, // Pour afficher des boutons radio
                 'required' => true,
+            ])
+            ->add('stripeProductId', TextType::class, [
+                'label' => 'ID du produit Stripe',
             ])
             ->add('stripePriceId', TextType::class, [
                 'label' => 'ID du prix Stripe',

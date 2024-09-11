@@ -4,7 +4,8 @@
 	<div class="container">
 		<div class="card shadow-sm">
 			<h1>Sélectionner votre forfait</h1>
-			<div class="card-body">
+			<div
+				class="card-body">
 
 				<!-- Affichage des messages flash -->
 				{% for label, messages in app.flashes %}
@@ -28,7 +29,13 @@
 				{% if form.plan is defined %}
 					<div class="form-group">
 						{{ form_label(form.plan, null, {'label_attr': {'class': 'form-label'}}) }}
-						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'checkPlanExpiry(this.value);'}}) }}
+						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'checkPlanExpiry(this.value); fetchRemainingCredits(this.value);'}}) }}
+					</div>
+					<!-- Affichage des crédits restants -->
+					<div class="form-group">
+						<p id="remaining-credits">Crédits restants :
+							<span id="credits-value">-</span>
+						</p>
 					</div>
 				{% endif %}
 
@@ -57,23 +64,41 @@
 	</div>
 
 	<script>
-		function checkPlanExpiry(planId) {
-			// Envoie une requête AJAX au serveur pour vérifier l'expiration du forfait
-			fetch('{{ path('check_plan_expiry') }}', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-CSRF-Token': '{{ csrf_token('check_plan_expiry') }}'
-				},
-				body: JSON.stringify({ planId: planId })
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (data.warning) {
-					// Affiche l'alerte si le forfait est proche de l'expiration
-					alert(data.warning);
-				}
-			});
-		}
+		function checkPlanExpiry(planId) { // Envoie une requête AJAX au serveur pour vérifier l'expiration du forfait
+fetch('{{ path('check_plan_expiry') }}', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-CSRF-Token': '{{ csrf_token('check_plan_expiry') }}'
+},
+body: JSON.stringify(
+{planId: planId}
+)
+}).then(response => response.json()).then(data => {
+if (data.warning) { // Affiche l'alerte si le forfait est proche de l'expiration
+alert(data.warning);
+}
+});
+}
+	</script>
+	<script>
+		function fetchRemainingCredits(planId) { // Envoie une requête AJAX pour obtenir les crédits restants
+fetch('{{ path('fetch_remaining_credits') }}', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-CSRF-Token': '{{ csrf_token('fetch_remaining_credits') }}'
+},
+body: JSON.stringify(
+{planId: planId}
+)
+}).then(response => response.json()).then(data => {
+if (data.remainingCredits !== undefined) { // Met à jour l'affichage des crédits restants
+document.getElementById('credits-value').textContent = data.remainingCredits;
+} else if (data.error) {
+alert(data.error);
+}
+});
+}
 	</script>
 {% endblock %}

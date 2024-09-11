@@ -146,8 +146,22 @@ class WebhookController extends AbstractController
 
     private function handleCheckoutSessionCompleted($session)
     {
-        // Gestion de l'événement checkout.session.completed
+        $subscriptionId = $session->subscription;
+
+        // Recherche de la souscription dans la base de données
+        $subscription = $this->entityManager->getRepository(Subscription::class)->findOneBy([
+            'stripeSubscriptionId' => $subscriptionId,
+        ]);
+
+        if (!$subscription) {
+            return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
+        }
+
+        // Mise à jour de l'état de la souscription
+        $subscription->setIsActive(true);
+        $this->entityManager->flush();
     }
+
 
     private function handlePaymentMethodAttached($paymentMethod)
     {

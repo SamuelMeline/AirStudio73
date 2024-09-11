@@ -36,6 +36,12 @@ class Plan
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $type = null;
 
+    #[ORM\Column(name: 'stripe_product_id', type: 'string', length: 255, nullable: true)]
+    private ?string $stripeProductId = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $subscriptionType = null;
+
     #[ORM\Column(type: 'boolean')]
     private bool $isRecurring = false;
 
@@ -127,6 +133,28 @@ class Plan
     public function setType(string $type): self
     {
         $this->type = $type;
+        return $this;
+    }
+
+    public function getStripeProductId(): ?string
+    {
+        return $this->stripeProductId;
+    }
+
+    public function setStripeProductId(string $stripe_product_id): self
+    {
+        $this->stripeProductId = $stripe_product_id;
+        return $this;
+    }
+
+    public function getSubscriptionType(): ?string
+    {
+        return $this->subscriptionType;
+    }
+
+    public function setSubscriptionType(?string $subscriptionType): self
+    {
+        $this->subscriptionType = $subscriptionType;
         return $this;
     }
 
