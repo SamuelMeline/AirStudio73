@@ -30,7 +30,7 @@ class SubscriptionType extends AbstractType
             ],
         ]);
 
-        // Sélection du plan
+        // Ajouter le champ pour sélectionner le plan (forfait)
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($options) {
             $form = $event->getForm();
             $data = $event->getData();
@@ -53,25 +53,53 @@ class SubscriptionType extends AbstractType
                     },
                 ]);
             }
+
+            // Ajuster dynamiquement les options de paiement en fonction du type de plan sélectionné
+            if (isset($data['plan'])) {
+                $planId = $data['plan'];
+                $plan = $options['em']->getRepository(Plan::class)->find($planId);
+
+                if ($plan) {
+                    $paymentChoices = [];
+
+                    switch ($plan->getType()) {
+                        case 'unit':
+                            $paymentChoices = [
+                                'Payer en une fois' => 1,
+                            ];
+                            break;
+                        case 'souple':
+                            $paymentChoices = [
+                                'Payer en une fois' => 1,
+                                'Payer en 2 fois' => 2,
+                            ];
+                            break;
+                        case 'weekly':
+                        case 'bi-weekly':
+                        case 'unlimited':
+                            $paymentChoices = [
+                                'Payer en une fois' => 1,
+                                'Payer en 3 fois' => 3,
+                                'Payer en 10 fois' => 10,
+                            ];
+                            break;
+                    }
+
+                    // Ajouter le champ pour choisir le nombre de paiements dynamiquement
+                    $form->add('paymentInstallments', ChoiceType::class, [
+                        'label' => 'Nombre de paiements',
+                        'choices' => $paymentChoices,
+                        'required' => true,
+                        'attr' => ['class' => 'form-control'],
+                    ]);
+                }
+            }
         });
 
         // Champ pour entrer un code promo
         $builder->add('promoCode', TextType::class, [
             'label' => 'Code Promotionnel',
             'required' => false,
-        ]);
-
-        // Choix du nombre de paiements
-        $builder->add('paymentInstallments', ChoiceType::class, [
-            'label' => 'Nombre de paiements',
-            'choices' => [
-                'Payer en une fois' => 1,
-                'Payer en 2 fois' => 2,
-                'Payer en 3 fois' => 3,
-                'Payer en 10 fois' => 10,
-            ],
-            'required' => true,
-            'attr' => ['class' => 'form-control'],
         ]);
     }
 
