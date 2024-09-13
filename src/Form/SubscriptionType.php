@@ -30,13 +30,14 @@ class SubscriptionType extends AbstractType
             ],
         ]);
 
-        // Ajouter le champ pour sélectionner le plan (forfait)
+        // Sélection du plan
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($options) {
             $form = $event->getForm();
             $data = $event->getData();
             $type = $data['type'] ?? null;
 
             if ($type) {
+                // Ajout du champ plan en fonction du type sélectionné
                 $form->add('plan', EntityType::class, [
                     'class' => Plan::class,
                     'choice_label' => 'name',
@@ -46,55 +47,66 @@ class SubscriptionType extends AbstractType
                     'query_builder' => function (EntityRepository $er) use ($type) {
                         return $er->createQueryBuilder('p')
                             ->where('p.type = :type')
-                            ->andWhere('p.endDate >= :currentDate')
                             ->setParameter('type', $type)
-                            ->setParameter('currentDate', new \DateTime())
                             ->orderBy('p.name', 'ASC');
                     },
                 ]);
-            }
 
-            // Ajuster dynamiquement les options de paiement en fonction du type de plan sélectionné
-            if (isset($data['plan'])) {
-                $planId = $data['plan'];
-                $plan = $options['em']->getRepository(Plan::class)->find($planId);
+                // Récupérer le plan sélectionné
+                $planId = $data['plan'] ?? null;
+                if ($planId) {
+                    $em = $options['em'];
+                    $plan = $em->getRepository(Plan::class)->find($planId);
 
-                if ($plan) {
-                    $paymentChoices = [];
+                    // Ajustement des options de paiement en fonction du type d'abonnement
+                    if ($plan) {
+                        $subscriptionType = $plan->getSubscriptionType();
 
-                    switch ($plan->getType()) {
-                        case 'unit':
-                            $paymentChoices = [
-                                'Payer en une fois' => 1,
-                            ];
-                            break;
-                        case 'souple':
-                            $paymentChoices = [
-                                'Payer en une fois' => 1,
-                                'Payer en 2 fois' => 2,
-                            ];
-                            break;
-                        case 'weekly':
-                        case 'bi-weekly':
-                        case 'unlimited':
-                            $paymentChoices = [
-                                'Payer en une fois' => 1,
-                                'Payer en 3 fois' => 3,
-                                'Payer en 10 fois' => 10,
-                            ];
-                            break;
+                        // Adapter le champ "paymentInstallments" selon le type de plan
+                        switch ($subscriptionType) {
+                            case 'unlimited':
+                            case 'weekly':
+                            case 'bi-weekly':
+                                $form->add('paymentInstallments', ChoiceType::class, [
+                                    'label' => 'Nombre de paiements',
+                                    'choices' => [
+                                        'Sélectionner un mode de paiement' => null,
+                                        'Payer en une fois' => 1,
+                                        'Payer en 3 fois' => 3,
+                                        'Payer en 10 fois' => 10,
+                                    ],
+                                    'required' => true,
+                                ]);
+                                break;
+
+                            case 'unit':
+                                $form->add('paymentInstallments', ChoiceType::class, [
+                                    'label' => 'Nombre de paiements',
+                                    'choices' => [
+                                        'Sélectionner un mode de paiement' => null,
+                                        'Payer en une fois' => 1,
+                                    ],
+                                    'required' => true,
+                                ]);
+                                break;
+
+                            case 'souple':
+                                $form->add('paymentInstallments', ChoiceType::class, [
+                                    'label' => 'Nombre de paiements',
+                                    'choices' => [
+                                        'Sélectionner un mode de paiement' => null,
+                                        'Payer en une fois' => 1,
+                                        'Payer en 2 fois' => 2,
+                                    ],
+                                    'required' => true,
+                                ]);
+                                break;
+                        }
                     }
-
-                    // Ajouter le champ pour choisir le nombre de paiements dynamiquement
-                    $form->add('paymentInstallments', ChoiceType::class, [
-                        'label' => 'Nombre de paiements',
-                        'choices' => $paymentChoices,
-                        'required' => true,
-                        'attr' => ['class' => 'form-control'],
-                    ]);
                 }
             }
         });
+
 
         // Champ pour entrer un code promo
         $builder->add('promoCode', TextType::class, [

@@ -25,11 +25,12 @@
 					{{ form_widget(form.type, {'attr': {'class': 'form-control', 'onchange': 'this.form.submit();'}}) }}
 				</div>
 
+
 				<!-- Sélection du plan, affiché seulement si défini -->
 				{% if form.plan is defined %}
 					<div class="form-group">
 						{{ form_label(form.plan, null, {'label_attr': {'class': 'form-label'}}) }}
-						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'updatePaymentOptions(this.value); checkPlanExpiry(this.value); fetchRemainingCredits(this.value);'}}) }}
+						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'checkPlanExpiry(this.value); fetchRemainingCredits(this.value); this.form.submit();'}}) }}
 					</div>
 					<!-- Affichage des crédits restants -->
 					<div class="form-group">
@@ -39,13 +40,13 @@
 					</div>
 				{% endif %}
 
-				<!-- Nombre de paiements (sera mis à jour dynamiquement) -->
-				<div class="form-group">
-					<label for="payment-options">Nombre de paiements</label>
-					<select id="payment-options" class="form-control">
-						<option value="">Sélectionnez un forfait d'abord</option>
-					</select>
-				</div>
+				<!-- Nombre de paiements -->
+				{% if form.paymentInstallments is defined %}
+					<div class="form-group">
+						{{ form_label(form.paymentInstallments, null, {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.paymentInstallments, {'attr': {'class': 'form-control'}}) }}
+					</div>
+				{% endif %}
 
 				<!-- Champ de code promotionnel -->
 				<div class="form-group">
@@ -72,37 +73,6 @@
 	</div>
 
 	<script>
-		function updatePaymentOptions(planId) { // Envoie une requête AJAX pour obtenir les options de paiement
-fetch('{{ path('get_payment_options') }}', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRF-Token': '{{ csrf_token('get_payment_options') }}'
-},
-body: JSON.stringify(
-{planId: planId}
-)
-}).then(response => response.json()).then(data => {
-const paymentSelect = document.getElementById('payment-options');
-paymentSelect.innerHTML = ''; // Réinitialiser les options
-
-if (data.paymentOptions) {
-data.paymentOptions.forEach(option => {
-const opt = document.createElement('option');
-opt.value = option.value;
-opt.text = option.label;
-paymentSelect.appendChild(opt);
-});
-} else {
-paymentSelect.innerHTML = '<option value="">Aucune option disponible</option>';
-alert(data.error);
-}
-}).catch(error => {
-console.error('Erreur lors de la récupération des options de paiement:', error);
-});
-}
-	</script>
-	<script>
 		function checkPlanExpiry(planId) { // Envoie une requête AJAX au serveur pour vérifier l'expiration du forfait
 fetch('{{ path('check_plan_expiry') }}', {
 method: 'POST',
@@ -114,14 +84,13 @@ body: JSON.stringify(
 {planId: planId}
 )
 }).then(response => response.json()).then(data => {
-if (data.warning) {
+if (data.warning) { // Affiche l'alerte si le forfait est proche de l'expiration
 alert(data.warning);
 }
 });
 }
-	</script>
-	<script>
-		function fetchRemainingCredits(planId) { // Envoie une requête AJAX pour obtenir les crédits restants
+
+function fetchRemainingCredits(planId) { // Envoie une requête AJAX pour obtenir les crédits restants
 fetch('{{ path('fetch_remaining_credits') }}', {
 method: 'POST',
 headers: {
@@ -132,7 +101,7 @@ body: JSON.stringify(
 {planId: planId}
 )
 }).then(response => response.json()).then(data => {
-if (data.remainingCredits !== undefined) {
+if (data.remainingCredits !== undefined) { // Met à jour l'affichage des crédits restants
 document.getElementById('credits-value').textContent = data.remainingCredits;
 } else if (data.error) {
 alert(data.error);

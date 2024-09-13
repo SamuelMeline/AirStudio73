@@ -4,15 +4,16 @@ namespace App\Controller;
 
 use Stripe\Stripe;
 use App\Entity\Plan;
-use App\Entity\PlanCourse;
 use App\Entity\User;
 use Stripe\PromotionCode;
+use App\Entity\PlanCourse;
 use App\Entity\Subscription;
 use App\Entity\PromoCodeUsage;
 use App\Form\SubscriptionType;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\Mime\Email;
 use App\Entity\SubscriptionCourse;
-use Doctrine\ORM\EntityManager;
+use App\Repository\PlanRepository;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport;
 use Doctrine\ORM\EntityManagerInterface;
@@ -52,53 +53,6 @@ class SubscriptionController extends AbstractController
         return new JsonResponse(['remainingCredits' => $remainingCredits]);
     }
 
-    #[Route('/get-payment-options', name: 'get_payment_options', methods: ['POST'])]
-    public function getPaymentOptions(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $planId = $data['planId'] ?? null;
-
-        if (!$planId) {
-            return new JsonResponse(['error' => 'Plan ID is missing'], 400);
-        }
-
-        $plan = $em->getRepository(Plan::class)->find($planId);
-
-        if (!$plan) {
-            return new JsonResponse(['error' => 'Plan not found'], 404);
-        }
-
-        // Utilise getSubscriptionType() à la place de getType()
-        $paymentOptions = [];
-
-        switch ($plan->getSubscriptionType()) {
-            case 'unit':
-                $paymentOptions = [
-                    ['label' => 'Payer en une fois', 'value' => 1],
-                ];
-                break;
-            case 'souple':
-                $paymentOptions = [
-                    ['label' => 'Payer en une fois', 'value' => 1],
-                    ['label' => 'Payer en 2 fois', 'value' => 2],
-                ];
-                break;
-            case 'weekly':
-            case 'bi-weekly':
-            case 'unlimited':
-                $paymentOptions = [
-                    ['label' => 'Payer en une fois', 'value' => 1],
-                    ['label' => 'Payer en 3 fois', 'value' => 3],
-                    ['label' => 'Payer en 10 fois', 'value' => 10],
-                ];
-                break;
-            default:
-                return new JsonResponse(['error' => 'No valid payment options for this plan'], 400);
-        }
-
-        return new JsonResponse(['paymentOptions' => $paymentOptions]);
-    }
-
     #[Route('/subscription/new', name: 'subscription_new')]
     #[IsGranted('ROLE_USER')]
     public function new(Request $request, EntityManagerInterface $em): Response
@@ -112,8 +66,17 @@ class SubscriptionController extends AbstractController
 
         // Si le formulaire est soumis
         if ($form->isSubmitted()) {
+            
             // Vérifiez si le champ 'plan' existe dans le formulaire avant de l'utiliser
             if (!$form->has('plan') || !$form->get('plan')->getData()) {
+                return $this->render('subscription/new.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
+
+            // Vérifiez si le champ 'paymentInstallments' existe dans le formulaire et s'il est défini
+            if (!$form->has('paymentInstallments') || !$form->get('paymentInstallments')->getData()) {
+                // Si le champ 'paymentInstallments' n'est pas défini ou vide, revenir au formulaire
                 return $this->render('subscription/new.html.twig', [
                     'form' => $form->createView(),
                 ]);
