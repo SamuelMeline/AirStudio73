@@ -102,7 +102,7 @@ class BookingController extends AbstractController
         // Vérifier le type de l'abonnement, et limiter à 1 ou 2 cours par semaine si nécessaire
         $subscription = $validSubscriptionCourse->getSubscription();
 
-        if ($subscription->getPlan()->getSubscriptionType() === 'weekly' || $subscription->getPlan()->getSubscriptionType() === 'bi-weekly') {
+        if ($subscription->getPlan()->getSubscriptionType() === 'weekly' || $subscription->getPlan()->getSubscriptionType() === 'weekly-renewable' || $subscription->getPlan()->getSubscriptionType() === 'bi-weekly') {
 
             // Récupérer l'utilisateur actuellement connecté
             $currentUser = $this->getUser();
@@ -160,7 +160,7 @@ class BookingController extends AbstractController
             }
 
             // Vérifier les règles pour les abonnements weekly (un seul cours par semaine)
-            if ($subscription->getPlan()->getSubscriptionType() === 'weekly' && count($existingReservations) >= 1) {
+            if ($subscription->getPlan()->getSubscriptionType() === 'weekly' || 'weekly-renewable' && count($existingReservations) >= 1) {
                 $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
                 return $this->redirectToRoute('calendar');
             }
@@ -233,6 +233,7 @@ class BookingController extends AbstractController
         
         Votre réservation récurrente pour le cours "%s" est confirmée.
         Les réservations sont programmées aux dates suivantes : %s.
+        Notre studio se situe au 25 Chemin de la Plaine, 73220 AITON.
         
         À très vite !
         
@@ -248,7 +249,8 @@ class BookingController extends AbstractController
                     'Bonjour %s,
         
         Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
-        
+        Notre studio se situe au 25 Chemin de la Plaine, 73220 AITON.
+
         À très vite !
         
         Cordialement,
@@ -569,6 +571,60 @@ Airstudio73',
             'courses' => $availableCourses,
             'remainingCredits' => $remainingCredits, // Envoyer les crédits restants à la vue
         ]);
+    }
+
+    #[Route('/admin/client/{userId}/reservations', name: 'admin_client_reservations')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function viewClientReservations(int $userId, EntityManagerInterface $em): Response
+    {
+        $client = $em->getRepository(User::class)->find($userId);
+
+        if (!$client) {
+            throw $this->createNotFoundException('Client non trouvé');
+        }
+
+        $reservations = $em->getRepository(Booking::class)->findBy(['user' => $client]);
+
+        return $this->render('admin/client_reservations.html.twig', [
+            'client' => $client,
+            'reservations' => $reservations,
+        ]);
+    }
+
+    #[Route('/admin/booking/cancel/{bookingId}', name: 'admin_booking_cancel')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminCancelBooking(int $bookingId, EntityManagerInterface $em): Response
+    {
+        $booking = $em->getRepository(Booking::class)->find($bookingId);
+
+        if (!$booking) {
+            $this->addFlash('error', 'Réservation introuvable.');
+            return $this->redirectToRoute('admin_client_list'); // Route vers la liste des clients ou réservations
+        }
+
+        // Récupérer le client
+        $client = $booking->getUser();
+
+        // Récupérer le SubscriptionCourse et ajuster les crédits restants
+        $subscriptionCourse = $booking->getSubscriptionCourse();
+        if ($subscriptionCourse) {
+            $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + 1);
+            $em->persist($subscriptionCourse);
+        }
+
+        // Supprimer la réservation
+        $em->remove($booking);
+        $em->flush();
+
+        $this->addFlash('success', sprintf(
+            'La réservation pour le cours "%s" du client %s %s a été annulée, et les crédits ont été ajustés.',
+            $booking->getCourse()->getName(),
+            $client->getFirstName(),
+            $client->getLastName()
+        ));
+
+        // Redirection vers la liste des réservations ou la page du client
+        return $this->redirectToRoute('admin_client_reservations', ['userId' => $client->getId()]);
     }
 
     #[Route('/booking/manage', name: 'booking_manage')]

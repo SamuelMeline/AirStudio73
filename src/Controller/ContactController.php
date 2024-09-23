@@ -32,12 +32,21 @@ class ContactController extends AbstractController
             $em->flush();
 
             $email = (new Email())
-                ->from('contactAirstudio73@gmail.com') // Utiliser l'adresse email authentifiée
-                ->replyTo($contact->getEmail()) // Utiliser l'email fourni par l'utilisateur pour les réponses
-                ->to('smelinepro@gmail.com', 'airstudio.73@gmail.com') // Adresse de destination
-                ->subject($contact->getSubject())
-                ->text($contact->getMessage());
-
+            ->from('contactAirstudio73@gmail.com') // Utiliser l'adresse email authentifiée
+            ->replyTo($contact->getEmail()) // Utiliser l'email fourni par l'utilisateur pour les réponses
+            ->to('smelinepro@gmail.com', 'airstudio.73@gmail.com') // Adresse de destination
+            ->subject($contact->getSubject())
+            ->text(
+                sprintf(
+                    "Nom : %s\nPrénom : %s\nEmail : %s\nTéléphone : %s\n\nMessage :\n%s",
+                    $contact->getName(),
+                    $contact->getFirstName(),
+                    $contact->getEmail(),
+                    $contact->getPhone(),
+                    $contact->getMessage()
+                )
+            );
+        
             try {
                 // Utiliser explicitement le même transporteur que dans test_mailer.php
                 $transport = Transport::fromDsn('smtp://contactAirstudio73@gmail.com:ofnlzwlcprshxdmv@smtp.gmail.com:587');

@@ -30,12 +30,15 @@
 				{% if form.plan is defined %}
 					<div class="form-group">
 						{{ form_label(form.plan, null, {'label_attr': {'class': 'form-label'}}) }}
-						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'checkPlanExpiry(this.value); fetchRemainingCredits(this.value); this.form.submit();'}}) }}
+						{{ form_widget(form.plan, {'attr': {'class': 'form-control', 'onchange': 'checkPlanExpiry(this.value); this.form.submit(); fetchAndAlertCredits(this.value);'}}) }}
 					</div>
-					<!-- Affichage des crédits restants -->
+				{% endif %}
+
+				<!-- Affichage des crédits restants après le rechargement de la page -->
+				{% if remainingCredits is defined %}
 					<div class="form-group">
-						<p id="remaining-credits">Crédits restants :
-							<span id="credits-value">-</span>
+						<p>Crédits restants :
+							<span>{{ remainingCredits }}</span>
 						</p>
 					</div>
 				{% endif %}
@@ -90,23 +93,29 @@ alert(data.warning);
 });
 }
 
-function fetchRemainingCredits(planId) { // Envoie une requête AJAX pour obtenir les crédits restants
-fetch('{{ path('fetch_remaining_credits') }}', {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'X-CSRF-Token': '{{ csrf_token('fetch_remaining_credits') }}'
-},
-body: JSON.stringify(
-{planId: planId}
-)
-}).then(response => response.json()).then(data => {
-if (data.remainingCredits !== undefined) { // Met à jour l'affichage des crédits restants
-document.getElementById('credits-value').textContent = data.remainingCredits;
-} else if (data.error) {
-alert(data.error);
-}
-});
+function fetchAndAlertCredits(planId) {
+    // Effectuer la requête AJAX pour récupérer les crédits restants
+    fetch('{{ path('fetch_remaining_credits') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': '{{ csrf_token('fetch_remaining_credits') }}'
+        },
+        body: JSON.stringify({ planId: planId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.remainingCredits !== undefined) {
+            // Afficher une alerte avec les crédits restants
+            alert('Il vous reste ' + data.remainingCredits + ' crédits pour ce forfait.');
+
+            // Soumettre le formulaire après l'alerte
+            document.querySelector('form').submit();
+        } else if (data.error) {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => console.error('Erreur lors de la récupération des crédits restants:', error));
 }
 	</script>
 {% endblock %}

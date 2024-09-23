@@ -1,34 +1,32 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div class="container">
-    <h1>Liste des activités</h1>
-    {% if is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('course_details_new') }}" class="btn btn-primary mb-3">Ajouter une activité</a>
-    {% endif %}
-    <div class="row">
-        {% for course in courseDetails %}
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    {% if course.photo %}
-                        <img src="{{ asset('uploads/photos/' ~ course.photo) }}" class="card-img-top" alt="{{ course.name }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ course.name }}</h5>
-                        <p class="card-text">{{ course.description }}</p>
-                        <p class="card-text">
-                            <strong>Capacité par défaut:</strong> {{ course.defaultCapacity }}
-                        </p>
-                        {% if is_granted('ROLE_ADMIN') %}
-                            <a href="{{ path('course_details_edit', {'id': course.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
-                            <a href="{{ path('course_details_delete', {'id': course.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">Supprimer</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% else %}
-            <p>Aucun cours disponible pour le moment.</p>
-        {% endfor %}
-    </div>
-</div>
+	<div class="container">
+		<h1>Liste des activités</h1>
+		<div class="row">
+			{% for course in courseDetails %}
+				<div class="col-md-4 mb-3">
+					<div class="card">
+						{% if course.photo %}
+							<img src="{{ asset('uploads/photos/' ~ course.photo) }}" class="card-img-top" alt="{{ course.name }}">
+						{% endif %}
+						<div class="card-body">
+							<h5 class="card-title">{{ course.name }}</h5>
+							<p class="card-text">{{ course.description }}</p>
+							<a href="{{ path('course_details_show', {'id': course.id}) }}" class="btn reserve-btn btn-sm">Voir les détails</a>
+							{% if is_granted('ROLE_ADMIN') %}
+								<a href="{{ path('course_details_edit', {'id': course.id}) }}" class="btn update btn-sm">Modifier</a>
+								<a href="{{ path('course_details_delete', {'id': course.id}) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">Supprimer</a>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			{% else %}
+				<p>Aucun cours disponible pour le moment.</p>
+			{% endfor %}
+		</div>
+	</div>
+	{% if is_granted('ROLE_ADMIN') %}
+		<a href="{{ path('course_details_new') }}" class="btn btn-general mb-3">Ajouter une activité</a>
+	{% endif %}
 {% endblock %}

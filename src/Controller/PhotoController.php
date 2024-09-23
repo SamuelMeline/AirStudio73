@@ -27,7 +27,7 @@ class PhotoController extends AbstractController
             if ($imageFile) {
                 $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
 
                 try {
                     $imageFile->move(
@@ -50,6 +50,54 @@ class PhotoController extends AbstractController
         return $this->render('photo/add.html.twig', [
             'photoForm' => $form->createView(),
         ]);
+    }
+
+    #[Route('/photo/edit/{id}', name: 'photo_edit')]
+    public function edit(Photo $photo, Request $request, EntityManagerInterface $em): Response
+    {
+        $form = $this->createForm(PhotoType::class, $photo);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('imagePath')->getData();
+
+            if ($imageFile) {
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+
+                try {
+                    $imageFile->move(
+                        $this->getParameter('images_directory'),
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // Handle exception during file upload
+                }
+
+                $photo->setImagePath($newFilename);
+            }
+
+            $em->flush();
+            $this->addFlash('success', 'La photo a été modifiée avec succès.');
+
+            return $this->redirectToRoute('photo_gallery');
+        }
+
+        return $this->render('photo/edit.html.twig', [
+            'photoForm' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/photo/delete/{id}', name: 'photo_delete')]
+    public function delete(Photo $photo, EntityManagerInterface $em): Response
+    {
+        $em->remove($photo);
+        $em->flush();
+
+        $this->addFlash('success', 'La photo a été supprimée avec succès.');
+
+        return $this->redirectToRoute('photo_gallery');
     }
 
     #[Route('/gallery', name: 'photo_gallery')]

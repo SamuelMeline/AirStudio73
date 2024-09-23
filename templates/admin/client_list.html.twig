@@ -31,8 +31,8 @@
 								<textarea class="form-control editable-notes" data-id="{{ user.id }}" rows="5">{{ user.notes }}</textarea>
 							</td>
 							<td>
-								<!-- Bouton pour réserver un cours pour le client -->
 								<a href="{{ path('admin_booking_client', {'userId': user.id}) }}" class="btn btn-general btn-sm mt-1">Réserver pour un client</a>
+								<a href="{{ path('admin_client_reservations', {'userId': user.id}) }}" class="btn btn-general btn-sm mt-1">Voir les réservations</a>
 								<a href="{{ path('admin_client_edit', {'id': user.id}) }}" class="btn update btn-sm">Modifier</a>
 								<a href="{{ path('admin_client_delete', {'id': user.id}) }}" class="btn complet btn-sm mt-1" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">Supprimer</a>
 							</td>

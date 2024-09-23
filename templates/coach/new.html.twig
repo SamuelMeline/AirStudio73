@@ -1,28 +1,40 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ajouter un Coach{% endblock %}
+{% block title %}Ajouter un Coach
+{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <h1>Ajouter un Coach</h1>
+	<div class="container mt-5">
+		<h1>Ajouter un Coach</h1>
 
-        {{ form_start(form) }}
-            <div class="form-group">
-                {{ form_label(form.name) }}
-                {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="form-group">
-                {{ form_label(form.biography) }}
-                {{ form_widget(form.biography, {'attr': {'class': 'form-control'}}) }}
-            </div>
-            <div class="form-group">
-                {{ form_label(form.photo) }}
-                {{ form_widget(form.photo, {'attr': {'class': 'form-control-file'}}) }}
-            </div>
+		{{ form_start(form) }}
+		<div class="form-group">
+			<div class="form-group">
+				{{ form_label(form.photo) }}
+				{{ form_widget(form.photo, {'attr': {'class': 'form-control-file'}}) }}
+			</div>
+			{{ form_label(form.name) }}
+			{{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group">
+			{{ form_label(form.presentation) }}
+			{{ form_widget(form.presentation, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group">
+			{{ form_label(form.description) }}
+			{{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group">
+			{{ form_label(form.second_description) }}
+			{{ form_widget(form.second_description, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<div class="form-group">
+			{{ form_label(form.third_description) }}
+			{{ form_widget(form.third_description, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<button type="submit" class="btn btn-primary">Enregistrer</button>
+		{{ form_end(form) }}
 
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-        {{ form_end(form) }}
-
-        <a href="{{ path('coach_list') }}" class="btn btn-secondary mt-3">Annuler</a>
-    </div>
+		<a href="{{ path('coach_list') }}" class="btn btn-secondary mt-3">Annuler</a>
+	</div>
 {% endblock %}

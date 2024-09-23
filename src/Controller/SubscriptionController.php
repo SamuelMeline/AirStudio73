@@ -66,7 +66,7 @@ class SubscriptionController extends AbstractController
 
         // Si le formulaire est soumis
         if ($form->isSubmitted()) {
-            
+
             // Vérifiez si le champ 'plan' existe dans le formulaire avant de l'utiliser
             if (!$form->has('plan') || !$form->get('plan')->getData()) {
                 return $this->render('subscription/new.html.twig', [
@@ -84,6 +84,7 @@ class SubscriptionController extends AbstractController
 
             // Récupérer le plan choisi par l'utilisateur
             $plan = $form->get('plan')->getData();
+            $subscriptionType = $plan->getSubscriptionType();
 
             // Vérifier si le plan est expiré
             $currentDate = new \DateTime();
@@ -98,7 +99,7 @@ class SubscriptionController extends AbstractController
             $existingSubscriptions = $em->getRepository(Subscription::class)->createQueryBuilder('s')
                 ->leftJoin('s.subscriptionCourses', 'sc')
                 ->where('s.user = :user')
-                ->andWhere('sc.remainingCredits > 0 OR s.plan = :plan') // Vérification des crédits restants ou abonnement en double
+                ->andWhere('s.plan = :plan') // Vérification d'un abonnement en double
                 ->setParameter('user', $user)
                 ->setParameter('plan', $plan)
                 ->getQuery()
@@ -106,17 +107,11 @@ class SubscriptionController extends AbstractController
 
             // Si l'utilisateur a des abonnements qui répondent aux critères
             if (count($existingSubscriptions) > 0) {
-                // Vérification des crédits restants sur les abonnements existants
-                foreach ($existingSubscriptions as $existingSubscription) {
-                    if ($existingSubscription->getSubscriptionCourses()[0]->getRemainingCredits() > 0) {
-                        $this->addFlash('error', 'Vous ne pouvez pas acheter un nouvel abonnement tant que vous avez encore des crédits sur votre abonnement actuel.');
-                        return $this->redirectToRoute('subscription_new');
-                    }
+                // Si l'utilisateur a déjà souscrit à ce plan et que ce n'est pas renouvelable
+                if (strpos($subscriptionType, 'renewable') === false) {
+                    $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois à cet abonnement.');
+                    return $this->redirectToRoute('subscription_new');
                 }
-
-                // Si aucun abonnement n'a de crédits restants mais qu'il existe une souscription pour le même plan
-                $this->addFlash('error', 'Vous ne pouvez pas souscrire deux fois au même abonnement.');
-                return $this->redirectToRoute('subscription_new');
             }
 
             // Si tout est bon, traiter la soumission du formulaire et la création de la session Stripe
@@ -255,24 +250,17 @@ class SubscriptionController extends AbstractController
         // Calculer la différence en semaines entre la date de début et la date actuelle
         $weeksElapsed = floor($startDate->diff($currentDate)->days / 7);
 
-        // Calculer le début et la fin de la semaine en cours
-        $startOfWeek = (clone $currentDate)->modify('monday this week');
-        $endOfWeek = (clone $startOfWeek)->modify('+6 days');
-
-        // Si la date de début est dans la semaine en cours, ne pas compter cette semaine comme écoulée
-        if ($startDate >= $startOfWeek && $startDate <= $endOfWeek) {
-            $weeksElapsed--;
+        // Si la date de début est future, alors 0 semaines ont écoulé, pas de décrémentation
+        if ($startDate > $currentDate) {
+            $weeksElapsed = 0;
         }
 
         // Ajuster en fonction du type d'abonnement
-        if ($plan->getSubscriptionType() === 'weekly') {
-            // Pour un abonnement hebdomadaire, ne rien changer
+        if ($plan->getSubscriptionType() === 'weekly' || $plan->getSubscriptionType() === 'bi-weekly') {
+            // Pour un abonnement hebdomadaire ou bi-hebdomadaire, ajuster en fonction des semaines écoulées
             $remainingCredits = max(0, $totalCredits - $weeksElapsed);
-        } elseif ($plan->getSubscriptionType() === 'bi-weekly') {
-            // Pour un abonnement bi-hebdomadaire, deux crédits par semaine
-            $remainingCredits = max(0, $totalCredits - ($weeksElapsed * 2));
         } else {
-            // Autres types d'abonnement, on peut appliquer une logique par défaut si besoin
+            // Autres types d'abonnement, utiliser la totalité des crédits
             $remainingCredits = $totalCredits;
         }
 
@@ -296,10 +284,10 @@ class SubscriptionController extends AbstractController
         $interval = $expiryDate->diff($currentDate);
         $monthsRemaining = $interval->m + ($interval->y * 12);
 
-        // Ajouter un mois si le mois en cours est incomplet (pour compter le mois en cours)
-        if ($interval->d > 0) {
-            $monthsRemaining++;
-        }
+        // // Ajouter un mois si le mois en cours est incomplet (pour compter le mois en cours)
+        // if ($interval->d > 0) {
+        //     $monthsRemaining++;
+        // }
 
         // Si le nombre de paiements est supérieur à 3, ignorer les crédits restants et utiliser le prix total
         if ($paymentInstallments > 3) {

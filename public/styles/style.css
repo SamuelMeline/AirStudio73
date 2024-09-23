@@ -328,8 +328,8 @@ a.reserve {
 p.update {
 	color: black !important;
 	margin: 0 auto;
-	margin-top: 10px;
-	margin-bottom: 10px;
+	/* margin-top: 10px;
+	margin-bottom: 10px; */
 	font-weight: 600 !important;
 	font-size: 16px !important;
 }
@@ -358,7 +358,7 @@ a.update {
 	background: #81742abd;
 	border-radius: 5px;
 	padding: 5px;
-	margin-top: 10px;
+	/* margin-top: 10px; */
 	color: #fff !important;
 	text-transform: initial !important;
 	font-weight: normal !important;
@@ -525,10 +525,11 @@ footer.footer p {
 	margin-bottom: 5px;
 }
 
-.p-2.alert.alert-danger, .p-2.alert.alert-success {
+.p-2.alert.alert-danger,
+.p-2.alert.alert-success {
 	margin-top: 12px;
 	margin-left: 12px;
-	max-width: 730px;
+	text-align: center;
 }
 
 .administration a.update {
@@ -543,6 +544,148 @@ footer.footer p {
 	max-width: 50%;
 }
 
+.coach ul {
+	list-style: none;
+}
+
+.img-coach img {
+	height: 350px !important;
+	width: 350px;
+	border: 1px solid;
+	border-radius: 180px;
+	object-fit: cover;
+	object-position: top;
+}
+
+.second-part-coach {
+	margin-left: 100px;
+}
+
+.gallery img {
+	min-height: 350px;
+	max-height: 350px;
+	object-fit: contain;
+	transition: box-shadow 0.3s ease;
+	background-color: rgba(0, 0, 0, 0.555);
+}
+
+.gallery img:hover {
+	box-shadow: 0px 8px 16px #721c24; /* Ajoute une ombre subtile au survol */
+	cursor: pointer;
+}
+
+.locate {
+	margin: 0 auto;
+	max-width: 75%;
+	padding: 20px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+.container .coach {
+	max-width: 1500px;
+}
+
+.coach .btn-admin {
+	text-align: end;
+}
+
+.coach h1 {
+	background-color: transparent;
+	font-size: 54px;
+	color: #6a1b9a !important;
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+}
+
+.coach .img-coach {
+	padding: 12px;
+}
+
+.coach ul,
+.coach li {
+	margin-left: 0px;
+	padding-left: 0px;
+	margin-bottom: 10px;
+}
+
+.coach .presentation {
+	padding: 12px;
+	font-size: 20px;
+	margin-left: 40px;
+}
+
+.coach .description {
+	padding: 12px;
+	font-size: 20px;
+	margin-top: 20px;
+}
+
+.coach .second-description {
+	padding: 12px;
+	font-size: 20px;
+}
+
+.coach .timeline {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	position: relative;
+	margin: 20px 0;
+	padding: 10px 0;
+	list-style-type: none;
+	border-top: 2px solid #6a1b9a;
+}
+
+.coach .timeline::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 2px;
+	width: 100%;
+	background-color: #6a1b9a;
+}
+
+.coach .timeline li {
+	position: relative;
+	text-align: center;
+	width: 120px;
+}
+
+.coach .timeline li::before {
+	content: "";
+	position: absolute;
+	top: -18px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 15px;
+	height: 15px;
+	background-color: #6a1b9a;
+	border-radius: 50%;
+	border: 2px solid #fff;
+	z-index: 1;
+}
+
+.coach .timeline li strong {
+	display: block;
+	margin-bottom: 10px;
+	font-weight: bold;
+}
+
+.coach .timeline li p {
+	margin: 0;
+	font-size: 17px;
+	min-height: 101px;
+}
+
+.coach .liste-people {
+	display: flex;
+	justify-content: space-around;
+	margin-top: 40px;
+	margin-bottom: 40px;
+}
+
 @media screen and (max-width: 1500px) {
 	.table th,
 	.table td {
@@ -552,7 +695,7 @@ footer.footer p {
 	}
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 770px) {
 	body {
 		font-size: 16px !important;
 	}
@@ -563,6 +706,10 @@ footer.footer p {
 
 	.switch {
 		min-width: 25px;
+	}
+
+	.d-flex {
+		display: block !important;
 	}
 
 	.more,
@@ -626,6 +773,14 @@ footer.footer p {
 	}
 
 	h1 {
+		font-size: 30px !important; /* Ajuster la taille du titre */
+	}
+
+	h2 {
+		font-size: 25px !important; /* Ajuster la taille du titre */
+	}
+
+	h3 {
 		font-size: 20px !important; /* Ajuster la taille du titre */
 	}
 
@@ -680,6 +835,7 @@ footer.footer p {
 	.container {
 		max-width: 100%;
 		padding: 0;
+		min-height: 74vh;
 	}
 
 	footer.footer a,
@@ -775,10 +931,11 @@ footer.footer p {
 		display: none;
 	} */
 
-	.administration .btn, .admin-course .btn {
-        padding: 3px !important;
-        font-size: 8px !important;
-    }
+	.administration .btn,
+	.admin-course .btn {
+		padding: 3px !important;
+		font-size: 8px !important;
+	}
 
 	.administration .content-scrollable {
 		max-width: 100%;
@@ -787,6 +944,33 @@ footer.footer p {
 	.administration .editable-notes {
 		min-width: 100px !important;
 		font-size: 8px !important;
+	}
+
+	.coach .presentation {
+		margin-left: 0;
+		margin: 0 auto;
+	}
+
+	.coach p, .coach li, .coach .timeline li p {
+		font-size: 12px;
+	}
+
+	.coach .timeline {
+		width: 220%;
+	}
+
+	.coach .img-coach {
+		margin: 0 auto;
+		text-align: center !important;
+	}
+
+	.coach .img-coach img {
+		height: 250px !important;
+		width: 250px;
+	}
+
+	.banner {
+		left: 0 !important;
 	}
 }
 

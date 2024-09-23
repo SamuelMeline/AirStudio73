@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\CourseDetailsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\CourseDetailsRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: CourseDetailsRepository::class)]
 class CourseDetails
@@ -22,8 +24,48 @@ class CourseDetails
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo = null;
 
-    #[ORM\Column(type: 'integer')]
-    private ?int $defaultCapacity = null;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $benefits = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photobenefits = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $second_benefits = null;
+
+    #[ORM\OneToMany(mappedBy: 'courseDetails', targetEntity: Review::class, orphanRemoval: true)]
+    private Collection $reviews;
+
+    public function __construct()
+    {
+        $this->reviews = new ArrayCollection(); // Initialisation de la collection
+    }
+
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    public function addReview(Review $review): self
+    {
+        if (!$this->reviews->contains($review)) {
+            $this->reviews->add($review);
+            $review->setCourseDetails($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReview(Review $review): self
+    {
+        if ($this->reviews->removeElement($review)) {
+            if ($review->getCourseDetails() === $this) {
+                $review->setCourseDetails(null);
+            }
+        }
+
+        return $this;
+    }
 
     // Getters and Setters
     public function getId(): ?int
@@ -55,6 +97,7 @@ class CourseDetails
         return $this;
     }
 
+
     public function getPhoto(): ?string
     {
         return $this->photo;
@@ -66,15 +109,36 @@ class CourseDetails
         return $this;
     }
 
-    public function getDefaultCapacity(): ?int
+    public function getBenefits(): ?string
     {
-        return $this->defaultCapacity;
+        return $this->benefits;
     }
 
-    public function setDefaultCapacity(int $defaultCapacity): self
+    public function setBenefits(?string $benefits): self
     {
-        $this->defaultCapacity = $defaultCapacity;
+        $this->benefits = $benefits;
+        return $this;
+    }
 
+    public function getPhotoBenefits(): ?string
+    {
+        return $this->photobenefits;
+    }
+
+    public function setPhotoBenefits(?string $photobenefits): self
+    {
+        $this->photobenefits = $photobenefits;
+        return $this;
+    }
+
+    public function getSecondBenefits(): ?string
+    {
+        return $this->second_benefits;
+    }
+
+    public function setSecondBenefits(?string $second_benefits): self
+    {
+        $this->second_benefits = $second_benefits;
         return $this;
     }
 }

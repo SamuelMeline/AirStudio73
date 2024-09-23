@@ -15,20 +15,35 @@ class CoachType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'label' => 'Nom',
-                'attr' => ['class' => 'form-control']
-            ])
-            ->add('biography', TextareaType::class, [
-                'label' => 'Biographie',
-                'required' => false,
-                'attr' => ['class' => 'form-control']
-            ])
             ->add('photo', FileType::class, [
                 'label' => 'Photo',
                 'required' => false,
                 'mapped' => false, // Indicate that this field is not associated with any entity property
                 'attr' => ['class' => 'form-control-file']
+            ])
+            ->add('name', TextType::class, [
+                'label' => 'Nom',
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('presentation', TextareaType::class, [
+                'label' => 'Biographie',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('second_description', TextareaType::class, [
+                'label' => 'Description 2',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
+            ])
+            ->add('third_description', TextareaType::class, [
+                'label' => 'Description 3',
+                'required' => false,
+                'attr' => ['class' => 'form-control']
             ]);
     }
 

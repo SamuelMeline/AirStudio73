@@ -80,6 +80,7 @@ class SubscriptionType extends AbstractType
                                 break;
 
                             case 'unit':
+                            case 'weekly-renewable':
                                 $form->add('paymentInstallments', ChoiceType::class, [
                                     'label' => 'Nombre de paiements',
                                     'choices' => [

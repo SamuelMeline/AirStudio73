@@ -1,34 +1,71 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des Coachs
+{% block title %}Coach
 {% endblock %}
-
 {% block body %}
-	<div class="container">
-		<h1>Liste des Coachs</h1>
-
-		{% if is_granted('ROLE_ADMIN') %}
-			<a href="{{ path('coach_new') }}" class="btn btn-primary mb-3">Ajouter un Coach</a>
-		{% endif %}
-
-		<div class="row">
-			{% for coach in coaches %}
-				<div class="col-md-4 mb-4">
-					<div class="card">
-						{% if coach.photo %}
-							<img src="{{ asset('uploads/photos/' ~ coach.photo) }}" class="card-img-top" alt="{{ coach.name }}">
-						{% endif %}
-						<div class="card-body">
-							<h5 class="card-title">{{ coach.name }}</h5>
-							<p class="card-text">{{ coach.biography }}</p>
-							{% if is_granted('ROLE_ADMIN') %}
-								<a href="{{ path('coach_edit', {id: coach.id}) }}" class="btn btn-secondary btn-sm">Modifier</a>
-								<a href="{{ path('coach_delete', {id: coach.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce coach ?');">Supprimer</a>
-							{% endif %}
-						</div>
+	<div class="col container coach">
+		<h1>Carole Perrier</h1>
+		{% for coach in coaches %}
+			<div class="btn-admin">
+				{% if is_granted('ROLE_ADMIN') %}
+					<a href="{{ path('coach_edit', {id: coach.id}) }}" class="btn update btn-sm">Modifier</a>
+					<a href="{{ path('coach_delete', {id: coach.id}) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce coach ?');">Supprimer</a>
+				{% endif %}
+			</div>
+			<div class="col d-flex">
+				{% if coach.photo %}
+					<div class="img-coach">
+						<img src="{{ asset('uploads/photos/' ~ coach.photo) }}" alt="{{ coach.name }}">
 					</div>
+				{% endif %}
+				<div class="col presentation">
+					<p>{{ coach.presentation|raw }}</p>
 				</div>
-			{% endfor %}
-		</div>
+			</div>
+			<div class="col content-scrollable description">
+				<p>{{ coach.description|raw }}</p>
+			</div>
+			<div class="col second-description">
+				<p>
+					En parallèle à cet enseignement, je me forme à la souplesse, au Yoga, et au Yoga aérien.Diplôme de Professeure de Yoga Aérien prévu pour mars 2024.
+					<br>
+					Durant toute cette période j’ai enrichi mon enseignement en participant à des Stage auprès de grands noms de la pole-dance et de la souplesse.
+				</p>
+				<div class="col liste-people">
+					<ul>
+						<li>- PRANA</li>
+						<li>- Nicolas CASANOVA</li>
+						<li>- Marion CRAMPE</li>
+						<li>- Geoffrey LETAILLEUR</li>
+						<li>- Ingrid LAUROZ</li>
+						<li>- Maria Julia AGUIAR</li>
+					</ul>
+					<ul>
+						<li>- Céline COUNALI</li>
+						<li>- Keelin ASHTON</li>
+						<li>- Yannick DIAZ</li>
+						<li>- Sylvie PONT</li>
+						<li>- Marco ORANGE</li>
+						<li>- Sarah CARTER</li>
+					</ul>
+					<ul>
+						<li>- Olga TRIFONOVA</li>
+						<li>- Amandine PHILIPPE</li>
+						<li>- Laura METE</li>
+						<li>- Annick TAILLON</li>
+						<li>- Dimitri POLITOV</li>
+						<li>- Ophélie SCREVE</li>
+					</ul>
+				</div>
+				<p>Je continue perpétuellement de me former pour évoluer et enrichir mes méthodes d’enseignement.<br>Je m’adapte à tout type d’élève, toute morphologie (j’ai même eu des élèves avec des handicaps sérieux).</p>
+				<p>
+					<strong>Mon objectif : Tout le monde doit prendre du plaisir et progresser à son rythme !</strong>
+				</p>
+				{# <p>{{ coach.secondDescription|raw }}</p> #}
+			</div>
+		{% endfor %}
 	</div>
-{% endblock %}
+	{% if is_granted('ROLE_ADMIN') %}
+		<a href="{{ path('coach_new') }}" class="btn btn-general mt-2">Ajouter un Coach</a>
+	{% endif %}
+</div>{% endblock %}

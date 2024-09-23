@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Review;
+use App\Form\ReviewType;
 use App\Entity\CourseDetails;
 use App\Form\CourseDetailsType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -63,6 +65,35 @@ class CourseDetailsController extends AbstractController
 
         return $this->render('course_details/new.html.twig', [
             'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/cours/{id}', name: 'course_details_show')]
+    public function show(CourseDetails $courseDetails, Request $request, EntityManagerInterface $em): Response
+    {
+        // Création du formulaire d'avis
+        $review = new Review();
+        $form = $this->createForm(ReviewType::class, $review);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Lier l'avis au cours et à l'utilisateur connecté
+            $review->setCourseDetails($courseDetails);
+            $review->setUser($this->getUser());
+
+            // Sauvegarder l'avis
+            $em->persist($review);
+            $em->flush();
+
+            // Message de confirmation
+            $this->addFlash('success', 'Votre avis a été ajouté avec succès.');
+
+            return $this->redirectToRoute('course_details_show', ['id' => $courseDetails->getId()]);
+        }
+
+        return $this->render('course_details/show.html.twig', [
+            'courseDetails' => $courseDetails,
+            'reviewForm' => $form->createView(),
         ]);
     }
 

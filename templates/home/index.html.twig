@@ -1,23 +1,131 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - Site en cours de création
+{% block title %}Accueil - Studio de Pole Dance et Yoga Aérien{% endblock %}
+
+{% block stylesheets %}
+	<style>
+		body {
+			font-family: 'Roboto', sans-serif;
+			color: #333;
+			background-color: #f9f9f9;
+		}
+
+		/* Bannière en haut de la page */
+		.banner {
+			position: relative;
+			width: 108%;
+			height: 550px;
+			background-image: url("{{ asset('images/banniere.jpg') }}");
+			background-size: cover;
+			background-position: center;
+			background-position-y: -1070px;
+			left: -72px
+		}
+
+		h1 {
+			background-color: transparent;
+			text-align: center;
+			font-size: 60px;
+			position: relative;
+			top: 200px;
+		}
+
+		/* Autres styles pour la page */
+		.container-home {
+			position: relative;
+			max-width: 1200px;
+			margin: 20px auto 0;
+			top: 0px;
+			margin-bottom: 30px;
+		}
+
+		h2 {
+			font-size: 2.5rem;
+			font-weight: bold;
+			color: #2C3E50;
+			text-align: center;
+			margin-bottom: 1.5rem;
+			margin-top: 30px;
+		}
+
+		/* Section de contenu de la page */
+
+		.section h3 {
+			font-size: 2rem;
+			margin-bottom: 1rem;
+		}
+
+		.section p {
+			font-size: 1.1rem;
+			line-height: 1.6;
+			margin-bottom: 1.5rem;
+		}
+
+		/* Styles pour la carte */
+		.map-section {
+			margin-top: 3rem;
+			text-align: center;
+		}
+
+		#map {
+			height: 500px;
+			width: 100%;
+			border-radius: 8px;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+		}
+	</style>
 {% endblock %}
 
 {% block body %}
-	<div class="container home mt-5">
-		<div class="jumbotron text-center p-4 w-75 mt-2">
-			<h1 class="display-4">Bienvenue sur notre site en construction</h1>
-			<p class="lead">Nous travaillons activement à la création de notre nouveau site web.</p>
-			<hr
-			class="my-4">
-			{# <p>Les réservations seront bientôt disponnible, merci de ne pas réserver pour le moment :)
-						</p> #}
-			<p>Malgré cela, vous pouvez dès maintenant réserver vos cours via notre
-				<a class="reserve" href="{{ path('calendar') }}">
-					calendrier en ligne.</a>
-			</p>
-			<a class="btn btn-general btn-lg" href="{{ path('calendar') }}" role="button">Accéder au Calendrier et Réserver</a>
-			<p class="mt-4">Restez à l'écoute pour plus de fonctionnalités à venir bientôt !</p>
+	<div class="banner">
+		<div class="banner-content"></div>
+		<h1>
+			Air Studio 73
+		</h1>
+	</div>
+	<div class="container-home">
+		<!-- Section Introduction générale -->
+		<section class="section">
+			<h2>L'idée et le concept</h2>
+			<p>Ce projet a pour but de créer un studio de Pole Dance et Yoga aérien pour des personnes de 14 à 77 ans. Hommes et femmes sont les bienvenus.</p>
+			<p>Mes différentes expériences dans l'enseignement m'ont amené à penser à un projet à taille humaine. Je veux partager ma passion, et non enseigner "à la chaîne".</p>
+			<p>Les cours seront limités à 6 personnes pour la pole dance et à 4 pour le yoga aérien, afin de garantir un suivi personnalisé. Les cours de danse aérienne (hammock) seront limités à 3 participantes. Un cours hebdomadaire sera dédié aux personnes de plus de 60 ans pour le yoga aérien. Je proposerai également un cours de souplesse hebdomadaire, et des stages pendant les week-ends avec des professionnels invités.</p>
+		</section>
+
+		<!-- Section La Salle -->
+		<section class="section">
+			<h2>La Salle</h2>
+			<p>Notre salle dispose d'une hauteur de 3,20 m, avec la possibilité d'évoluer vers 3,40 m.</p>
+
+			<h3>Espace Yoga aérien et Hammock</h3>
+			<p>Surface : 28 m². Cet espace sera équipé de 5 hamacs avec des tatamis de dojo pour plus de confort.</p>
+
+			<h3>Espace Pole Dance</h3>
+			<p>Surface : 50 m². La salle sera équipée de 4 barres de pole dance avec un sol adapté à la pratique (parquet ou tapis de danse) :</p>
+			<p>Deux toilettes (dont une pour PMR) et une douche sont également disponibles.</p>
+		</section>
+
+		<!-- Section Carte -->
+		<div class="map-section">
+			<h2>Localisation</h2>
+			<p>Notre studio se situe au
+				<b>25 Chemin de la Plaine, 73220 AITON</b>. Voici l'emplacement exact :</p>
+			<div id="map"></div>
 		</div>
 	</div>
+
+	<!-- Script pour la carte Leaflet -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var map = L.map('map').setView([45.5648, 6.2940], 13); // Coordonnées pour Aiton
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        L.marker([45.5648, 6.2940]).addTo(map)
+            .bindPopup('<b>Notre Studio</b><br>25 Chemin de la Plaine, 73220 AITON.').openPopup();
+    });
+</script>
 {% endblock %}

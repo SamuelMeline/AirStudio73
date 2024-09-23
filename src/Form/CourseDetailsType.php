@@ -23,14 +23,15 @@ class CourseDetailsType extends AbstractType
                 'label' => 'Description',
                 'required' => false,
             ])
+            ->add('benefits', TextareaType::class, [
+                'required' => false,
+                'label' => 'Bienfaits'
+            ])
             ->add('photo', FileType::class, [
                 'label' => 'Photo',
                 'required' => false,
                 'mapped' => false, // Indicate that this field is not associated with any entity property
                 'attr' => ['class' => 'form-control-file']
-            ])
-            ->add('defaultCapacity', IntegerType::class, [
-                'label' => 'Capacité par défaut',
             ]);
     }
 

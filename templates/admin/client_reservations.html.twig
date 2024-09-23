@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Réservations de {{ client.firstName }} {{ client.lastName }}</h1>
+
+        {% if reservations is not empty %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nom du cours</th>
+                        <th>Date et Heure</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                        <tr>
+                            <td>{{ reservation.course.name }}</td>
+                            <td>{{ reservation.course.startTime|date('d/m/Y H:i') }}</td>
+                            <td>
+                                <form method="POST" action="{{ path('admin_booking_cancel', {'bookingId': reservation.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucune réservation trouvée pour ce client.</p>
+        {% endif %}
+        
+        <a href="{{ path('admin_client_list') }}" class="btn btn-secondary mt-3">Retour à la liste des clients</a>
+    </div>
+{% endblock %}

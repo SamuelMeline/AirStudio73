@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Course;
 use App\Entity\Booking;
+use App\Entity\Subscription;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,6 +15,24 @@ class CalendarController extends AbstractController
     #[Route('/calendar/{year?}/{week?}', name: 'calendar')]
     public function index(EntityManagerInterface $em, int $year = null, int $week = null): Response
     {
+
+        $user = $this->getUser(); // Récupérer l'utilisateur connecté
+
+        // Récupérer les abonnements actifs avec des crédits restants
+        $activeSubscriptions = $em->getRepository(Subscription::class)->createQueryBuilder('s')
+            ->leftJoin('s.subscriptionCourses', 'sc')
+            ->where('s.user = :user')
+            ->andWhere('sc.remainingCredits > 0') // Vérifier si l'utilisateur a encore des crédits
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
+
+        // Si l'utilisateur n'a pas de crédits restants, redirection vers la page d'achat d'un forfait
+        if (count($activeSubscriptions) === 0) {
+            $this->addFlash('error', 'Vous n\'avez plus de crédits, veuillez acheter un forfait.');
+            return $this->redirectToRoute('subscription_new');
+        }
+
         $today = new \DateTime();
 
         if ($year && $week) {

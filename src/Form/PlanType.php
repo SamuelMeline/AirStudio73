@@ -49,6 +49,7 @@ class PlanType extends AbstractType
                 'label' => 'Type d\'abonnement',
                 'choices' => [
                     'Abonnement classique' => 'weekly',
+                    'Abonnement classique renouvelable' => 'weekly-renewable',
                     'Abonnement classique + activité' => 'bi-weekly',
                     'Abonnement souple' => 'souple',
                     'Abonnement illimité' => 'unlimited',
