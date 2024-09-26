@@ -450,12 +450,12 @@ Airstudio73',
         // Récupérer tous les clients
         $clients = $em->getRepository(User::class)->findAll();
 
-        // Initialiser les cours disponibles
+        // Initialiser les variables
         $availableCourses = [];
+        $remainingCredits = []; // Tableau pour stocker les crédits restants par cours
 
         // Récupérer l'ID du client sélectionné
         $userId = $request->query->get('userId');
-        $remainingCredits = null; // Initialise les crédits restants à null
 
         if ($userId) {
             // Récupérer le client
@@ -466,55 +466,36 @@ Airstudio73',
                 return $this->redirectToRoute('admin_booking_client');
             }
 
-            // Récupérer les abonnements du client
-            $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user]);
+            // Récupérer les abonnements actifs du client
+            $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user, 'isActive' => true]);
 
             if (empty($subscriptions)) {
                 $this->addFlash('error', 'Aucun abonnement actif trouvé pour ce client.');
             } else {
-                // Initialiser les crédits restants
-                $remainingCredits = 0;
-                $addedCourseIds = []; // Tableau pour stocker les IDs de cours déjà ajoutés
+                // Récupérer tous les cours futurs (non encore passés)
+                $futureCourses = $em->getRepository(Course::class)->createQueryBuilder('c')
+                    ->where('c.startTime >= :now')
+                    ->setParameter('now', new \DateTime())
+                    ->orderBy('c.startTime', 'ASC')
+                    ->getQuery()
+                    ->getResult();
 
-                // Parcourir chaque abonnement pour accumuler les crédits restants
+                // Parcourir chaque abonnement pour accumuler les crédits restants et récupérer les cours disponibles
                 foreach ($subscriptions as $subscription) {
                     $subscriptionCourses = $em->getRepository(SubscriptionCourse::class)->findBy([
                         'subscription' => $subscription
                     ]);
 
-                    // Parcourir chaque SubscriptionCourse pour récupérer les crédits restants et les cours disponibles
+                    // Récupérer les crédits et les cours disponibles associés
                     foreach ($subscriptionCourses as $subscriptionCourse) {
-                        $remainingCredits += $subscriptionCourse->getRemainingCredits(); // Ajouter les crédits restants
+                        $course = $subscriptionCourse->getCourse();
+                        $remainingCredits[$course->getName()] = $subscriptionCourse->getRemainingCredits(); // Assigner les crédits restants au nom du cours
 
-                        // Ne récupérer les cours disponibles que s'il y a encore des crédits restants
+                        // Filtrer les cours futurs qui correspondent au type du plan et qui ont encore des crédits restants
                         if ($subscriptionCourse->getRemainingCredits() > 0) {
-                            // Récupérer le type de cours de l'abonnement (depuis le Plan)
-                            $plan = $subscription->getPlan();
-                            if ($plan) {
-                                // Séparer les types par " & " et créer un tableau des différents types
-                                $courseTypes = array_map('trim', explode('&', $plan->getType()));  // Séparer les types et les trim
-
-                                foreach ($courseTypes as $courseType) {
-                                    // Filtrer les cours par type et dates d'abonnement
-                                    $courses = $em->getRepository(Course::class)
-                                        ->createQueryBuilder('c')
-                                        ->where('c.name LIKE :courseType')  // Ici on filtre par le type de cours
-                                        ->andWhere('c.startTime >= :startDate')
-                                        ->andWhere('(c.startTime <= :expiryDate OR :expiryDate IS NULL)')
-                                        ->setParameter('courseType', '%' . trim($courseType) . '%')  // Utiliser LIKE pour gérer les similarités
-                                        ->setParameter('startDate', $subscription->getStartDate())
-                                        ->setParameter('expiryDate', $subscription->getExpiryDate())
-                                        ->orderBy('c.startTime', 'ASC') // Tri par ordre croissant de la date
-                                        ->getQuery()
-                                        ->getResult();
-
-                                    // Ajouter uniquement les cours qui ne sont pas déjà dans la liste (en utilisant l'ID du cours)
-                                    foreach ($courses as $course) {
-                                        if (!in_array($course->getId(), $addedCourseIds)) {
-                                            $availableCourses[] = $course;
-                                            $addedCourseIds[] = $course->getId(); // Ajouter l'ID du cours au tableau des IDs ajoutés
-                                        }
-                                    }
+                            foreach ($futureCourses as $futureCourse) {
+                                if ($futureCourse->getName() === $course->getName()) {
+                                    $availableCourses[$futureCourse->getId()] = $futureCourse;
                                 }
                             }
                         }
@@ -527,6 +508,8 @@ Airstudio73',
         if ($request->isMethod('POST')) {
             $userId = $request->request->get('userId');
             $courseId = $request->request->get('courseId');
+            $isRecurrent = $request->request->get('isRecurrent'); // Ajouter un champ pour la récurrence
+            $numOccurrences = $request->request->get('numOccurrences') ?? 1; // Nombre d'occurrences (par défaut 1)
 
             // Récupérer le client et le cours
             $user = $em->getRepository(User::class)->find($userId);
@@ -543,33 +526,39 @@ Airstudio73',
             // Gérer la réservation avec les abonnements de l'utilisateur
             $subscriptionCourse = $this->getValidSubscriptionCourse($subscriptions, $course);
 
-            if ($subscriptionCourse && $subscriptionCourse->getRemainingCredits() > 0) {
-                // Décrémenter les crédits
-                $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() - 1);
+            if ($subscriptionCourse && $subscriptionCourse->getRemainingCredits() >= $numOccurrences) {
+                // Décrémenter les crédits en fonction du nombre d'occurrences
+                $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() - $numOccurrences);
                 $em->persist($subscriptionCourse);
 
-                // Créer la réservation
+                // Créer la première réservation
                 $booking = new Booking();
                 $booking->setUser($user);
                 $booking->setCourse($course);
                 $booking->setSubscriptionCourse($subscriptionCourse);
-                $booking->setIsRecurrent(false);
-                $booking->setNumOccurrences(false);
+                $booking->setIsRecurrent($isRecurrent);
+                $booking->setNumOccurrences($numOccurrences);
                 $em->persist($booking);
+
+                // Créer les réservations récurrentes si nécessaire
+                if ($isRecurrent && $numOccurrences > 1) {
+                    $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $subscriptionCourse, $course);
+                }
+
                 $em->flush();
 
                 $this->addFlash('success', 'Réservation effectuée pour ' . $user->getFirstName());
-                return $this->redirectToRoute('admin_booking_client');
+                return $this->redirectToRoute('admin_booking_client', ['userId' => $userId]);
             } else {
                 $this->addFlash('error', 'Pas assez de crédits pour réserver ce cours.');
-                return $this->redirectToRoute('admin_booking_client');
+                return $this->redirectToRoute('admin_booking_client', ['userId' => $userId]);
             }
         }
 
         return $this->render('admin/booking_for_client.html.twig', [
             'clients' => $clients,
             'courses' => $availableCourses,
-            'remainingCredits' => $remainingCredits, // Envoyer les crédits restants à la vue
+            'remainingCredits' => $remainingCredits, // Envoyer les crédits restants à la vue avec les noms des cours
         ]);
     }
 

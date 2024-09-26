@@ -20,14 +20,19 @@
 				{# Si la souscription a des crédits restants, on l'affiche #}
 				{% if hasCredits %}
 					<div class="list-group-item">
-						<h5 class="mb-1">{{ subscription.plan.name }}</h5>
+						{% if subscription.plan is not null %}
+							{{ subscription.plan.name }}
+						{% else %}
+							
+						{% endif %}
 						<ul class="list-unstyled">
 							{% for subscriptionCourse in subscription.subscriptionCourses %}
 								{% if subscriptionCourse.remainingCredits > 0 %}
 									<li>
 										{{ subscriptionCourse.course.name }}
-										- 
-										{{ subscriptionCourse.remainingCredits }} crédits
+										-
+										{{ subscriptionCourse.remainingCredits }}
+										crédits
 									</li>
 								{% endif %}
 							{% endfor %}
@@ -43,7 +48,9 @@
 							<p class="text-danger">Ce forfait a expiré.</p>
 						{% elseif isNotStarted %}
 							<p class="text-warning">Ce forfait vous permet de réserver des cours à partir du
-								{{ subscription.startDate|date('d-m-Y') }} et jusqu'au {{ subscription.expiryDate|date('d-m-Y') }}.</p>
+								{{ subscription.startDate|date('d-m-Y') }}
+								et jusqu'au
+								{{ subscription.expiryDate|date('d-m-Y') }}.</p>
 						{% else %}
 							<p class="text-success">Vous avez des crédits restants pour ce forfait.</p>
 						{% endif %}

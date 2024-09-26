@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="container">
+		<div class="card shadow-sm">
+			<h1>Crédits pour chaque cours</h1>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Cours</th>
+						<th>Crédits Restants</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for subscription in user.subscriptions %}
+						{% for subscriptionCourse in subscription.subscriptionCourses %}
+							<tr>
+								<td>{{ subscriptionCourse.course.name }}</td>
+								<!-- Assurer des IDs uniques en combinant l'ID de la souscription et du cours -->
+								<td id="credits-{{ subscription.id }}-{{ subscriptionCourse.course.id }}">{{ subscriptionCourse.remainingCredits }}</td>
+								<td>
+									<!-- Utiliser l'ID de la souscription et du cours pour assurer l'unicité -->
+									<button class="btn btn-danger" onclick="updateCredits({{ user.id }}, {{ subscription.id }}, {{ subscriptionCourse.course.id }}, -1)">-</button>
+									<button class="btn btn-success" onclick="updateCredits({{ user.id }}, {{ subscription.id }}, {{ subscriptionCourse.course.id }}, 1)">+</button>
+								</td>
+							</tr>
+						{% endfor %}
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<script>
+    function updateCredits(userId, subscriptionId, courseId, increment) {
+        fetch('{{ path('admin_update_credits', {'userId': user.id}) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token('admin_update_credits') }}'
+            },
+            body: JSON.stringify({
+                courseId: courseId,
+                subscriptionId: subscriptionId,  // Inclure l'ID de la souscription
+                increment: increment
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.newCredits !== undefined) {
+                document.getElementById('credits-' + subscriptionId + '-' + courseId).innerText = data.newCredits;
+            } else {
+                console.error('Erreur:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+        });
+    }
+</script>
+{% endblock %}

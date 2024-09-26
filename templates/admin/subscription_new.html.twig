@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div class="container">
+		<div class="card shadow-sm">
+			<h1>Sélectionner un forfait pour l'utilisateur</h1>
+			<div
+				class="card-body">
+				<!-- Affichage des messages flash -->
+				{% for label, messages in app.flashes %}
+					<div class="alert alert-{{ label }}">
+						{% for message in messages %}
+							{{ message }}
+						{% endfor %}
+					</div>
+				{% endfor %}
+
+				<!-- Début du formulaire -->
+				{{ form_start(form) }}
+
+				<!-- Sélection du type de forfait -->
+				<div class="form-group">
+					{{ form_label(form.type, null, {'label_attr': {'class': 'form-label'}}) }}
+					{{ form_widget(form.type, {'attr': {'class': 'form-control'}}) }}
+				</div>
+
+				<!-- Sélection du plan, affiché seulement si défini -->
+				{% if form.plan is defined %}
+					<div class="form-group">
+						{{ form_label(form.plan, null, {'label_attr': {'class': 'form-label'}}) }}
+						{{ form_widget(form.plan, {'attr': {'class': 'form-control'}}) }}
+					</div>
+				{% endif %}
+
+				<!-- Autres champs du formulaire -->
+				{{ form_rest(form) }}
+
+				<!-- Bouton de soumission -->
+				<button type="submit" class="btn btn-general mt-2">Attribuer le forfait</button>
+
+				{{ form_end(form) }}
+			</div>
+		</div>
+	</div>
+{% endblock %}

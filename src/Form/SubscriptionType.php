@@ -30,14 +30,24 @@ class SubscriptionType extends AbstractType
             ],
         ]);
 
-        // Sélection du plan
+        // Ajout du champ plan avec un placeholder vide par défaut
+        $builder->add('plan', EntityType::class, [
+            'class' => Plan::class,
+            'choice_label' => 'name',
+            'label' => 'Forfait',
+            'placeholder' => 'Sélectionnez un forfait',
+            'required' => false,
+            'choices' => [], // Par défaut vide
+        ]);
+
+        // Écouter l'événement PRE_SUBMIT pour ajouter dynamiquement les options du plan
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($options) {
             $form = $event->getForm();
             $data = $event->getData();
             $type = $data['type'] ?? null;
 
             if ($type) {
-                // Ajout du champ plan en fonction du type sélectionné
+                // Mise à jour du champ plan en fonction du type sélectionné
                 $form->add('plan', EntityType::class, [
                     'class' => Plan::class,
                     'choice_label' => 'name',
@@ -107,7 +117,6 @@ class SubscriptionType extends AbstractType
                 }
             }
         });
-
 
         // Champ pour entrer un code promo
         $builder->add('promoCode', TextType::class, [
