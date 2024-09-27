@@ -4,6 +4,11 @@
 	<div class="container administration mt-5">
 		<h1>Liste des Clients</h1>
 
+		<form method="get" class="mb-3">
+			<input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Rechercher un utilisateur...">
+			<button type="submit" class="btn btn-general mt-2">Rechercher</button>
+		</form>
+
 		<div class="content-scrollable">
 			<table class="col table table-bordered">
 				<thead>
@@ -35,6 +40,7 @@
 								<a href="{{ path('admin_client_reservations', {'userId': user.id}) }}" class="btn btn-general btn-sm mt-1">Voir les réservations</a>
 								<a href="{{ path('admin_subscription_new', {'userId': user.id}) }}" class="btn btn-general btn-sm mt-1">Ajouter un forfait</a>
 								<a href="{{ path('admin_user_subscriptions', {'userId': user.id}) }}" class="btn btn-general btn-sm mt-1">Gérer les crédits</a>
+								<br>
 								<a href="{{ path('admin_client_edit', {'id': user.id}) }}" class="btn update btn-sm">Modifier</a>
 								<a href="{{ path('admin_client_delete', {'id': user.id}) }}" class="btn complet btn-sm mt-1" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">Supprimer</a>
 							</td>

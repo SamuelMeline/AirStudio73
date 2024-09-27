@@ -424,6 +424,10 @@ h1 {
 	overflow-x: auto;
 }
 
+.administration .content-scrollable {
+	max-height: 600px;
+}
+
 /* Personnalisation de la barre de défilement */
 .content-scrollable::-webkit-scrollbar {
 	width: 7px;
@@ -439,7 +443,7 @@ h1 {
 }
 
 textarea.form-control {
-	min-width: 400px !important;
+	min-width: 390px !important;
 }
 
 .connexion .card {

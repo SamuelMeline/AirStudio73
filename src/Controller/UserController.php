@@ -38,12 +38,19 @@ class UserController extends AbstractController
 
     #[Route('/admin/clients', name: 'admin_client_list')]
     #[IsGranted('ROLE_ADMIN')]
-    public function list(UserRepository $userRepository): Response
+    public function list(Request $request, UserRepository $userRepository): Response
     {
-        $users = $userRepository->findAll();
+        // Récupérer le paramètre de recherche et de tri
+        $search = $request->query->get('search', '');
+        $sort = $request->query->get('sort', 'asc'); // 'asc' pour l'ordre croissant, 'desc' pour l'ordre décroissant
+
+        // Rechercher les utilisateurs en fonction du nom ou prénom, et les trier par prénom
+        $users = $userRepository->findBySearchAndSort($search, $sort);
 
         return $this->render('admin/client_list.html.twig', [
             'users' => $users,
+            'search' => $search,
+            'sort' => $sort,
         ]);
     }
 
