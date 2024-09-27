@@ -284,33 +284,17 @@ class SubscriptionController extends AbstractController
         $interval = $expiryDate->diff($currentDate);
         $monthsRemaining = $interval->m + ($interval->y * 12);
 
-        // // Ajouter un mois si le mois en cours est incomplet (pour compter le mois en cours)
-        // if ($interval->d > 0) {
-        //     $monthsRemaining++;
-        // }
-
-        // Si le nombre de paiements est supérieur à 3, ignorer les crédits restants et utiliser le prix total
-        if ($paymentInstallments > 3) {
-            // Si le nombre de paiements est supérieur au nombre de mois restants, ajuster le nombre de paiements
-            $maxPayments = min($paymentInstallments, $monthsRemaining);
-
-            // Calculer le montant par versement en fonction du prix total
-            $amountPerInstallment = $initialTotalPrice;
-        } else {
-            // Sinon, utiliser la logique actuelle basée sur les crédits restants
-            $pricePerCredit = 0;
-
-            // Calculer le prix par crédit pour les paiements en moins de 4 fois
-            foreach ($plan->getPlanCourses() as $planCourse) {
-                $pricePerCredit += $planCourse->getPricePerCredit();
-            }
-
-            // Calculer le prix ajusté en fonction des crédits restants
-            $adjustedPrice = $remainingCredits * $pricePerCredit * 100; // Convertir en centimes
-
-            // Ne pas diviser ici à nouveau, car cela est déjà fait
-            $amountPerInstallment = $adjustedPrice; // On utilise directement le prix ajusté
+        // Calculer le prix par crédit pour les paiements en moins de 4 fois
+        foreach ($plan->getPlanCourses() as $planCourse) {
+            $pricePerCredit += $planCourse->getPricePerCredit();
         }
+
+        // Calculer le prix ajusté en fonction des crédits restants
+        $adjustedPrice = $remainingCredits * $pricePerCredit * 100; // Convertir en centimes
+
+        // Ne pas diviser ici à nouveau, car cela est déjà fait
+        $amountPerInstallment = $adjustedPrice; // On utilise directement le prix ajusté
+
 
         // Arrondir le montant par versement et retourner
         return round($amountPerInstallment); // Retourner le montant par versement en centimes
