@@ -154,7 +154,7 @@
 															</p>
 															<p class="reserve">Réservé</p>
 															{% if interval_until_course >= 6 %}
-																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm ">Annuler</a>
+																<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">Annuler</a>
 															{% else %}
 																<button class="btn btn-sm" disabled>Annulation impossible</button>
 															{% endif %}
@@ -295,7 +295,7 @@
 														<p class="btn reserve btn-sm">Réservé</p>
 														<br>
 														{% if interval_until_course >= 6 %}
-															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm ">Annuler</a>
+															<a href="{{ path('booking_cancel', { 'bookingId': user_booking.id }) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir annuler ce cours ?');">Annuler</a>
 														{% else %}
 															<button class="btn btn-sm" disabled>Annulation impossible</button>
 														{% endif %}
