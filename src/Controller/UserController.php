@@ -232,7 +232,7 @@ class UserController extends AbstractController
             }
 
             // Définir le mode de paiement comme 'admin'
-            $subscription->setPaymentMode('admin');
+            $subscription->setPaymentMode('Sur place');
 
             // Ajuster les crédits en fonction du plan et du temps écoulé
             $remainingCredits = $this->adjustSubscriptionCredits($plan); // Appel à la méthode d'ajustement

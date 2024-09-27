@@ -23,7 +23,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class BookingController extends AbstractController
 {
-    private const ADMIN_EMAIL = 'smelineepro@gmail.com';
+    private const ADMIN_EMAIL = 'smelinepro@gmail.com';
     private const ADMIN_EMAIL_2 = 'airstudioo.73@gmail.com'; // Remplace par la deuxième adresse e-mail
 
     private const SENDER_EMAIL = 'contactAirstudio73@gmail.com';
