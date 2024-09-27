@@ -514,7 +514,7 @@ Airstudio73',
         if ($request->isMethod('POST')) {
             $userId = $request->request->get('userId');
             $courseId = $request->request->get('courseId');
-            $isRecurrent = $request->request->get('isRecurrent'); // Ajouter un champ pour la récurrence
+            $isRecurrent = $request->request->get('isRecurrent') ? true : false; // Ajouter un champ pour la récurrence
             $numOccurrences = $request->request->get('numOccurrences') ?? 1; // Nombre d'occurrences (par défaut 1)
 
             // Récupérer le client et le cours
