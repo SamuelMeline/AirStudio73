@@ -15,8 +15,13 @@ class CalendarController extends AbstractController
     #[Route('/calendar/{year?}/{week?}', name: 'calendar')]
     public function index(EntityManagerInterface $em, int $year = null, int $week = null): Response
     {
-
         $user = $this->getUser(); // Récupérer l'utilisateur connecté
+
+        // Vérifier si l'utilisateur est admin
+        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+            // L'administrateur peut accéder sans restriction, pas de vérifications supplémentaires
+            return $this->renderAdminCalendar($em, $year, $week);
+        }
 
         // Récupérer les abonnements actifs avec des crédits restants
         $activeSubscriptions = $em->getRepository(Subscription::class)->createQueryBuilder('s')
@@ -33,13 +38,13 @@ class CalendarController extends AbstractController
             return $this->redirectToRoute('subscription_new');
         }
 
+        // Gérer la date actuelle ou la date spécifiée par l'utilisateur
         $today = new \DateTime();
-
         if ($year && $week) {
             $currentDate = new \DateTime();
             $currentDate->setISODate($year, $week);
             // Vérifier si la semaine sélectionnée est dans le passé
-            if ($currentDate < $today->modify('monday this week')) {
+            if ($currentDate < (clone $today)->modify('monday this week')) {
                 $this->addFlash('error', 'Vous ne pouvez pas accéder à une semaine passée.');
                 return $this->redirectToRoute('calendar', [
                     'year' => $today->format('Y'),
@@ -77,6 +82,55 @@ class CalendarController extends AbstractController
             'endOfWeek' => $endOfWeek,
             'currentYear' => $year,
             'currentWeek' => $week,
+        ]);
+    }
+
+    /**
+     * Gérer l'affichage du calendrier pour l'administrateur
+     */
+    private function renderAdminCalendar(EntityManagerInterface $em, int $year = null, int $week = null): Response
+    {
+        $today = new \DateTime();
+
+        if ($year && $week) {
+            $currentDate = new \DateTime();
+            $currentDate->setISODate($year, $week);
+        } else {
+            $currentDate = $today;
+            $year = (int) $currentDate->format('Y');
+            $week = (int) $currentDate->format('W');
+        }
+
+        $startOfWeek = (clone $currentDate)->modify('monday this week');
+        $endOfWeek = (clone $startOfWeek)->modify('sunday this week');
+
+        $startOfWeek = (clone $currentDate)->modify('monday this week');
+        $endOfWeek = (clone $startOfWeek)->modify('sunday this week');
+
+        // Récupérer tous les cours dans la semaine
+        $courses = $em->getRepository(Course::class)->createQueryBuilder('c')
+            ->where('c.startTime BETWEEN :start AND :end')
+            ->setParameter('start', $startOfWeek)
+            ->setParameter('end', $endOfWeek)
+            ->getQuery()
+            ->getResult();
+
+        // Récupérer toutes les réservations associées aux cours
+        $bookings = [];
+        foreach ($courses as $course) {
+            $courseBookings = $em->getRepository(Booking::class)->findBy(['course' => $course]);
+            $bookings[$course->getId()] = $courseBookings;
+        }
+
+        return $this->render('calendar/index.html.twig', [
+            'year' => $year,
+            'week' => $week,
+            'courses' => $courses,
+            'bookings' => $bookings,
+            'currentYear' => $year,
+            'currentWeek' => $week,
+            'startOfWeek' => $startOfWeek,
+            'endOfWeek' => $endOfWeek,
         ]);
     }
 }

@@ -18,50 +18,16 @@
 						<img src="{{ asset('uploads/photos/' ~ coach.photo) }}" alt="{{ coach.name }}">
 					</div>
 				{% endif %}
-				<div class="col presentation">
-					<p>{{ coach.presentation|raw }}</p>
+				<div
+					class="col presentation">
+			<p>{{ coach.presentation|raw }}</p>
 				</div>
 			</div>
 			<div class="col content-scrollable description">
 				<p>{{ coach.description|raw }}</p>
 			</div>
 			<div class="col second-description">
-				<p>
-					En parallèle à cet enseignement, je me forme à la souplesse, au Yoga, et au Yoga aérien.Diplôme de Professeure de Yoga Aérien prévu pour mars 2024.
-					<br>
-					Durant toute cette période j’ai enrichi mon enseignement en participant à des Stage auprès de grands noms de la pole-dance et de la souplesse.
-				</p>
-				<div class="col liste-people">
-					<ul>
-						<li>- PRANA</li>
-						<li>- Nicolas CASANOVA</li>
-						<li>- Marion CRAMPE</li>
-						<li>- Geoffrey LETAILLEUR</li>
-						<li>- Ingrid LAUROZ</li>
-						<li>- Maria Julia AGUIAR</li>
-					</ul>
-					<ul>
-						<li>- Céline COUNALI</li>
-						<li>- Keelin ASHTON</li>
-						<li>- Yannick DIAZ</li>
-						<li>- Sylvie PONT</li>
-						<li>- Marco ORANGE</li>
-						<li>- Sarah CARTER</li>
-					</ul>
-					<ul>
-						<li>- Olga TRIFONOVA</li>
-						<li>- Amandine PHILIPPE</li>
-						<li>- Laura METE</li>
-						<li>- Annick TAILLON</li>
-						<li>- Dimitri POLITOV</li>
-						<li>- Ophélie SCREVE</li>
-					</ul>
-				</div>
-				<p>Je continue perpétuellement de me former pour évoluer et enrichir mes méthodes d’enseignement.<br>Je m’adapte à tout type d’élève, toute morphologie (j’ai même eu des élèves avec des handicaps sérieux).</p>
-				<p>
-					<strong>Mon objectif : Tout le monde doit prendre du plaisir et progresser à son rythme !</strong>
-				</p>
-				{# <p>{{ coach.secondDescription|raw }}</p> #}
+				<p>{{ coach.secondDescription|raw }}</p>
 			</div>
 		{% endfor %}
 	</div>

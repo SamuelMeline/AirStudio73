@@ -160,7 +160,13 @@ class BookingController extends AbstractController
             }
 
             // Vérifier les règles pour les abonnements weekly (un seul cours par semaine)
-            if ($subscription->getPlan()->getSubscriptionType() === 'weekly' || 'weekly-renewable' && count($existingReservations) >= 1) {
+            if ($subscription->getPlan()->getSubscriptionType() === 'weekly' && count($existingReservations) >= 1) {
+                $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
+                return $this->redirectToRoute('calendar');
+            }
+
+            // Vérifier les règles pour les abonnements weekly (un seul cours par semaine)
+            if ($subscription->getPlan()->getSubscriptionType() === 'weekly-renewable' && count($existingReservations) >= 1) {
                 $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
                 return $this->redirectToRoute('calendar');
             }

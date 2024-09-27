@@ -109,7 +109,7 @@ class CourseController extends AbstractController
             case '6_months':
                 return 24; // 24 weeks
             case '1_year':
-                return 52; // 52 weeks
+                return 40; // 40 weeks
             case '2_years':
                 return 104; // 104 weeks
             case '3_years':
