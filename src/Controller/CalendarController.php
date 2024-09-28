@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Entity\Booking;
 use App\Entity\Subscription;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,9 +14,19 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class CalendarController extends AbstractController
 {
     #[Route('/calendar/{year?}/{week?}', name: 'calendar')]
-    public function index(EntityManagerInterface $em, int $year = null, int $week = null): Response
+    public function index(EntityManagerInterface $em, int $year = null, int $week = null, Request $request): Response
     {
         $user = $this->getUser(); // Récupérer l'utilisateur connecté
+
+        // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion avec un message
+        if (!$user) {
+            // Stocker la page de redirection après connexion
+            $this->addFlash('error', 'Vous devez vous connecter pour accéder aux réservations.');
+            $request->getSession()->set('target_path', $request->getUri());
+
+            // Rediriger vers la page de connexion
+            return $this->redirectToRoute('app_login'); // Remplacez 'app_login' par le nom de votre route de connexion si nécessaire
+        }
 
         // Vérifier si l'utilisateur est admin
         if (in_array('ROLE_ADMIN', $user->getRoles())) {
