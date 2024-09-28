@@ -118,6 +118,10 @@ class BookingController extends AbstractController
             // Récupérer les SubscriptionCourses de l'utilisateur pour cette Subscription
             $subscriptionCourses = $subscription->getSubscriptionCourses();
 
+             // Récupérer l'année et la semaine depuis le formulaire ou la requête
+             $year = $request->query->get('year', date('Y')); // valeur par défaut : l'année en cours
+             $week = $request->query->get('week', date('W')); // valeur par défaut : la semaine en cours
+
             // Si la souscription a 2 cours ou plus, on applique la règle pour bloquer une réservation du même type de cours
             // Récupérer toutes les réservations faites cette semaine pour cet abonnement
             $existingReservations = $this->entityManager->createQuery(
@@ -143,32 +147,47 @@ class BookingController extends AbstractController
                     if ($reservedCourse->getName() === $course->getName()) {
                         // Si un cours du même nom a déjà été réservé, bloquer la réservation
                         $this->addFlash('error', 'Vous avez déjà réservé un cours de ce type cette semaine.');
-                        return $this->redirectToRoute('calendar');
+                        return $this->redirectToRoute('calendar', [
+                            'year' => $year,
+                            'week' => $week,
+                        ]);
                     }
                 }
                 // Vérifier les règles pour les abonnements bi-weekly (deux cours par semaine maximum)
                 if ($subscription->getPlan()->getSubscriptionType() === 'bi-weekly' && count($existingReservations) >= 2) {
                     $this->addFlash('error', 'Vous avez déjà réservé deux cours cette semaine.');
-                    return $this->redirectToRoute('calendar');
+                    return $this->redirectToRoute('calendar', [
+                        'year' => $year,
+                        'week' => $week,
+                    ]);
                 }
             }
 
             // Vérifier les règles pour les abonnements bi-weekly (2 cours par semaine maximum)
             if ($subscription->getPlan()->getSubscriptionType() === 'bi-weekly' && count($existingReservations) >= 2) {
                 $this->addFlash('error', 'Vous avez déjà réservé deux cours cette semaine.');
-                return $this->redirectToRoute('calendar');
+                return $this->redirectToRoute('calendar', [
+                    'year' => $year,
+                    'week' => $week,
+                ]);
             }
 
             // Vérifier les règles pour les abonnements weekly (un seul cours par semaine)
             if ($subscription->getPlan()->getSubscriptionType() === 'weekly' && count($existingReservations) >= 1) {
                 $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
-                return $this->redirectToRoute('calendar');
+                return $this->redirectToRoute('calendar', [
+                    'year' => $year,
+                    'week' => $week,
+                ]);
             }
 
             // Vérifier les règles pour les abonnements weekly (un seul cours par semaine)
             if ($subscription->getPlan()->getSubscriptionType() === 'weekly-renewable' && count($existingReservations) >= 1) {
                 $this->addFlash('error', 'Vous avez déjà réservé un cours cette semaine.');
-                return $this->redirectToRoute('calendar');
+                return $this->redirectToRoute('calendar', [
+                    'year' => $year,
+                    'week' => $week,
+                ]);
             }
         }
 
@@ -308,10 +327,6 @@ class BookingController extends AbstractController
                 $adminMessage,
                 $logger
             );
-
-            // Récupérer l'année et la semaine depuis le formulaire ou la requête
-            $year = $request->query->get('year', date('Y')); // valeur par défaut : l'année en cours
-            $week = $request->query->get('week', date('W')); // valeur par défaut : la semaine en cours
 
             $this->addFlash('success', 'Votre réservation a été prise en compte.');
 
