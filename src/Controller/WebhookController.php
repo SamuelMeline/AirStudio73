@@ -82,6 +82,11 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
+        // Vérifier si l'événement a déjà été traité pour éviter une double incrémentation
+        if ($invoice->metadata && isset($invoice->metadata['processed']) && $invoice->metadata['processed'] === 'true') {
+            return new Response('Event already processed', Response::HTTP_OK);
+        }
+
         $subscription->incrementPaymentsCount();
 
         if ($subscription->getPaymentsCount() >= $subscription->getMaxPayments()) {
@@ -95,6 +100,9 @@ class WebhookController extends AbstractController
                 return new Response('Failed to cancel subscription on Stripe: ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
             }
         }
+
+        // Marquer l'événement comme traité dans les métadonnées de l'invoice pour éviter les doublons
+        $invoice->metadata['processed'] = 'true';
 
         $this->entityManager->flush();
     }
@@ -161,7 +169,6 @@ class WebhookController extends AbstractController
         $subscription->setIsActive(true);
         $this->entityManager->flush();
     }
-
 
     private function handlePaymentMethodAttached($paymentMethod)
     {
