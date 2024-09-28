@@ -92,30 +92,5 @@ alert(data.warning);
 }
 });
 }
-
-function fetchAndAlertCredits(planId) {
-    // Effectuer la requête AJAX pour récupérer les crédits restants
-    fetch('{{ path('fetch_remaining_credits') }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': '{{ csrf_token('fetch_remaining_credits') }}'
-        },
-        body: JSON.stringify({ planId: planId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.remainingCredits !== undefined) {
-            // Afficher une alerte avec les crédits restants
-            alert('Il vous reste ' + data.remainingCredits + ' crédits pour ce forfait.');
-
-            // Soumettre le formulaire après l'alerte
-            document.querySelector('form').submit();
-        } else if (data.error) {
-            alert('Erreur: ' + data.error);
-        }
-    })
-    .catch(error => console.error('Erreur lors de la récupération des crédits restants:', error));
-}
 	</script>
 {% endblock %}

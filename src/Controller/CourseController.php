@@ -35,7 +35,6 @@ class CourseController extends AbstractController
                     $endTime = clone $course->getEndTime();
                     $endTime->add(new \DateInterval('P' . ($i * $course->getRecurrenceInterval()) . 'D'));
 
-                    // Vérification pour s'assurer que l'heure de fin est après l'heure de début
                     if ($endTime <= $startTime) {
                         throw new \LogicException('L\'heure de fin doit être après l\'heure de début.');
                     }
@@ -45,7 +44,7 @@ class CourseController extends AbstractController
                     $recurrentCourse->setStartTime($startTime);
                     $recurrentCourse->setEndTime($endTime);
                     $recurrentCourse->setCapacity($course->getCapacity());
-                    $recurrentCourse->setIsRecurrent(false); // Set to false to avoid infinite recursion
+                    $recurrentCourse->setIsRecurrent(false);
                     $recurrentCourse->setRecurrenceInterval($course->getRecurrenceInterval());
                     $recurrentCourse->setRecurrenceDuration($course->getRecurrenceDuration());
 
@@ -55,11 +54,23 @@ class CourseController extends AbstractController
 
             $em->flush();
 
-            return $this->redirectToRoute('calendar');
+            $year = $request->request->get('year', date('Y'));
+            $week = $request->request->get('week', date('W'));
+
+            return $this->redirectToRoute('calendar', [
+                'year' => $year,
+                'week' => $week,
+            ]);
         }
+
+        // Récupérer les paramètres year et week ou définir les valeurs par défaut
+        $year = $request->query->get('year', date('Y'));
+        $week = $request->query->get('week', date('W'));
 
         return $this->render('course/new.html.twig', [
             'form' => $form->createView(),
+            'currentYear' => $year,
+            'currentWeek' => $week,
         ]);
     }
 
@@ -92,12 +103,15 @@ class CourseController extends AbstractController
         $em->persist($course);
         $em->flush();
 
+        // Récupérer la semaine et l'année actuelles depuis le formulaire
+        $year = $request->request->get('year');
+        $week = $request->request->get('week');
+
         return $this->redirectToRoute('calendar', [
-            'year' => $request->query->get('year'),
-            'week' => $request->query->get('week'),
+            'year' => $year,
+            'week' => $week,
         ]);
     }
-
 
     private function calculateOccurrences(string $recurrenceDuration, \DateTimeInterface $startDate): int
     {
@@ -128,12 +142,22 @@ class CourseController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush(); // Mettre à jour le cours avec les nouvelles informations
 
-            return $this->redirectToRoute('calendar'); // Redirige vers la liste des cours
+            // Récupérer l'année et la semaine depuis la requête POST (provenant du formulaire)
+            $year = $request->request->get('year', date('Y'));
+            $week = $request->request->get('week', date('W'));
+
+            return $this->redirectToRoute('calendar', [
+                'year' => $year,
+                'week' => $week,
+            ]); // Redirige vers la bonne semaine après modification
         }
 
+        // Ajouter les valeurs `year` et `week` dans la vue pour les envoyer dans le formulaire
         return $this->render('course/edit.html.twig', [
             'form' => $form->createView(),
             'course' => $course,
+            'currentYear' => $request->query->get('year', date('Y')), // Transmettre les valeurs à la vue
+            'currentWeek' => $request->query->get('week', date('W')), // Transmettre les valeurs à la vue
         ]);
     }
 
@@ -150,7 +174,14 @@ class CourseController extends AbstractController
             $this->addFlash('error', 'Le jeton CSRF est invalide.');
         }
 
-        return $this->redirectToRoute('calendar');
+        // Récupérer l'année et la semaine depuis la requête POST
+        $year = $request->request->get('year', date('Y'));
+        $week = $request->request->get('week', date('W'));
+
+        return $this->redirectToRoute('calendar', [
+            'year' => $year,
+            'week' => $week,
+        ]);
     }
 
     public function calendar(CourseRepository $courseRepository, BookingRepository $bookingRepository)

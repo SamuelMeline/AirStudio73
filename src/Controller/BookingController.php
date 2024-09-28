@@ -178,7 +178,13 @@ class BookingController extends AbstractController
         }
 
         // Récupérer les crédits restants pour l'utilisateur
-        $remainingCredits = $subscriptionCourse->getRemainingCredits();
+        $remainingCredits = [];
+        foreach ($subscriptions as $subscription) {
+            foreach ($subscription->getSubscriptionCourses() as $subscriptionCourse) {
+                $courseName = $subscriptionCourse->getCourse()->getName();
+                $remainingCredits[$courseName] = $subscriptionCourse->getRemainingCredits();
+            }
+        }
         // Récupérer les crédits restants depuis SubscriptionCourse
         $remainingCourseCredits = $validSubscriptionCourse->getRemainingCredits();
 
@@ -303,22 +309,30 @@ class BookingController extends AbstractController
                 $logger
             );
 
+            // Récupérer l'année et la semaine depuis le formulaire ou la requête
+            $year = $request->query->get('year', date('Y')); // valeur par défaut : l'année en cours
+            $week = $request->query->get('week', date('W')); // valeur par défaut : la semaine en cours
+
             $this->addFlash('success', 'Votre réservation a été prise en compte.');
 
-            return $this->redirectToRoute('calendar');
+            return $this->redirectToRoute('calendar', [
+                'year' => $year,
+                'week' => $week,
+            ]);
         }
 
         return $this->render('booking/new.html.twig', [
             'form' => $form->createView(),
             'course' => $course,
             'remaining_courses' => $remainingCourseCredits,
+            'remainingCredits' => $remainingCredits, // Passer cette variable correctement
             'user_credits' => $remainingCredits
         ]);
     }
 
     #[Route('/booking/cancel/{bookingId}', name: 'booking_cancel')]
     #[IsGranted('ROLE_USER')]
-    public function cancel(int $bookingId, EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function cancel(int $bookingId, Request $request, EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         $user = $this->getUser();
 
@@ -346,6 +360,7 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('calendar');
         }
 
+        // Gestion des crédits et suppression de la réservation
         $subscriptionCourse = $booking->getSubscriptionCourse();
         $subscriptionCourse->setRemainingCredits($subscriptionCourse->getRemainingCredits() + 1);
 
@@ -355,6 +370,7 @@ class BookingController extends AbstractController
 
         $this->addFlash('success', 'Réservation annulée, vous avez récupéré votre crédit.');
 
+        // Envoi d'e-mails
         $courseDate = $booking->getCourse()->getStartTime()->format('d/m/Y');
         $courseTime = $booking->getCourse()->getStartTime()->format('H:i');
         $courseName = $booking->getCourse()->getName();
@@ -370,7 +386,7 @@ En espérant vous revoir prochainement !
 
 Cordialement,
 Airstudio73
-                ',
+            ',
                 $user->getFirstName(),
                 $courseName,
                 $courseDate,
@@ -393,12 +409,19 @@ Airstudio73
             $logger
         );
 
-        return $this->redirectToRoute('calendar');
+        // Récupérer l'année et la semaine depuis la requête
+        $year = $request->query->get('year', date('Y')); // l'année en cours si non définie
+        $week = $request->query->get('week', date('W')); // la semaine en cours si non définie
+
+        return $this->redirectToRoute('calendar', [
+            'year' => $year,
+            'week' => $week,
+        ]);
     }
 
     #[Route('/admin/course/cancel/{courseId}', name: 'admin_course_cancel')]
     #[IsGranted('ROLE_ADMIN')]
-    public function adminCancelCourse(int $courseId, EntityManagerInterface $em, LoggerInterface $logger): Response
+    public function adminCancelCourse(int $courseId, Request $request, EntityManagerInterface $em, LoggerInterface $logger): Response
     {
         $course = $em->getRepository(Course::class)->find($courseId);
 
@@ -422,7 +445,7 @@ Airstudio73
             // Supprimer la réservation
             $em->remove($booking);
 
-            // Envoyer un email de notification
+            // Envoyer un email de notification à l'utilisateur
             $this->sendEmail(
                 $booking->getUser()->getEmail(),
                 'Annulation de Réservation et Remboursement',
@@ -446,7 +469,15 @@ Airstudio73',
 
         $this->addFlash('success', 'Le cours a été annulé et les utilisateurs ont récupéré leurs crédits.');
 
-        return $this->redirectToRoute('calendar');
+        // Récupérer l'année et la semaine depuis le formulaire (car c'est un POST)
+        $year = $request->request->get('year', date('Y'));
+        $week = $request->request->get('week', date('W'));
+
+        // Redirection vers le calendrier avec la bonne semaine et année
+        return $this->redirectToRoute('calendar', [
+            'year' => $year,
+            'week' => $week,
+        ]);
     }
 
     #[Route('/admin/booking/client', name: 'admin_booking_client')]
@@ -458,7 +489,7 @@ Airstudio73',
 
         // Initialiser les variables
         $availableCourses = [];
-        $remainingCredits = []; // Tableau pour stocker les crédits restants par cours
+        $remainingCredits = [];
 
         // Récupérer l'ID du client sélectionné
         $userId = $request->query->get('userId');
@@ -472,13 +503,13 @@ Airstudio73',
                 return $this->redirectToRoute('admin_booking_client');
             }
 
-            // Récupérer les abonnements actifs du client
-            $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user, 'isActive' => true]);
+            // Récupérer les abonnements du client
+            $subscriptions = $em->getRepository(Subscription::class)->findBy(['user' => $user]);
 
             if (empty($subscriptions)) {
-                $this->addFlash('error', 'Aucun abonnement actif trouvé pour ce client.');
+                $this->addFlash('error', 'Aucun abonnement trouvé pour ce client.');
             } else {
-                // Récupérer tous les cours futurs (non encore passés)
+                // Récupérer tous les cours futurs
                 $futureCourses = $em->getRepository(Course::class)->createQueryBuilder('c')
                     ->where('c.startTime >= :now')
                     ->setParameter('now', new \DateTime())
@@ -486,18 +517,14 @@ Airstudio73',
                     ->getQuery()
                     ->getResult();
 
-                // Parcourir chaque abonnement pour accumuler les crédits restants et récupérer les cours disponibles
+                // Parcourir chaque abonnement pour accumuler les crédits restants
                 foreach ($subscriptions as $subscription) {
-                    $subscriptionCourses = $em->getRepository(SubscriptionCourse::class)->findBy([
-                        'subscription' => $subscription
-                    ]);
+                    $subscriptionCourses = $em->getRepository(SubscriptionCourse::class)->findBy(['subscription' => $subscription]);
 
-                    // Récupérer les crédits et les cours disponibles associés
                     foreach ($subscriptionCourses as $subscriptionCourse) {
                         $course = $subscriptionCourse->getCourse();
-                        $remainingCredits[$course->getName()] = $subscriptionCourse->getRemainingCredits(); // Assigner les crédits restants au nom du cours
+                        $remainingCredits[$course->getName()] = $subscriptionCourse->getRemainingCredits();
 
-                        // Filtrer les cours futurs qui correspondent au type du plan et qui ont encore des crédits restants
                         if ($subscriptionCourse->getRemainingCredits() > 0) {
                             foreach ($futureCourses as $futureCourse) {
                                 if ($futureCourse->getName() === $course->getName()) {
@@ -514,8 +541,8 @@ Airstudio73',
         if ($request->isMethod('POST')) {
             $userId = $request->request->get('userId');
             $courseId = $request->request->get('courseId');
-            $isRecurrent = $request->request->get('isRecurrent') ? true : false; // Ajouter un champ pour la récurrence
-            $numOccurrences = $request->request->get('numOccurrences') ?? 1; // Nombre d'occurrences (par défaut 1)
+            $isRecurrent = $request->request->get('isRecurrent') ? true : false;
+            $numOccurrences = $request->request->get('numOccurrences') ?? 1;
 
             // Récupérer le client et le cours
             $user = $em->getRepository(User::class)->find($userId);
@@ -524,6 +551,23 @@ Airstudio73',
             if (!$user || !$course) {
                 $this->addFlash('error', 'Client ou cours non trouvé.');
                 return $this->redirectToRoute('admin_booking_client');
+            }
+
+            // Vérifier que le client n'a pas déjà réservé ce cours
+            $existingBooking = $em->getRepository(Booking::class)->findOneBy([
+                'user' => $user,
+                'course' => $course
+            ]);
+
+            if ($existingBooking) {
+                $this->addFlash('error', 'Le client a déjà réservé ce cours.');
+                return $this->redirectToRoute('admin_booking_client', ['userId' => $userId]);
+            }
+
+            // Vérifier si le cours est complet
+            if (!$this->canBook($course, $em)) {
+                $this->addFlash('error', 'Le cours est complet.');
+                return $this->redirectToRoute('admin_booking_client', ['userId' => $userId]);
             }
 
             // Récupérer les abonnements de l'utilisateur
@@ -564,7 +608,7 @@ Airstudio73',
         return $this->render('admin/booking_for_client.html.twig', [
             'clients' => $clients,
             'courses' => $availableCourses,
-            'remainingCredits' => $remainingCredits, // Envoyer les crédits restants à la vue avec les noms des cours
+            'remainingCredits' => $remainingCredits,
         ]);
     }
 
@@ -839,7 +883,6 @@ Airstudio73
         $currentBookings = $em->getRepository(Booking::class)->count(['course' => $course]);
         return $currentBookings < $course->getCapacity(); // Vérifier qu'il reste des places
     }
-
 
     private function sendEmail($to, string $subject, string $message, LoggerInterface $logger): void
     {

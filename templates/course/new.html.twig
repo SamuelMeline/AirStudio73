@@ -30,13 +30,13 @@
 							<div class="form-group mb-3">
 								{{ form_label(form.startTime, 'Heure de début', {'label_attr': {'class': 'form-label'}}) }}
 								{{ form_widget(form.startTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de début'}}) }}
-                        {{ form_errors(form.startTime) }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        {{ form_label(form.endTime, 'Heure de fin', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.endTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de fin'}}) }}
+                        		{{ form_errors(form.startTime) }}
+                    		</div>
+                		</div>
+                		<div class="col-md-6">
+                    		<div class="form-group mb-3">
+                        		{{ form_label(form.endTime, 'Heure de fin', {'label_attr': {'class': 'form-label'}}) }}
+                        		{{ form_widget(form.endTime, {'attr': {'class': 'form-control', 'placeholder': 'Sélectionnez l\'heure de fin'}}) }}
 								{{ form_errors(form.endTime) }}
 							</div>
 						</div>
@@ -55,6 +55,10 @@
 						{{ form_widget(form.recurrenceDuration, {'attr': {'class': 'form-control'}}) }}
 						{{ form_errors(form.recurrenceDuration) }}
 					</div>
+
+					{# Ajout des champs cachés pour conserver l'année et la semaine sélectionnées #}
+					<input type="hidden" name="year" value="{{ currentYear }}">
+					<input type="hidden" name="week" value="{{ currentWeek }}">
 
 					<div class="d-flex justify-content-end mt-4">
 						<button type="submit" class="btn btn-general">Enregistrer</button>

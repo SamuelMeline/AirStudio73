@@ -63,15 +63,20 @@
 					</select>
 				</div>
 
-				<!-- Sélection pour la récurrence -->
-				<div class="form-group mt-3">
-					<label for="isRecurrent">Récurrent</label>
-					<input type="checkbox" name="isRecurrent" id="isRecurrent" class="form-check-input">
-				</div>
+				<!-- Sélection pour la récurrence (caché par défaut) -->
+				<div id="recurrence-section" style="display: none;">
+					<div class="form-group mt-3">
+						<label for="isRecurrent">Récurrent</label>
+						<input type="checkbox" name="isRecurrent" id="isRecurrent" class="form-check-input">
+					</div>
 
-				<div class="form-group mt-2" id="num-occurrences-container" style="display: none;">
-					<label for="numOccurrences">Nombre d'occurrences</label>
-					<input type="number" name="numOccurrences" id="numOccurrences" class="form-control" value="1" min="1">
+					<div class="form-group mt-2" id="num-occurrences-container" style="display: none;">
+						<label for="numOccurrences">Nombre d'occurrences</label>
+						<div class="d-flex align-items-center">
+							<input type="number" name="numOccurrences" id="numOccurrences" class="form-control" value="1" min="1">
+							<button type="button" id="max-occurrences-button" class="btn btn-secondary ml-2">Max</button>
+						</div>
+					</div>
 				</div>
 
 				<button type="submit" class="btn btn-general mt-3">Réserver pour ce client</button>
@@ -81,30 +86,55 @@
 		{% endif %}
 	</div>
 
-	<!-- Script pour gérer la logique de récurrence -->
+	<!-- Script pour gérer l'affichage dynamique -->
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
-const recurrentCheckbox = document.querySelector('#isRecurrent');
-const numOccurrencesContainer = document.getElementById('num-occurrences-container');
-const numOccurrencesInput = document.getElementById('numOccurrences');
+    const courseSelect = document.getElementById('course');
+    const recurrenceSection = document.getElementById('recurrence-section');
+    const recurrentCheckbox = document.getElementById('isRecurrent');
+    const numOccurrencesContainer = document.getElementById('num-occurrences-container');
+    const numOccurrencesInput = document.getElementById('numOccurrences');
+    const maxOccurrencesButton = document.getElementById('max-occurrences-button');
+    let remainingCredits = {{ remainingCredits|json_encode|raw }}; // Récupérer les crédits depuis PHP
 
-// Afficher ou cacher le champ pour le nombre d'occurrences selon l'état de la case à cocher
-recurrentCheckbox.addEventListener('change', function () {
-if (recurrentCheckbox.checked) {
-numOccurrencesContainer.style.display = 'block';
-numOccurrencesInput.required = true;
-} else {
-numOccurrencesContainer.style.display = 'none';
-numOccurrencesInput.required = false;
-numOccurrencesInput.value = ''; // Réinitialise la valeur
-}
-});
+    // Montrer la section de récurrence après avoir sélectionné un cours
+    courseSelect.addEventListener('change', function () {
+        if (courseSelect.value) {
+            recurrenceSection.style.display = 'block';
+        } else {
+            recurrenceSection.style.display = 'none';
+        }
+    });
 
-// Si la case est déjà cochée au chargement de la page
-if (recurrentCheckbox.checked) {
-numOccurrencesContainer.style.display = 'block';
-numOccurrencesInput.required = true;
-}
+    // Afficher ou masquer le champ pour le nombre d'occurrences selon l'état de la case à cocher
+    recurrentCheckbox.addEventListener('change', function () {
+        if (recurrentCheckbox.checked) {
+            numOccurrencesContainer.style.display = 'block';
+            numOccurrencesInput.required = true;
+        } else {
+            numOccurrencesContainer.style.display = 'none';
+            numOccurrencesInput.required = false;
+            numOccurrencesInput.value = ''; // Réinitialiser la valeur
+        }
+    });
+
+    // Bouton "Max" pour le nombre d'occurrences
+    maxOccurrencesButton.addEventListener('click', function () {
+        const selectedCourseName = courseSelect.options[courseSelect.selectedIndex].text.split(' - ')[0];
+        const maxCredits = remainingCredits[selectedCourseName] || 1; // Si aucun crédit trouvé, mettre par défaut à 1
+        numOccurrencesInput.value = maxCredits;
+    });
+
+    // Limitation du nombre d'occurrences saisies par l'utilisateur
+    numOccurrencesInput.addEventListener('input', function () {
+        const selectedCourseName = courseSelect.options[courseSelect.selectedIndex].text.split(' - ')[0];
+        const maxCredits = remainingCredits[selectedCourseName] || 1;
+
+        // Bloquer la valeur à maxCredits sans afficher d'alerte
+        if (parseInt(numOccurrencesInput.value, 10) > maxCredits) {
+            numOccurrencesInput.value = maxCredits;
+        }
+    });
 });
 	</script>
 {% endblock %}

@@ -690,6 +690,14 @@ footer.footer p {
 	margin-bottom: 40px;
 }
 
+.reserver h3 {
+	font-size: 20px;
+}
+
+.reserver ul {
+	list-style: none;
+}
+
 @media screen and (max-width: 1500px) {
 	.table th,
 	.table td {

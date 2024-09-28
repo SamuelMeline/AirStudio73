@@ -277,14 +277,14 @@ class SubscriptionController extends AbstractController
             $initialTotalPrice += $planCourse->getPricePerCredit() * $planCourse->getCredits() * 100; // Convertir en centimes
         }
 
-        $currentDate = new \DateTime();
-        $expiryDate = $subscription->getExpiryDate();
+        // $currentDate = new \DateTime();
+        // $expiryDate = $subscription->getExpiryDate();
 
         // Calculer le nombre de mois restants jusqu'à la date d'expiration
-        $interval = $expiryDate->diff($currentDate);
-        $monthsRemaining = $interval->m + ($interval->y * 12);
+        // $interval = $expiryDate->diff($currentDate);
+        // $monthsRemaining = $interval->m + ($interval->y * 12);
 
-        // Calculer le prix par crédit pour les paiements en moins de 4 fois
+        // Calculer le prix par crédit pour les paiements
         foreach ($plan->getPlanCourses() as $planCourse) {
             $pricePerCredit += $planCourse->getPricePerCredit();
         }
