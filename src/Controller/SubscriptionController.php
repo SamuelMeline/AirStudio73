@@ -411,23 +411,9 @@ class SubscriptionController extends AbstractController
         // Définition des autres détails de la souscription
         $subscription->incrementPaymentsCount();
 
-        // Vérification du nombre d'échéances (installments)
-        if ($installments > 3) {
-            // Calcul du nombre de paiements en fonction des mois restants
-            $currentDate = new \DateTime();
-            $expiryDate = $subscription->getExpiryDate();
-            // Inclure le mois en cours et le dernier mois dans le calcul
-            $monthsRemaining = $expiryDate->diff($currentDate)->m + ($expiryDate->diff($currentDate)->y * 12) + 1;
+        // Sinon, on garde le nombre de paiements tel quel
+        $subscription->setMaxPayments($installments);
 
-            // Ajuster le nombre de paiements à la valeur minimale entre les échéances choisies et les mois restants
-            $maxPayments = min($installments, $monthsRemaining);
-
-            // Mettre à jour maxPayments dans l'entité Subscription
-            $subscription->setMaxPayments($maxPayments);
-        } else {
-            // Sinon, on garde le nombre de paiements tel quel
-            $subscription->setMaxPayments($installments);
-        }
         $subscription->setPurchaseDate(new \DateTime());
         $subscription->setPromoCode($promoCode);
         $subscription->setPaymentMode($plan->getName());

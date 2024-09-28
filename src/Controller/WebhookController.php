@@ -82,13 +82,15 @@ class WebhookController extends AbstractController
             return new Response('Subscription not found', Response::HTTP_NOT_FOUND);
         }
 
-        // Vérifier si l'événement a déjà été traité pour éviter une double incrémentation
+        // Vérification si ce paiement a déjà été comptabilisé pour éviter l'incrémentation multiple
         if ($invoice->metadata && isset($invoice->metadata['processed']) && $invoice->metadata['processed'] === 'true') {
-            return new Response('Event already processed', Response::HTTP_OK);
+            return new Response('Invoice already processed', Response::HTTP_OK);
         }
 
+        // Incrémenter le nombre de paiements
         $subscription->incrementPaymentsCount();
 
+        // Si le nombre de paiements atteint le maximum défini
         if ($subscription->getPaymentsCount() >= $subscription->getMaxPayments()) {
             $subscription->setIsActive(false);
 
@@ -101,7 +103,7 @@ class WebhookController extends AbstractController
             }
         }
 
-        // Marquer l'événement comme traité dans les métadonnées de l'invoice pour éviter les doublons
+        // Mettre à jour la métadonnée pour éviter un traitement en double
         $invoice->metadata['processed'] = 'true';
 
         $this->entityManager->flush();
