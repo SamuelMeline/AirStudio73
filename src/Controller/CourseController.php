@@ -23,9 +23,12 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Le premier cours a bien `is_recurrent = 1`
+            $course->setIsRecurrent(true);
             $em->persist($course);
 
-            if ($course->getisRecurrent() && $course->getRecurrenceInterval()) {
+            // Créer les cours récurrents si c'est un cours récurrent
+            if ($course->getIsRecurrent() && $course->getRecurrenceInterval()) {
                 $occurrenceCount = $this->calculateOccurrences($course->getRecurrenceDuration(), $course->getStartTime());
 
                 for ($i = 1; $i < $occurrenceCount; $i++) {
@@ -44,7 +47,8 @@ class CourseController extends AbstractController
                     $recurrentCourse->setStartTime($startTime);
                     $recurrentCourse->setEndTime($endTime);
                     $recurrentCourse->setCapacity($course->getCapacity());
-                    $recurrentCourse->setIsRecurrent(false);
+                    // Assurez-vous que tous les cours récurrents ont `is_recurrent = 1`
+                    $recurrentCourse->setIsRecurrent(true);
                     $recurrentCourse->setRecurrenceInterval($course->getRecurrenceInterval());
                     $recurrentCourse->setRecurrenceDuration($course->getRecurrenceDuration());
 
@@ -54,12 +58,9 @@ class CourseController extends AbstractController
 
             $em->flush();
 
-            $year = $request->request->get('year', date('Y'));
-            $week = $request->request->get('week', date('W'));
-
             return $this->redirectToRoute('calendar', [
-                'year' => $year,
-                'week' => $week,
+                'year' => $request->request->get('year', date('Y')),
+                'week' => $request->request->get('week', date('W')),
             ]);
         }
 
@@ -73,6 +74,7 @@ class CourseController extends AbstractController
             'currentWeek' => $week,
         ]);
     }
+
 
     #[Route('/course', name: 'course_list')]
     public function list(EntityManagerInterface $em): Response
@@ -134,13 +136,88 @@ class CourseController extends AbstractController
     }
 
     #[Route('/course/edit/{id}', name: 'course_edit')]
-    public function edit(Request $request, Course $course, EntityManagerInterface $em): Response
+    public function edit(Request $request, Course $course, EntityManagerInterface $em, CourseRepository $courseRepository): Response
     {
+        // Sauvegarder les heures originales avant modification
+        $originalStartTime = $course->getStartTime()->format('H:i'); // Heure de début originale
+        $originalEndTime = $course->getEndTime()->format('H:i'); // Heure de fin originale
+
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush(); // Mettre à jour le cours avec les nouvelles informations
+            $modifyAllOccurrences = $request->request->get('modify_all_occurrences', false);
+
+            if ($course->getIsRecurrent() && $modifyAllOccurrences) {
+                // Obtenir les informations du cours modifié
+                $modificationDate = $course->getStartTime(); // Date du cours à partir duquel on modifie
+                $startDayOfWeek = $course->getStartTime()->format('N'); // Jour de la semaine (1 pour lundi, 7 pour dimanche)
+
+                // Récupérer tous les cours récurrents sans filtrer par le nom du cours
+                $allRecurrentCourses = $courseRepository->findBy([
+                    'isRecurrent' => true,
+                    'recurrenceInterval' => $course->getRecurrenceInterval(),
+                ]);
+
+                $recurrentCoursesToUpdate = [];
+
+                // Parcourir les cours récupérés pour ne garder que ceux avec la même plage horaire (avant modification)
+                foreach ($allRecurrentCourses as $recurrentCourse) {
+                    $courseDayOfWeek = $recurrentCourse->getStartTime()->format('N');
+                    $courseStartTime = $recurrentCourse->getStartTime()->format('H:i');
+                    $courseEndTime = $recurrentCourse->getEndTime()->format('H:i');
+
+                    // Vérification : Ne pas modifier les cours antérieurs à aujourd'hui
+                    if ($recurrentCourse->getStartTime() < new \DateTime()) {
+                        continue;
+                    }
+
+                    // Filtrer par jour de la semaine ET par la plage horaire originale (avant modification)
+                    if ($courseDayOfWeek === $startDayOfWeek && $courseStartTime === $originalStartTime && $courseEndTime === $originalEndTime) {
+                        if ($recurrentCourse->getStartTime() >= $modificationDate) {
+                            $recurrentCoursesToUpdate[] = $recurrentCourse;
+                        }
+                    }
+                }
+
+                // Ajout du dd() pour vérifier les cours récupérés avant modification
+                // dd($recurrentCoursesToUpdate);
+
+                // Appliquer les modifications à tous les cours trouvés (nom, capacité, horaires)
+                foreach ($recurrentCoursesToUpdate as $recurrentCourse) {
+                    // Modifier l'heure de début
+                    $newStartTime = clone $recurrentCourse->getStartTime();
+                    $newStartTime->setTime(
+                        $course->getStartTime()->format('H'),
+                        $course->getStartTime()->format('i')
+                    );
+                    $recurrentCourse->setStartTime($newStartTime);
+
+                    // Modifier l'heure de fin
+                    $newEndTime = clone $recurrentCourse->getEndTime();
+                    $newEndTime->setTime(
+                        $course->getEndTime()->format('H'),
+                        $course->getEndTime()->format('i')
+                    );
+                    $recurrentCourse->setEndTime($newEndTime);
+
+                    // Modifier le nom
+                    $recurrentCourse->setName($course->getName());
+
+                    // Modifier la capacité
+                    $recurrentCourse->setCapacity($course->getCapacity());
+
+                    // Persister les modifications
+                    $em->persist($recurrentCourse);
+                }
+
+                // Sauvegarder toutes les modifications
+                $em->flush();
+            } else {
+                // Sauvegarder uniquement ce cours
+                $em->persist($course);
+                $em->flush();
+            }
 
             // Récupérer l'année et la semaine depuis la requête POST (provenant du formulaire)
             $year = $request->request->get('year', date('Y'));
@@ -149,15 +226,14 @@ class CourseController extends AbstractController
             return $this->redirectToRoute('calendar', [
                 'year' => $year,
                 'week' => $week,
-            ]); // Redirige vers la bonne semaine après modification
+            ]);
         }
 
-        // Ajouter les valeurs `year` et `week` dans la vue pour les envoyer dans le formulaire
         return $this->render('course/edit.html.twig', [
             'form' => $form->createView(),
             'course' => $course,
-            'currentYear' => $request->query->get('year', date('Y')), // Transmettre les valeurs à la vue
-            'currentWeek' => $request->query->get('week', date('W')), // Transmettre les valeurs à la vue
+            'currentYear' => $request->query->get('year', date('Y')),
+            'currentWeek' => $request->query->get('week', date('W')),
         ]);
     }
 
