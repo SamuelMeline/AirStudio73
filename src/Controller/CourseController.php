@@ -23,11 +23,10 @@ class CourseController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Le premier cours a bien `is_recurrent = 1`
-            $course->setIsRecurrent(true);
+            // Persiste le cours principal (qu'il soit récurrent ou non)
             $em->persist($course);
 
-            // Créer les cours récurrents si c'est un cours récurrent
+            // Si le cours est récurrent, créer les autres occurrences
             if ($course->getIsRecurrent() && $course->getRecurrenceInterval()) {
                 $occurrenceCount = $this->calculateOccurrences($course->getRecurrenceDuration(), $course->getStartTime());
 
@@ -47,8 +46,7 @@ class CourseController extends AbstractController
                     $recurrentCourse->setStartTime($startTime);
                     $recurrentCourse->setEndTime($endTime);
                     $recurrentCourse->setCapacity($course->getCapacity());
-                    // Assurez-vous que tous les cours récurrents ont `is_recurrent = 1`
-                    $recurrentCourse->setIsRecurrent(true);
+                    $recurrentCourse->setIsRecurrent(true); // Tous les cours récurrents ont `is_recurrent = 1`
                     $recurrentCourse->setRecurrenceInterval($course->getRecurrenceInterval());
                     $recurrentCourse->setRecurrenceDuration($course->getRecurrenceDuration());
 

@@ -99,6 +99,11 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('subscription_new', ['courseId' => $courseId]);
         }
 
+        $startDate = $course->getStartTime();
+        // Récupérer l'année et la semaine depuis le formulaire ou la requête
+        $year = $request->query->get('year', date('Y')); // valeur par défaut : l'année en cours
+        $week = $request->query->get('week', date('W')); // valeur par défaut : la semaine en cours
+
         // Vérifier le type de l'abonnement, et limiter à 1 ou 2 cours par semaine si nécessaire
         $subscription = $validSubscriptionCourse->getSubscription();
 
@@ -117,10 +122,6 @@ class BookingController extends AbstractController
 
             // Récupérer les SubscriptionCourses de l'utilisateur pour cette Subscription
             $subscriptionCourses = $subscription->getSubscriptionCourses();
-
-             // Récupérer l'année et la semaine depuis le formulaire ou la requête
-             $year = $request->query->get('year', date('Y')); // valeur par défaut : l'année en cours
-             $week = $request->query->get('week', date('W')); // valeur par défaut : la semaine en cours
 
             // Si la souscription a 2 cours ou plus, on applique la règle pour bloquer une réservation du même type de cours
             // Récupérer toutes les réservations faites cette semaine pour cet abonnement
@@ -243,33 +244,40 @@ class BookingController extends AbstractController
             $em->persist($validSubscriptionCourse);
             $em->flush();
 
-            // Si c'est une réservation récurrente, on crée les réservations pour les occurrences suivantes
             if ($isRecurrent) {
-                $this->createRecurrentBookings($booking, $em, $numOccurrences - 1, $validSubscriptionCourse, $course);
-            }
+                // Créer les réservations récurrentes et récupérer les dates créées
+                $recurrentDates = $this->createRecurrentBookings(
+                    $booking,
+                    $em,
+                    $numOccurrences - 1, // Puisque la première réservation est déjà créée
+                    $validSubscriptionCourse,
+                    $course
+                );
 
-            if ($isRecurrent) {
-                // Si la réservation est récurrente
+                // Inclure la date de la réservation initiale
                 $dates = [];
-                for ($i = 0; $i < $numOccurrences; $i++) {
-                    // Calculer la date de chaque réservation
-                    $date = (clone $course->getStartTime())->modify("+{$i} week");
+                $initialDate = $course->getStartTime()->format('d/m/Y H:i');
+                $dates[] = $initialDate;
+
+                // Ajouter les dates récurrentes formatées
+                foreach ($recurrentDates as $date) {
                     $dates[] = $date->format('d/m/Y H:i');
                 }
+
                 $datesList = implode(", ", $dates); // Liste des dates
 
                 // Message pour l'utilisateur
                 $emailMessage = sprintf(
                     'Bonjour %s,
-        
-        Votre réservation récurrente pour le cours "%s" est confirmée.
-        Les réservations sont programmées aux dates suivantes : %s.
-        Notre studio se situe au 25 Chemin de la Plaine, 73220 AITON.
-        
-        À très vite !
-        
-        Cordialement,
-        Airstudio73',
+            
+            Votre réservation récurrente pour le cours "%s" est confirmée.
+            Les réservations sont programmées aux dates suivantes : %s.
+            Notre studio se situe au 25 Chemin de la Plaine, 73220 AITON.
+            
+            À très vite !
+            
+            Cordialement,
+            Airstudio73',
                     $user->getFirstName(),
                     $course->getName(),
                     $datesList
@@ -278,14 +286,14 @@ class BookingController extends AbstractController
                 // Si la réservation est unique
                 $emailMessage = sprintf(
                     'Bonjour %s,
-        
-        Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
-        Notre studio se situe au 25 Chemin de la Plaine, 73220 AITON.
-
-        À très vite !
-        
-        Cordialement,
-        Airstudio73',
+            
+            Votre réservation pour le cours "%s" prévu le %s à %s a été confirmée.
+            Notre studio se situe au 25 Chemin de la Plaine, 73220 AITON.
+            
+            À très vite !
+            
+            Cordialement,
+            Airstudio73',
                     $user->getFirstName(),
                     $course->getName(),
                     $course->getStartTime()->format('d/m/Y'),
@@ -304,11 +312,11 @@ class BookingController extends AbstractController
             // Préparer le message pour les administrateurs
             $adminMessage = sprintf(
                 'Une nouvelle réservation a été effectuée.
-        
-        Détails de la réservation :
-        - Utilisateur : %s %s
-        - Cours : %s le "%s" à "%s"
-        ',
+            
+            Détails de la réservation :
+            - Utilisateur : %s %s
+            - Cours : %s le "%s" à "%s"
+            ',
                 $user->getFirstName(),
                 $user->getLastName(),
                 $course->getName(),
@@ -317,7 +325,7 @@ class BookingController extends AbstractController
             );
 
             if ($isRecurrent && !empty($datesList)) {
-                $adminMessage .= sprintf('Les réservations sont programmées aux dates suivantes : %s', $datesList);
+                $adminMessage .= sprintf("\nLes réservations sont programmées aux dates suivantes : %s", $datesList);
             }
 
             // Envoi de l'e-mail aux administrateurs
@@ -803,18 +811,24 @@ Airstudio73
         return $this->redirectToRoute('user_subscription');
     }
 
-    private function createRecurrentBookings(Booking $booking, EntityManagerInterface $em, int $numOccurrences, SubscriptionCourse $subscriptionCourse, Course $course): void
-    {
+    private function createRecurrentBookings(
+        Booking $booking,
+        EntityManagerInterface $em,
+        int $numOccurrences,
+        SubscriptionCourse $subscriptionCourse,
+        Course $course
+    ): array {
         $initialCourseStartTime = $this->ensureDateTime($course->getStartTime());
-
         $recurrenceInterval = 7; // Intervalle de récurrence en jours (1 semaine)
-
-        // Créer un tableau pour stocker les nouvelles réservations
         $newBookings = [];
+        $createdOccurrences = 0;
+        $currentWeek = 1;
+        $maxWeeks = $numOccurrences * 4; // Ajustez selon vos besoins
+        $createdDates = []; // Tableau pour stocker les dates des réservations créées
 
-        for ($i = 1; $i <= $numOccurrences; $i++) {
-            // Calcul de la date du prochain cours récurrent (toutes les semaines)
-            $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
+        while ($createdOccurrences < $numOccurrences && $currentWeek <= $maxWeeks) {
+            // Calcul de la date du prochain cours récurrent
+            $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . (($currentWeek) * $recurrenceInterval) . 'D'));
 
             // Recherche du cours correspondant à cette date
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
@@ -833,7 +847,16 @@ Airstudio73
 
                 // Ajouter la réservation au tableau
                 $newBookings[] = $newBooking;
+                $createdDates[] = $recurrentCourse->getStartTime(); // Ajouter la date
+                $createdOccurrences++;
             }
+
+            $currentWeek++;
+        }
+
+        if ($createdOccurrences < $numOccurrences) {
+            // Optionnel: Gérer le cas où toutes les occurrences n'ont pas pu être créées
+            // Par exemple, enregistrer un message d'erreur ou notifier l'utilisateur
         }
 
         // Persist toutes les nouvelles réservations en une seule fois
@@ -843,6 +866,8 @@ Airstudio73
 
         // Flush une seule fois après toutes les réservations
         $em->flush();
+
+        return $createdDates; // Retourner les dates créées
     }
 
     private function ensureDateTime($startTime): \DateTimeInterface
@@ -870,11 +895,12 @@ Airstudio73
         $initialCourseStartTime = $course->getStartTime();
         $recurrenceInterval = 7; // Intervalle de récurrence (ex. une semaine)
         $availableCourses = 0;
+        $maxWeeks = 100; // Limiter la recherche à 100 semaines
+        $currentWeek = 1;
 
-        // Limiter la recherche à un nombre raisonnable de courses
-        for ($i = 0; $i < 100; $i++) {
+        while ($currentWeek <= $maxWeeks) {
             // Calculer la prochaine date du cours
-            $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . ($i * $recurrenceInterval) . 'D'));
+            $nextCourseDate = (clone $initialCourseStartTime)->add(new \DateInterval('P' . (($currentWeek - 1) * $recurrenceInterval) . 'D'));
 
             // Rechercher le cours récurrent à cette date
             $recurrentCourse = $em->getRepository(Course::class)->findOneBy([
@@ -885,9 +911,9 @@ Airstudio73
             // Vérifier que le cours existe et qu'il reste des places
             if ($recurrentCourse && $this->canBook($recurrentCourse, $em)) {
                 $availableCourses++;
-            } else {
-                break; // Arrêter la boucle si aucun cours récurrent n'est disponible ou complet
             }
+
+            $currentWeek++;
         }
 
         return new JsonResponse(['availableCourses' => $availableCourses]);

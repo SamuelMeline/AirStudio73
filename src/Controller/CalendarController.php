@@ -43,8 +43,17 @@ class CalendarController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        $bookingReservations = $em->getRepository(Booking::class)->createQueryBuilder('b')
+            ->join('b.course', 'c')
+            ->where('b.user = :user')
+            ->andWhere('c.startTime > :now')
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTime())
+            ->getQuery()
+            ->getResult();
+
         // Si l'utilisateur n'a pas de crédits restants, redirection vers la page d'achat d'un forfait
-        if (count($activeSubscriptions) === 0) {
+        if (count($activeSubscriptions) === 0 &&  count($bookingReservations) === 0) {
             $this->addFlash('error', 'Vous n\'avez plus de crédits, veuillez acheter un forfait.');
             return $this->redirectToRoute('subscription_new');
         }
