@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container mt-5">
+	<div class="container booking-for-client">
 		<h1>Réserver un cours pour un client</h1>
 
 		<!-- Affichage des messages flash -->
@@ -82,7 +82,7 @@
 				<button type="submit" class="btn btn-general mt-3">Réserver pour ce client</button>
 			</form>
 		{% else %}
-			<p>Aucun cours disponible pour ce client.</p>
+			<p class="aucun-dispo">Aucun cours disponible pour ce client.</p>
 		{% endif %}
 	</div>
 

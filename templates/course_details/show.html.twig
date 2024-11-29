@@ -4,66 +4,60 @@
 {% endblock %}
 
 {% block body %}
-	<div class="container mt-5">
+	<div class="container show-details-cours">
 		<h1 class="text-center mb-5">{{ courseDetails.name }}</h1>
-
-		<div class="row">
-			<div class="col-md-4">
-				{% if courseDetails.photo %}
-					<img src="{{ asset('uploads/photos/' ~ courseDetails.photo) }}" alt="{{ courseDetails.name }}" class="img-fluid rounded shadow mb-3">
-				{% endif %}
-			</div>
-
-			<div class="col-md-8">
+		<div class="details-cours">
+			<div class="text-details-cours">
 				<p class="lead">
-					<strong>{{ courseDetails.name }}
-						- Bienfaits :</strong>
+					<strong>
+						{{ courseDetails.name }}
+						- Les Bienfaits :</strong>
 				</p>
-				<p>{{ courseDetails.benefits|raw }}</p>
-
-				<h3 class="mt-5 text-secondary">Avis des clients</h3>
-				<div class="list-group">
-					{% for review in courseDetails.reviews %}
-						<div class="list-group-item list-group-item-action flex-column align-items-start shadow-sm mb-3">
-							<div class="d-flex w-100 justify-content-between">
-								<h5 class="mb-1">
-									<strong>Note :</strong>
-									{{ review.rating }}/5
-								</h5>
-								<small class="text-muted">
-									Posté le
-									{{ review.createdAt|date('d/m/Y') }}
-									par
-									{{ review.user.firstname }}
-									{{ review.user.lastname }}
-								</small>
-							</div>
-							<p class="mb-1">{{ review.comment }}</p>
-						</div>
-					{% else %}
-						<p class="text-muted">Aucun avis pour ce cours.</p>
-					{% endfor %}
-				</div>
-
-				{% if is_granted('ROLE_USER') %}
-					<h3 class="mt-5 text-secondary">Laisser un avis</h3>
-					<div class="form-group mb-4">
-						{{ form_start(reviewForm) }}
-						<div class="form-group mb-4">
-							{{ form_label(reviewForm.rating, 'Note (sur 5)', {'label_attr': {'class': 'form-label'}}) }}
-							{{ form_widget(reviewForm.rating, {'attr': {'class': 'form-check-input d-flex'}}) }}
-						</div>
-
-						<div class="form-group mb-4">
-							{{ form_label(reviewForm.comment, 'Votre commentaire', {'label_attr': {'class': 'form-label'}}) }}
-							{{ form_widget(reviewForm.comment, {'attr': {'class': 'form-control'}}) }}
-						</div>
-
-						<button type="submit" class="btn btn-primary w-100">Envoyer</button>
-						{{ form_end(reviewForm) }}
-					</div>
-				{% endif %}
-			</div>
+				<p></p>
+				<p>{{ courseDetails.description|raw }}</p>
+			</p>
+			<p>{{ courseDetails.benefits|raw }}</p>
+		</div>
+		<div class="photobenefits">
+			{% if courseDetails.photobenefits %}
+				<img src="{{ asset('uploads/photos/' ~ courseDetails.photobenefits) }}" alt="{{ courseDetails.name }}" class="img-fluid rounded shadow mb-3">
+			{% endif %}
 		</div>
 	</div>
-{% endblock %}
+	{% if is_granted('ROLE_USER') %}
+		<div class="card shadow-sm p-4 mt-5">
+			<h3 id="leaveReview" class="mb-4 text-center">Laisser un avis</h3>
+			<div class="form-group mb-4">
+				{{ form_start(reviewForm, {'attr': {'class': 'needs-validation'}}) }}
+
+				<!-- Note -->
+				<div class="form-group mb-4">
+					{{ form_label(reviewForm.rating, 'Note (sur 5)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+					<div class="input-group">
+						<span class="input-group-text bg-light border-0">
+							<i class="fas fa-star text-warning"></i>
+						</span>
+						{{ form_widget(reviewForm.rating, {'attr': {'class': 'form-control shadow-sm border-0 rounded-3'}}) }}
+					</div>
+				</div>
+
+				<!-- Commentaire -->
+				<div class="form-group mb-4">
+					{{ form_label(reviewForm.comment, 'Votre commentaire', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+					<div class="position-relative">
+						{{ form_widget(reviewForm.comment, {'attr': {'class': 'form-control rounded-3 shadow-sm border-0', 'placeholder': 'Partagez votre expérience...'}}) }}
+						<i class="fas fa-comment-dots position-absolute text-muted" style="top: 10px; right: 10px;"></i>
+					</div>
+				</div>
+
+				<!-- Bouton d'envoi -->
+				<button type="submit" class="btn btn-general w-100 py-2 fw-bold">
+					Envoyer
+					<i class="fas fa-paper-plane"></i>
+				</button>
+
+				{{ form_end(reviewForm) }}
+			</div>
+		</div>
+	{% endif %}
+</div>{% endblock %}

@@ -6,6 +6,7 @@ body {
 	background-repeat: no-repeat;
 	background-position: 40% 17%; /* Centre l'image horizontalement et la déplace vers le bas */
 	min-height: 100vh;
+	font-family: "Roboto", sans-serif;
 }
 
 .container-fluid {
@@ -13,7 +14,8 @@ body {
 }
 
 .container {
-	max-width: 1800px;
+	max-width: 100%;
+	padding: 0;
 }
 
 /* Logo */
@@ -23,6 +25,74 @@ body {
 
 .global {
 	min-height: 100vh;
+}
+
+/* HOMAPAGE */
+
+/* Bannière en haut de la page */
+.banner {
+	height: 550px;
+	background-image: url("/images/banniere_resize.png");
+	background-size: cover;
+	background-position: center;
+}
+
+.home-title {
+	background-color: transparent;
+	font-size: 60px;
+	position: absolute;
+	left: 40%;
+	top: 35%;
+}
+
+/* Autres styles pour la page */
+.container-home {
+	position: relative;
+	max-width: 1200px;
+	margin: 0 auto;
+	top: 0;
+	padding: 20px;
+}
+
+h2 {
+	font-size: 35px;
+	font-weight: bold;
+	color: #2c3e50;
+	text-align: center;
+	margin-bottom: 1.5rem;
+	margin-top: 30px;
+}
+
+h3 {
+	font-size: 24px;
+	font-weight: bold;
+	color: #2c3e50;
+	text-align: center;
+}
+
+/* Section de contenu de la page */
+
+.section h3 {
+	margin-bottom: 1rem;
+}
+
+.section p {
+	font-size: 18px;
+	line-height: 1.6;
+	margin-bottom: 1.5rem;
+}
+
+/* Styles pour la carte */
+.map-section {
+	margin-top: 3rem;
+	text-align: center;
+}
+
+#map {
+	height: 500px;
+	width: 100%;
+	border-radius: 8px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Navigation */
@@ -46,6 +116,46 @@ a.nav-link {
 	color: red !important;
 }
 
+/*navbar user */
+ul.navbar-nav.user {
+	margin-right: 60px;
+}
+
+/* Flèche avec ::after */
+.dropdown-toggle::after {
+	display: inline-block;
+	margin-left: 0.255em;
+	vertical-align: 0.255em;
+	content: "";
+	border-top: 0.3em solid;
+	border-right: 0.3em solid transparent;
+	border-bottom: 0;
+	border-left: 0.3em solid transparent;
+	transition: transform 0.4s ease; /* Ajout de la transition pour l'animation */
+}
+
+/* Menu déroulant masqué par défaut */
+.nav-item.dropdown .dropdown-menu {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	background-color: #fff;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	padding: 0.5rem 1rem;
+	border-radius: 0.25rem;
+	z-index: 1000;
+}
+
+/* Changer la flèche et afficher le menu au survol */
+.nav-item.dropdown:hover .dropdown-menu {
+	display: block;
+}
+
+.nav-item.dropdown:hover .dropdown-toggle::after {
+	transform: rotate(180deg); /* Pivoter la flèche vers le haut */
+}
+
 /* Jumbotron */
 .jumbotron {
 	background-color: #fff;
@@ -58,7 +168,7 @@ a.nav-link {
 }
 
 .jumbotron h1 {
-	font-size: 45px;
+	font-size: 40px;
 	font-weight: 400;
 	max-width: 66%;
 	border-radius: 10px;
@@ -79,7 +189,7 @@ a.reserve:hover {
 .lead {
 	font-size: 1.6rem;
 	font-weight: 600;
-	color: red;
+	color: #225f6e;
 }
 
 /* Calendriers */
@@ -130,13 +240,13 @@ table thead th:last-child {
 	border-top-right-radius: 15px;
 }
 
-table tbody tr:last-child td:first-child {
+/* table tbody tr:last-child td:first-child {
 	border-bottom-left-radius: 15px;
 }
 
 table tbody tr:last-child td:last-child {
 	border-bottom-right-radius: 15px;
-}
+} */
 
 /* Ajouter une distinction pour l'en-tête */
 th {
@@ -190,6 +300,7 @@ a.btn {
 	text-decoration: none;
 	border-radius: 5px;
 	color: white !important;
+	padding: 5px 12px;
 }
 
 .btn-general:hover {
@@ -258,8 +369,12 @@ span.badge.badge-success.mt-2.p-2.text-uppercase {
 
 /* Carousel */
 img.card-img-top {
-	max-height: 500px;
-	object-fit: cover;
+	/* max-height: 450px; */
+	object-fit: contain;
+}
+
+.list-cours .card {
+	max-width: 450px;
 }
 
 img.d-block.w-100 {
@@ -400,13 +515,21 @@ a.complet:hover {
 }
 
 h1 {
-	font-size: 24px;
+	font-size: 40px;
 	background-color: #2c7487;
 	color: #ffffff !important;
 	padding: 15px;
 	border-radius: 20px;
 	text-align: center;
-	margin-bottom: 10px;
+	margin-bottom: 20px;
+	/* margin-left: -84px; */
+	/* margin-right: -84px; */
+}
+
+.container .planning,
+.container .calendrier {
+	max-width: 1800px;
+	padding: 0 12px 0 12px;
 }
 
 .planning h1,
@@ -466,7 +589,7 @@ textarea.form-control {
 }
 
 #back-to-top:hover {
-	background-color: #0056b3;
+	background-color: #208180;
 }
 
 footer.footer {
@@ -531,8 +654,6 @@ footer.footer p {
 
 .p-2.alert.alert-danger,
 .p-2.alert.alert-success {
-	margin-top: 12px;
-	margin-left: 12px;
 	text-align: center;
 }
 
@@ -566,11 +687,8 @@ footer.footer p {
 }
 
 .gallery img {
-	min-height: 350px;
-	max-height: 350px;
 	object-fit: contain;
 	transition: box-shadow 0.3s ease;
-	background-color: rgba(0, 0, 0, 0.555);
 }
 
 .gallery img:hover {
@@ -596,10 +714,11 @@ footer.footer p {
 
 .coach h1 {
 	background-color: transparent;
-	font-size: 54px;
+	/* font-size: 54px; */
 	color: #6a1b9a !important;
 	margin-bottom: 0px;
 	padding-bottom: 0px;
+	margin-top: 20px;
 }
 
 .coach .img-coach {
@@ -615,19 +734,20 @@ footer.footer p {
 
 .coach .presentation {
 	padding: 12px;
-	font-size: 20px;
+	/* font-size: 20px; */
 	margin-left: 40px;
+	margin-top: 40px;
 }
 
 .coach .description {
 	padding: 12px;
-	font-size: 20px;
+	/* font-size: 20px; */
 	margin-top: 20px;
 }
 
 .coach .second-description {
 	padding: 12px;
-	font-size: 20px;
+	/* font-size: 20px; */
 }
 
 .coach .timeline {
@@ -679,7 +799,7 @@ footer.footer p {
 
 .coach .timeline li p {
 	margin: 0;
-	font-size: 17px;
+	/* font-size: 17px; */
 	min-height: 101px;
 }
 
@@ -688,6 +808,68 @@ footer.footer p {
 	justify-content: space-around;
 	margin-top: 40px;
 	margin-bottom: 40px;
+}
+
+.edit-coach h1,
+.new-coach h1,
+.new-event h1,
+.new-courses-details h1,
+.edit-event h1,
+.new-subscription h1,
+.edit-photos h1,
+.new-photos h1,
+.booking-for-client h1,
+.clients-resas h1,
+.clients-new-subscription h1,
+.clients-credits h1 {
+	border-radius: 0;
+}
+
+.edit-coach form,
+.new-coach form,
+.edit-details-cours form,
+.new-event form,
+.new-courses-details form,
+.edit-event form,
+.subscription .list-group,
+.edit-photos form,
+.new-photos form,
+.clients-resas .table.table.table-striped,
+.clients-credits table.table.mb-0,
+.booking-for-client div,
+.booking-for-client p,
+.clients-resas form,
+.booking-manage form {
+	max-width: 80% !important;
+	margin: 0 auto;
+}
+
+.subscription a.btn.reserve-btn.btn-sm.mt-2 {
+	margin-left: 10%;
+}
+
+.new-subscription .card,
+.new-plan .card,
+.edit-courses .card,
+.new-courses .card,
+.clients-credits .card,
+.clients-new-subscription .card {
+	max-width: 80%;
+	margin: 0 auto;
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+.plan-course-item.mb-3 select {
+	max-width: 100%;
+}
+
+.plan-course-item.mb-3 div {
+	margin-top: 10px;
+}
+
+.plan-course-item.mb-3 label {
+	margin-right: 15px;
 }
 
 .reserver h3 {
@@ -702,7 +884,6 @@ footer.footer p {
 	background-color: transparent;
 	color: #6a1b9a !important;
 	font-weight: bold;
-	font-size: 35px;
 }
 
 .tarifs .block {
@@ -742,7 +923,7 @@ footer.footer p {
 }
 
 .tarifs .mode_reglement {
-    border: 2px solid;
+	border: 2px solid;
 	min-width: 1400px;
 	padding: 5px 15px;
 	margin-top: 30px;
@@ -760,12 +941,342 @@ footer.footer p {
 	margin-top: 20px;
 }
 
+.lb-data .lb-close {
+	position: relative;
+	bottom: 815px;
+	right: 15px;
+	z-index: 10;
+}
+
+.aucun-dispo {
+	font-size: 30px;
+	text-align: center;
+	margin-top: 10%;
+	font-weight: 200;
+}
+
+.show-details-cours h1,
+.edit-details-cours h1,
+.list-cours h1,
+.list-events h1,
+.gallery h1,
+.administration h1,
+.booking-manage h1,
+.subscription h1 {
+	border-radius: 0;
+}
+
+.details-cours {
+	display: flex;
+}
+
+.details-cours ul {
+	list-style: auto;
+}
+
+.card.shadow-sm.p-4.mt-5 {
+	border-radius: 10px;
+	max-width: 70%;
+	margin: 0 auto;
+	margin-bottom: 30px;
+}
+
+.details-cours,
+.list-cours .row,
+.gallery .row,
+.edit-details-cours form,
+.administration form,
+.administration .content-scrollable {
+	margin: 0 auto;
+	max-width: 1800px;
+	padding: 0 12px 0 12px;
+}
+
+a.btn.reserve-btn.mb-3 {
+	margin-left: 48px;
+	margin-top: 10px;
+}
+
+.list-plans a.btn.reserve-btn.mb-3 {
+	margin-left: 0;
+}
+
+.text-details-cours {
+	width: 70%;
+	margin-right: 50px;
+}
+
+.photobenefits {
+	width: 50%;
+}
+
+.photobenefits img {
+	max-height: 690px;
+}
+
+.let-review {
+	max-width: 90%;
+	margin: 0 auto;
+}
+
+/* FORMULAIRE REVIEW */
+/* Style général pour les inputs */
+.form-control {
+	border: 1px solid #ced4da;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	padding: 10px 15px;
+	font-size: 1rem;
+	transition: all 0.3s ease;
+}
+
+/* Placeholder */
+.form-control::placeholder {
+	color: #6c757d;
+	font-style: italic;
+}
+
+#leaveReview {
+	color: #225f6e;
+}
+
+#review_rating input {
+	margin-right: 5px;
+	margin-left: 5px;
+}
+
+input#review_rating_0 {
+	margin-left: 0;
+}
+
+#review_rating input[type="radio"] {
+	appearance: none; /* Supprime l'apparence par défaut des radios */
+	width: 15px;
+	height: 15px;
+	margin: 0 5px;
+	border: 2px solid #ced4da;
+	border-radius: 50%;
+	outline: none;
+	transition: all 0.3s ease;
+	background-color: #f8f9fa;
+	cursor: pointer;
+}
+
+#review_rating input[type="radio"]:hover {
+	border-color: #225f6e;
+}
+
+#review_rating input[type="radio"]:checked {
+	border-color: #225f6e;
+	background-color: #225f6e;
+}
+/* FIN FORM */
+
+.dropdown-menu a:active {
+	background-color: #225f6e !important;
+}
+
+/* Règlement */
+
+.container-reglement body {
+	font-family: Arial, sans-serif;
+	line-height: 1.6;
+	margin: 0;
+	padding: 0;
+	background-color: #f9f9f9;
+}
+
+.container-reglement,
+.container-condition {
+	width: 90%;
+	margin: 40px auto;
+	padding: 20px;
+	background-color: #ffffff;
+	border: 1px solid #ddd;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	max-height: 800px;
+	overflow: auto;
+}
+
+.container-reglement {
+	margin-bottom: 40px;
+	border-radius: 40px;
+}
+
+.container-condition {
+	margin-top: 20px;
+}
+
+.container-reglement h1,
+.container-reglement h2 {
+	background-color: #2c7487;
+	color: #ffffff;
+	padding: 10px;
+	text-align: center;
+	font-size: 24px;
+	border-radius: 5px;
+}
+
+.container-reglement h3 {
+	background-color: #cfe9ef;
+	padding: 8px;
+	color: #000;
+	font-size: 20px;
+	border-left: 5px solid #2c7487;
+	margin-bottom: 15px;
+}
+
+.container-reglement p {
+	text-align: justify;
+	color: #333;
+	margin-bottom: 10px;
+}
+
+.container-reglement h3::before {
+	content: "• ";
+	color: #2c7487;
+}
+
+/* Fin Règlement */
+
+/* CGV */
+
+.container-cgv body {
+	font-family: Arial, sans-serif;
+	line-height: 1.6;
+	margin: 0;
+	padding: 0;
+	background-color: #f9f9f9;
+}
+
+.container-cgv {
+	width: 90%;
+	margin: 20px auto;
+	padding: 20px;
+	background-color: #ffffff;
+	border: 1px solid #ddd;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	max-height: 800px;
+	overflow-y: auto;
+	border-radius: 40px;
+}
+
+.container-cgv h1,
+.container-cgv h2,
+.container-cgv h3 {
+	color: #2c7487;
+	border-left: 5px solid #2c7487;
+	padding-left: 10px;
+}
+
+.container-cgv h1 {
+	font-size: 24px;
+	background-color: #2c7487;
+	color: #ffffff;
+	padding: 15px;
+	border-radius: 5px;
+	text-align: center;
+}
+
+.container-cgv h2 {
+	font-size: 20px;
+	margin-top: 20px;
+	background-color: #cfe9ef;
+	padding: 10px;
+	border-radius: 5px;
+}
+
+.container-cgv h3 {
+	font-size: 18px;
+	margin-top: 15px;
+}
+
+.container-cgv p {
+	text-align: justify;
+	margin: 10px 0;
+	color: #333;
+}
+
+.container-cgv ul {
+	margin: 10px 0 10px 20px;
+}
+
+.container-cgv ul li {
+	margin-bottom: 8px;
+}
+
+/* FIN CGV */
+
+.foradmin {
+	color: red;
+}
+
 @media screen and (max-width: 1500px) {
 	.table th,
 	.table td {
 		font-size: 14px !important; /* Réduire la taille de la police */
 		padding: 5px !important; /* Réduire l'espacement */
 		min-width: 0px !important;
+	}
+
+	.photobenefits img {
+		margin-top: 80px;
+	}
+}
+
+@media screen and (min-width: 1400px) {
+	.nav-item.dropdown .dropdown-menu {
+		left: -10% !important;
+	}
+}
+
+@media screen and (max-width: 1100px) {
+	.home-title {
+		font-size: 50px !important;
+		left: 36%;
+	}
+
+	.banner {
+		height: 500px;
+	}
+
+	h1 {
+		margin-bottom: 35px;
+	}
+
+	.details-cours {
+		display: block;
+	}
+
+	.text-details-cours {
+		margin: 0 auto;
+		width: 100%;
+	}
+
+	.photobenefits {
+		padding: 20px;
+		width: 98%;
+		margin: 0 auto;
+	}
+
+	.photobenefits img {
+		margin: 0 auto;
+	}
+
+	.show-details-cours h1 {
+		margin-bottom: 0 !important;
+	}
+
+	.tarifs h1 {
+		margin-bottom: 0;
+	}
+
+	.tarifs .block {
+		padding: 20px;
+	}
+
+	.tarifs .mode_reglement {
+		min-width: 0;
 	}
 }
 
@@ -842,7 +1353,7 @@ footer.footer p {
 	}
 
 	.btn {
-		font-size: 16px !important; /* Réduire la taille des boutons */
+		font-size: 12px !important; /* Réduire la taille des boutons */
 		padding: 5px 10px !important;
 	}
 
@@ -856,10 +1367,6 @@ footer.footer p {
 
 	h3 {
 		font-size: 20px !important; /* Ajuster la taille du titre */
-	}
-
-	.btn {
-		padding: 5px !important;
 	}
 
 	.calendrier a,
@@ -878,6 +1385,11 @@ footer.footer p {
 		font-size: 8px !important;
 		padding: 5px 3px !important;
 		margin-top: 5px !important;
+	}
+
+	.planning li,
+	.calendrier li {
+		font-size: 8px !important;
 	}
 
 	.contact .col {
@@ -909,7 +1421,7 @@ footer.footer p {
 	.container {
 		max-width: 100%;
 		padding: 0;
-		min-height: 74vh;
+		min-height: 70vh;
 	}
 
 	footer.footer a,
@@ -1046,7 +1558,81 @@ footer.footer p {
 	}
 
 	.banner {
-		left: 0 !important;
+		height: 350px;
+	}
+
+	.home-title {
+		left: 35%;
+		top: 26%;
+		font-size: 40px !important;
+	}
+
+	footer.footer ul li {
+		margin-right: 0;
+	}
+
+	i.fas.fa-star.text-warning,
+	i.far.fa-star.text-warning {
+		font-size: 16px;
+	}
+}
+
+@media screen and (max-width: 485px) {
+	.banner {
+		height: 270px;
+	}
+
+	.home-title {
+		left: 26%;
+		top: 23%;
+		font-size: 30px !important;
+	}
+
+	footer.footer ul {
+		max-width: 340px;
+	}
+
+	.card.shadow-sm.p-4.mt-5 {
+		max-width: 100%;
+		width: 92%;
+	}
+
+	.details-cours {
+		padding: 20px;
+	}
+
+	.photobenefits {
+		width: 100%;
+	}
+
+	h1 {
+		font-size: 25px !important;
+	}
+
+	h2 {
+		font-size: 20px !important;
+	}
+
+	body,
+	input,
+	p,
+	label,
+	textarea,
+	li {
+		font-size: 14px !important;
+	}
+
+	.timeline li {
+		font-size: 12px !important;
+	}
+
+	.timeline p {
+		font-size: 10px !important;
+		min-height: 60px !important;
+	}
+
+	.aucun-dispo {
+		margin-top: 40%;
 	}
 }
 

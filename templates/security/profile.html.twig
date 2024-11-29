@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil
+{% endblock %}
+
+{% block body %}
+	<div class="container register mt-3">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card shadow-sm">
+					<h1 class="card-title mb-0">Mon Profil</h1>
+					<div class="card-body">
+						{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+						<div class="form-group mb-3">
+							{{ form_label(form.email, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre adresse e-mail'}}) }}
+							{{ form_errors(form.email) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(form.firstName, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre prénom'}}) }}
+							{{ form_errors(form.firstName) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(form.lastName, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre nom'}}) }}
+							{{ form_errors(form.lastName) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(form.phoneNumber, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.phoneNumber, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre numéro de téléphone'}}) }}
+							{{ form_errors(form.phoneNumber) }}
+						</div>
+
+						<div class="form-group mb-3">
+							{{ form_label(form.address, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.address, {'attr': {'class': 'form-control', 'placeholder': 'Adresse complète (23 rue de la Paix, 75000 Paris)'}}) }}
+							{{ form_errors(form.address) }}
+						</div>
+
+						<div class="form-group mb-3 d-none">
+							{{ form_label(form.notes, null, {'label_attr': {'class': 'form-label'}}) }}
+							{{ form_widget(form.notes, {'attr': {'class': 'form-control', 'placeholder': 'Notes supplémentaires (facultatif)'}}) }}
+							{{ form_errors(form.notes) }}
+						</div>
+
+						<!-- Case à cocher pour modifier le mot de passe -->
+						<div class="form-group">
+							<label>
+								<input type="checkbox" id="changePasswordCheckbox">
+								Modifier mon mot de passe
+							</label>
+						</div>
+
+						<!-- Champs de mot de passe, cachés par défaut -->
+						<div id="passwordFields" style="display: none;">
+							<div class="form-group mb-3">
+								{{ form_label(form.plainPassword, 'Nouveau mot de passe') }}
+								{{ form_widget(form.plainPassword, {'attr': {'class': 'form-control'}}) }}
+								{{ form_errors(form.plainPassword) }}
+							</div>
+							<div class="form-group mb-3">
+								{{ form_label(form.confirmPassword, 'Confirmez le mot de passe') }}
+								{{ form_widget(form.confirmPassword, {'attr': {'class': 'form-control'}}) }}
+								{{ form_errors(form.confirmPassword) }}
+							</div>
+						</div>
+
+						<button type="submit" class="btn btn-general btn-block">Mettre à jour</button>
+						{{ form_end(form) }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		// Gestion de l'affichage des champs de mot de passe
+document.getElementById('changePasswordCheckbox').addEventListener('change', function () {
+var passwordFields = document.getElementById('passwordFields');
+if (this.checked) {
+passwordFields.style.display = 'block';
+} else {
+passwordFields.style.display = 'none';
+}
+});
+	</script>
+{% endblock %}

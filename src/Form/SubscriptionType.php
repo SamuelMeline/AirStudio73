@@ -83,7 +83,7 @@ class SubscriptionType extends AbstractType
                                         'Sélectionner un mode de paiement' => null,
                                         'Payer en une fois' => 1,
                                         'Payer en 3 fois' => 3,
-                                        'Payer en 10 fois' => 10,
+                                        'Payement mensuel' => 10,
                                     ],
                                     'required' => true,
                                 ]);

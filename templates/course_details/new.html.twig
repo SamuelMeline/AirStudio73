@@ -1,10 +1,14 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container mt-5">
+	<div class="container new-courses-details">
 		<h1>Créer une activité</h1>
 
 		{{ form_start(form) }}
+		<div class="form-group">
+			{{ form_label(form.photo) }}
+			{{ form_widget(form.photo, {'attr': {'class': 'form-control-file'}}) }}
+		</div>
 		<div class="form-group">
 			{{ form_label(form.name, null, {'label_attr': {'class': 'form-label'}}) }}
 			{{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
@@ -17,13 +21,13 @@
 			{{ form_label(form.benefits, null, {'label_attr': {'class': 'form-label'}}) }}
 			{{ form_widget(form.benefits, {'attr': {'class': 'form-control'}}) }}
 		</div>
-		<div class="form-group">
-			{{ form_label(form.photo) }}
-			{{ form_widget(form.photo, {'attr': {'class': 'form-control-file'}}) }}
+		<div class="form-group mt-3">
+			{{ form_label(form.photobenefits) }}
+			{{ form_widget(form.photobenefits, {'attr': {'class': 'form-control-file'}}) }}
 		</div>
-		<button type="submit" class="btn btn-primary">Enregistrer</button>
+		<button type="submit" class="btn btn-general mt-3 mb-3">Enregistrer</button>
+		<a href="{{ path('course_details_list') }}" class="btn complet mt-3 mb-3">Annuler</a>
 		{{ form_end(form) }}
 
-		<a href="{{ path('course_details_list') }}" class="btn btn-secondary mt-3">Annuler</a>
 	</div>
 {% endblock %}

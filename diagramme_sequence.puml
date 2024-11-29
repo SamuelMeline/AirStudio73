@@ -1,0 +1,18 @@
+@startuml
+actor Utilisateur
+participant "Système" as System
+participant "Base de Données" as Database
+
+Utilisateur -> System : Sélectionner un cours
+System -> Database : Vérifier abonnement et crédits
+Database --> System : Détails de l'abonnement et des crédits
+
+alt Crédits suffisants
+  System -> Database : Enregistrer la réservation
+  Database --> System : Confirmation de la réservation
+  System --> Utilisateur : Confirmation de la réservation
+else Crédits insuffisants
+  System --> Utilisateur : Message d'erreur (Crédits insuffisants)
+end
+
+@enduml

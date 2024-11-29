@@ -67,13 +67,6 @@ class SubscriptionController extends AbstractController
         // Si le formulaire est soumis
         if ($form->isSubmitted()) {
 
-            // Vérifiez si le champ 'plan' existe dans le formulaire avant de l'utiliser
-            if (!$form->has('plan') || !$form->get('plan')->getData()) {
-                return $this->render('subscription/new.html.twig', [
-                    'form' => $form->createView(),
-                ]);
-            }
-
             // Vérifiez si le champ 'paymentInstallments' existe dans le formulaire et s'il est défini
             if (!$form->has('paymentInstallments') || !$form->get('paymentInstallments')->getData()) {
                 // Si le champ 'paymentInstallments' n'est pas défini ou vide, revenir au formulaire
@@ -224,6 +217,7 @@ class SubscriptionController extends AbstractController
             }
         }
 
+
         return $this->render('subscription/new.html.twig', [
             'form' => $form->createView(),
         ]);
@@ -231,36 +225,63 @@ class SubscriptionController extends AbstractController
 
     public function adjustSubscriptionCredits(Plan $plan): int
     {
-        // Récupérer les crédits du plan
         $planCourses = $plan->getPlanCourses();
 
         if (empty($planCourses) || !isset($planCourses[0])) {
             throw new \Exception('Aucun cours associé à ce plan.');
         }
 
-        $totalCredits = $plan->getPlanCourses()[0]->getCredits(); // Récupérer le total des crédits du plan
+        $totalCredits = $planCourses[0]->getCredits(); // Récupérer le total des crédits du plan
         $currentDate = new \DateTime();
         $startDate = $plan->getStartDate();
 
-        // Vérifier que la date de début n'est pas nulle
         if ($startDate === null) {
             throw new \Exception('La date de début du plan est introuvable.');
         }
 
-        // Calculer la différence en semaines entre la date de début et la date actuelle
-        $weeksElapsed = floor($startDate->diff($currentDate)->days / 7);
+        // Si le forfait est acheté un dimanche, on n'attribue pas de crédits pour cette semaine
+        if ($currentDate->format('w') == 0) {
+            $daysInAWeek = 6;
+            $weeksElapsed = floor($startDate->diff($currentDate)->days / $daysInAWeek);
+        } else {
+            // Calculer la différence en semaines
+            $daysInAWeek = 7;
+            $weeksElapsed = floor($startDate->diff($currentDate)->days / $daysInAWeek);
+        }
 
-        // Si la date de début est future, alors 0 semaines ont écoulé, pas de décrémentation
+        // Si la date de début est dans le futur, forcer à 0
         if ($startDate > $currentDate) {
             $weeksElapsed = 0;
         }
 
-        // Ajuster en fonction du type d'abonnement
-        if ($plan->getSubscriptionType() === 'weekly' || $plan->getSubscriptionType() === 'bi-weekly') {
-            // Pour un abonnement hebdomadaire ou bi-hebdomadaire, ajuster en fonction des semaines écoulées
-            $remainingCredits = max(0, $totalCredits - $weeksElapsed);
+        // // Ajustement en fonction du type d'abonnement
+        // if ($plan->getSubscriptionType() === 'weekly' || $plan->getSubscriptionType() === 'bi-weekly') {
+        //     $remainingCredits = max(0, $totalCredits - $weeksElapsed);
+        // } else {
+        //     $remainingCredits = $totalCredits;
+        // }
+
+        if ($plan->getSubscriptionType() === 'bi-weekly') {
+            $planCourses = $plan->getPlanCourses();
+            $numberOfCourses = count($planCourses); // Compte le nombre de cours associés au plan
+
+            if ($numberOfCourses == 1) {
+                // Si un seul cours, on retire 2 crédits par semaine
+                foreach ($planCourses as $planCourse) {
+                    $remainingCredits = max(0, $planCourse->getCredits() - ($weeksElapsed * 2));
+                }
+            } else {
+                // Si deux cours ou plus, on retire 1 crédit par cours, par semaine
+                foreach ($planCourses as $planCourse) {
+                    $remainingCredits = max(0, $planCourse->getCredits() - $weeksElapsed);
+                }
+            }
+        } elseif ($plan->getSubscriptionType() === 'weekly') {
+            // Si l'abonnement est weekly, on retire 1 crédit par cours par semaine
+            foreach ($plan->getPlanCourses() as $planCourse) {
+                $remainingCredits = max(0, $planCourse->getCredits() - $weeksElapsed);
+            }
         } else {
-            // Autres types d'abonnement, utiliser la totalité des crédits
             $remainingCredits = $totalCredits;
         }
 
@@ -269,35 +290,43 @@ class SubscriptionController extends AbstractController
 
     public function adjustSubscriptionPrice(Plan $plan, Subscription $subscription, int $remainingCredits, int $paymentInstallments, EntityManagerInterface $em): int
     {
-        $pricePerCredit = 0;
         $initialTotalPrice = 0;
+        $pricePerCredit = 0;
 
-        // Récupérer le prix total pour tous les cours du plan
+        // Calculer le prix total pour tous les crédits du plan, en centimes
         foreach ($plan->getPlanCourses() as $planCourse) {
-            $initialTotalPrice += $planCourse->getPricePerCredit() * $planCourse->getCredits() * 100; // Convertir en centimes
-        }
-
-        // $currentDate = new \DateTime();
-        // $expiryDate = $subscription->getExpiryDate();
-
-        // Calculer le nombre de mois restants jusqu'à la date d'expiration
-        // $interval = $expiryDate->diff($currentDate);
-        // $monthsRemaining = $interval->m + ($interval->y * 12);
-
-        // Calculer le prix par crédit pour les paiements
-        foreach ($plan->getPlanCourses() as $planCourse) {
+            $initialTotalPrice += $planCourse->getPricePerCredit() * $planCourse->getCredits() * 100;
             $pricePerCredit += $planCourse->getPricePerCredit();
         }
 
-        // Calculer le prix ajusté en fonction des crédits restants
-        $adjustedPrice = $remainingCredits * $pricePerCredit * 100; // Convertir en centimes
+        $currentDate = new \DateTime();
+        $expiryDate = $subscription->getExpiryDate();
 
-        // Ne pas diviser ici à nouveau, car cela est déjà fait
-        $amountPerInstallment = $adjustedPrice; // On utilise directement le prix ajusté
+        // Calculer le nombre de mois restants jusqu'à la date d'expiration
+        $interval = $expiryDate->diff($currentDate);
+        $monthsRemaining = $interval->m + ($interval->y * 12);
 
+        // Ajouter un mois si le mois en cours est incomplet
+        if ($interval->d > 0) {
+            $monthsRemaining++;
+        }
 
-        // Arrondir le montant par versement et retourner
-        return round($amountPerInstallment); // Retourner le montant par versement en centimes
+        // Calculer le prix ajusté en fonction des crédits restants, en centimes
+        $adjustedPrice = $remainingCredits * $pricePerCredit * 100;
+
+        if ($paymentInstallments > 3) {
+            // Ajuster le nombre de paiements en fonction des mois restants
+            $maxPayments = min($paymentInstallments, $monthsRemaining);
+
+            // Calculer le montant par versement avec l'ajustement nécessaire
+            $amountPerInstallment = ($adjustedPrice / $maxPayments) * 10;
+        } else {
+            // Montant par versement pour un paiement unique ou jusqu'à 3 fois
+            $amountPerInstallment = $adjustedPrice;
+        }
+
+        // Arrondir et retourner le montant par versement en centimes
+        return round($amountPerInstallment);
     }
 
     #[Route('/check-plan-expiry', name: 'check_plan_expiry', methods: ['POST'])]
@@ -411,8 +440,23 @@ class SubscriptionController extends AbstractController
         // Définition des autres détails de la souscription
         $subscription->incrementPaymentsCount();
 
-        // Sinon, on garde le nombre de paiements tel quel
-        $subscription->setMaxPayments($installments);
+        // Vérification du nombre d'échéances (installments)
+        if ($installments > 3) {
+            // Calcul du nombre de paiements en fonction des mois restants
+            $currentDate = new \DateTime();
+            $expiryDate = $subscription->getExpiryDate();
+            // Inclure le mois en cours et le dernier mois dans le calcul
+            $monthsRemaining = $expiryDate->diff($currentDate)->m + ($expiryDate->diff($currentDate)->y * 12) + 1;
+
+            // Ajuster le nombre de paiements à la valeur minimale entre les échéances choisies et les mois restants
+            $maxPayments = min($installments, $monthsRemaining);
+
+            // Mettre à jour maxPayments dans l'entité Subscription
+            $subscription->setMaxPayments($maxPayments);
+        } else {
+            // Sinon, on garde le nombre de paiements tel quel
+            $subscription->setMaxPayments($installments);
+        }
 
         $subscription->setPurchaseDate(new \DateTime());
         $subscription->setPromoCode($promoCode);

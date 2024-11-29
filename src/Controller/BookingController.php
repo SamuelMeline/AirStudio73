@@ -264,7 +264,8 @@ class BookingController extends AbstractController
                     $dates[] = $date->format('d/m/Y H:i');
                 }
 
-                $datesList = implode(", ", $dates); // Liste des dates
+                // Liste des dates
+                $datesList = implode(", ", $dates); 
 
                 // Message pour l'utilisateur
                 $emailMessage = sprintf(
@@ -348,7 +349,7 @@ class BookingController extends AbstractController
             'form' => $form->createView(),
             'course' => $course,
             'remaining_courses' => $remainingCourseCredits,
-            'remainingCredits' => $remainingCredits, // Passer cette variable correctement
+            'remainingCredits' => $remainingCredits,
             'user_credits' => $remainingCredits
         ]);
     }

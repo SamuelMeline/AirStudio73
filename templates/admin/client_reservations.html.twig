@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container mt-5">
+    <div class="container clients-resas">
         <h1>Réservations de {{ client.firstName }} {{ client.lastName }}</h1>
 
         {% if reservations is not empty %}
@@ -20,7 +20,7 @@
                             <td>{{ reservation.course.startTime|date('d/m/Y H:i') }}</td>
                             <td>
                                 <form method="POST" action="{{ path('admin_booking_cancel', {'bookingId': reservation.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ?');">
-                                    <button type="submit" class="btn btn-danger btn-sm">Annuler</button>
+                                    <button type="submit" class="btn complet btn-sm">Annuler</button>
                                 </form>
                             </td>
                         </tr>
@@ -28,9 +28,9 @@
                 </tbody>
             </table>
         {% else %}
-            <p>Aucune réservation trouvée pour ce client.</p>
+            <p class="aucun-dispo">Aucune réservation trouvée pour ce client.</p>
         {% endif %}
         
-        <a href="{{ path('admin_client_list') }}" class="btn btn-secondary mt-3">Retour à la liste des clients</a>
+        <a href="{{ path('admin_client_list') }}" class="btn btn-general mt-3">Retour à la liste des clients</a>
     </div>
 {% endblock %}

@@ -23,11 +23,11 @@
 				{% endfor %}
 			</div>
 		{% else %}
-			<p>Aucune photo dans la galerie.</p>
+			<p class="aucun-dispo">Aucune photo dans la galerie.</p>
 		{% endif %}
 
 		{% if is_granted('ROLE_ADMIN') %}
-			<a class="btn btn-info mt-3" href="{{ path('photo_add') }}">Ajouter des photos</a>
+			<a class="btn btn-general mt-3" href="{{ path('photo_add') }}">Ajouter des photos</a>
 		{% endif %}
 	</div>
 {% endblock %}

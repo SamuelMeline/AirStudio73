@@ -4,7 +4,7 @@
 <div class="container booking-manage">
 	<h1>Gérer mes réservations</h1>
 	{% if bookings is empty %}
-	<p>Aucune réservation en cours.</p>
+	<p class="aucun-dispo">Aucune réservation en cours.</p>
 		<a href="{{ path('calendar') }}" class="btn btn-general btn-sm">Réserver</a>
 	{% else %}
 		<form method="post" action="{{ path('booking_cancel_multiple') }}">
@@ -40,5 +40,5 @@
 		{% endfor %}
 	</tbody>
 </table>
-<button type="submit" class="btn complet btn-sm">Annuler les réservations sélectionnées</button>
-<a class="btn btn-general btn-sm" href="{{ path('calendar') }}" role="button">Réserver</a></form>{% endif %}</div>{% endblock %}
+<button type="submit" class="btn complet btn-sm mt-2">Annuler les réservations sélectionnées</button>
+<a class="btn btn-general btn-sm mt-2" href="{{ path('calendar') }}" role="button">Réserver</a></form>{% endif %}</div>{% endblock %}

@@ -1,8 +1,8 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container mt-5">
-		<div class="col-md-12 w-50 mx-auto">
+	<div class="container edit-courses">
+		<div class="col-md-12 mx-auto">
 			<div class="card">
 				<div class="card-body">
 					<h1 class="mb-4">Modifier le cours</h1>
@@ -60,12 +60,12 @@
 					<input type="hidden" name="year" value="{{ currentYear }}">
 					<input type="hidden" name="week" value="{{ currentWeek }}">
 
-					<div class="d-flex justify-content-end mt-4">
-						<a href="{{ path('app_calendar') }}" class="btn complet me-2">Annuler</a>
-						<button type="submit" class="btn btn-general">Enregistrer les modifications</button>
-					</div>
-
+					
 					{{ form_end(form) }}
+					<div class="d-flex justify-content-end">
+						<a href="{{ path('app_calendar') }}" class="btn complet me-2 mt-3">Annuler</a>
+						<button type="submit" class="btn btn-general mt-3">Enregistrer les modifications</button>
+					</div>
 				</div>
 			</div>
 		</div>

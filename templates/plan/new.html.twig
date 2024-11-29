@@ -1,8 +1,8 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div class="container mt-5">
-	<div class="col-md-12 w-50 mx-auto">
+<div class="container new-plan">
+	<div class="col-md-12 mx-auto">
 		<div class="card">
 			<div class="card-body">
 				<h1>Créer un nouveau forfait</h1>
@@ -66,9 +66,9 @@
                         {% endfor %}
                     </div>
 
-                    <div class="form-group mt-4">
-                        <button type="button" class="btn reserve-btn add-course">Ajouter un cours</button>
-                        <button type="submit" class="btn btn-general">Enregistrer</button>
+                    <div class="form-group">
+                        <button type="button" class="btn reserve-btn add-course mb-3">Ajouter un cours</button>
+                        <button type="submit" class="btn btn-general mb-3">Enregistrer</button>
                     </div>
 
                     {{ form_end(form) }}

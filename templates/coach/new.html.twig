@@ -4,7 +4,7 @@
 {% endblock %}
 
 {% block body %}
-	<div class="container mt-5">
+	<div class="container new-coach">
 		<h1>Ajouter un Coach</h1>
 
 		{{ form_start(form) }}
@@ -32,9 +32,9 @@
 			{{ form_label(form.third_description) }}
 			{{ form_widget(form.third_description, {'attr': {'class': 'form-control'}}) }}
 		</div>
-		<button type="submit" class="btn btn-primary">Enregistrer</button>
+		<button type="submit" class="btn btn-general mt-3 mb-3">Enregistrer</button>
+		<a href="{{ path('coach_list') }}" class="btn complet mt-3 mb-3">Annuler</a>
 		{{ form_end(form) }}
 
-		<a href="{{ path('coach_list') }}" class="btn btn-secondary mt-3">Annuler</a>
 	</div>
 {% endblock %}

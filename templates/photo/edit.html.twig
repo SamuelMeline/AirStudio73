@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container">
+    <div class="container edit-photos">
         <h1>Modifier la photo</h1>
 
         {{ form_start(photoForm) }}
             {{ form_row(photoForm.imagePath, { 'label': 'Changer l\'image' }) }}
             {{ form_row(photoForm.title, { 'label': 'Titre de la photo' }) }}
-            <button class="btn btn-primary">Enregistrer</button>
+            <button class="btn btn-general mt-2">Enregistrer</button>
         {{ form_end(photoForm) }}
     </div>
 {% endblock %}

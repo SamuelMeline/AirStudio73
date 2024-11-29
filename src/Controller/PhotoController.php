@@ -53,7 +53,7 @@ class PhotoController extends AbstractController
     }
 
     #[Route('/photo/edit/{id}', name: 'photo_edit')]
-    public function edit(Photo $photo, Request $request, EntityManagerInterface $em): Response
+    public function edit(Photo $photo, Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
     {
         $form = $this->createForm(PhotoType::class, $photo);
         $form->handleRequest($request);
@@ -88,6 +88,7 @@ class PhotoController extends AbstractController
             'photoForm' => $form->createView(),
         ]);
     }
+
 
     #[Route('/photo/delete/{id}', name: 'photo_delete')]
     public function delete(Photo $photo, EntityManagerInterface $em): Response

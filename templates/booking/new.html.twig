@@ -69,7 +69,7 @@
 						// Mettre à jour le texte à côté du bouton Max
 						availableCoursesSpan.textContent = availableCourses;
 
-						// On met à jour également le bouton Max pour calculer le nombre d'occurrences
+						// Mise à jour bouton Max pour calculer le nombre d'occurrences
 						maxOccurrencesButton.addEventListener('click', function () {
 							// Calculer le minimum entre les crédits restants et les cours disponibles
 							const maxOccurrences = Math.min(availableCourses, {{ remaining_courses }});

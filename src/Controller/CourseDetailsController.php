@@ -55,6 +55,24 @@ class CourseDetailsController extends AbstractController
                 $courseDetails->setPhoto($newFilename);
             }
 
+            // Handle photoBenefits upload
+            $photoBenefitsFile = $form->get('photobenefits')->getData();
+            if ($photoBenefitsFile) {
+                $originalFilename = pathinfo($photoBenefitsFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newBenefitsFilename = $safeFilename . '-' . uniqid() . '.' . $photoBenefitsFile->guessExtension();
+
+                try {
+                    $photoBenefitsFile->move(
+                        $this->getParameter('photos_directory'),
+                        $newBenefitsFilename
+                    );
+                } catch (FileException $e) {
+                    // Handle exception if something happens during file upload
+                }
+                $courseDetails->setPhotoBenefits($newBenefitsFilename);
+            }
+
             $em->persist($courseDetails);
             $em->flush();
 
@@ -88,7 +106,7 @@ class CourseDetailsController extends AbstractController
             // Message de confirmation
             $this->addFlash('success', 'Votre avis a été ajouté avec succès.');
 
-            return $this->redirectToRoute('course_details_show', ['id' => $courseDetails->getId()]);
+            return $this->redirectToRoute('homepage', ['id' => $courseDetails->getId()]);
         }
 
         return $this->render('course_details/show.html.twig', [
@@ -121,6 +139,24 @@ class CourseDetailsController extends AbstractController
                     // Handle exception if something happens during file upload
                 }
                 $courseDetails->setPhoto($newFilename);
+            }
+
+            // Handle photoBenefits upload
+            $photoBenefitsFile = $form->get('photobenefits')->getData();
+            if ($photoBenefitsFile) {
+                $originalFilename = pathinfo($photoBenefitsFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $photoBenefitsFile->guessExtension();
+
+                try {
+                    $photoBenefitsFile->move(
+                        $this->getParameter('photos_directory'),
+                        $newFilename
+                    );
+                } catch (FileException $e) {
+                    // Handle exception if something happens during file upload
+                }
+                $courseDetails->setPhotoBenefits($newFilename);
             }
 
             $em->flush();

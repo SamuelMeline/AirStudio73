@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container mt-5">
+    <div class="container new-photos">
         <h1>Ajouter des photos</h1>
         {{ form_start(photoForm) }}
             {{ form_row(photoForm.title) }}
             {{ form_row(photoForm.imagePath) }}
-            <button type="submit" class="btn btn-primary">Ajouter</button>
+            <button type="submit" class="btn reserve-btn mt-2">Ajouter</button>
         {{ form_end(photoForm) }}
     </div>
 {% endblock %}

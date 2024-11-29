@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<div class="container">
+	<div class="container list-cours">
 		<h1>Liste des activités</h1>
 		<div class="row">
 			{% for course in courseDetails %}
@@ -11,18 +11,20 @@
 							<img src="{{ asset('uploads/photos/' ~ course.photo) }}" class="card-img-top" alt="{{ course.name }}">
 						{% endif %}
 						<div class="card-body">
-							<h5 class="card-title">{{ course.name }}</h5>
-							<p class="card-text">{{ course.description }}</p>
-							<a href="{{ path('course_details_show', {'id': course.id}) }}" class="btn reserve-btn btn-sm">Voir les détails</a>
-							{% if is_granted('ROLE_ADMIN') %}
-								<a href="{{ path('course_details_edit', {'id': course.id}) }}" class="btn update btn-sm">Modifier</a>
-								<a href="{{ path('course_details_delete', {'id': course.id}) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">Supprimer</a>
-							{% endif %}
+							<h2 class="card-title text-center">{{ course.name }}</h2>
+							{# <p class="card-text">{{ course.description }}</p> #}
+							<div class="mx-auto text-center mt-5">
+								<a href="{{ path('course_details_show', {'id': course.id}) }}" class="btn reserve-btn btn-sm">Découvrir</a>
+								{% if is_granted('ROLE_ADMIN') %}
+									<a href="{{ path('course_details_edit', {'id': course.id}) }}" class="btn update btn-sm">Modifier</a>
+									<a href="{{ path('course_details_delete', {'id': course.id}) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce cours ?');">Supprimer</a>
+								{% endif %}
+							</div>
 						</div>
 					</div>
 				</div>
 			{% else %}
-				<p>Aucun cours disponible pour le moment.</p>
+				<p class="aucun-dispo">Aucun cours disponible pour le moment.</p>
 			{% endfor %}
 		</div>
 	</div>

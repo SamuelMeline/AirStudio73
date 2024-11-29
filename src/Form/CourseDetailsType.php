@@ -32,6 +32,12 @@ class CourseDetailsType extends AbstractType
                 'required' => false,
                 'mapped' => false, // Indicate that this field is not associated with any entity property
                 'attr' => ['class' => 'form-control-file']
+            ])
+            ->add('photobenefits', FileType::class, [
+                'label' => 'Photo Bienfaits',
+                'required' => false,
+                'mapped' => false, // Indicate that this field is not associated with any entity property
+                'attr' => ['class' => 'form-control-file']
             ]);
     }
 

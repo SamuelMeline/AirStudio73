@@ -4,23 +4,26 @@
 {% endblock %}
 {% block body %}
 	<div class="col container coach">
-		<h1>Carole Perrier</h1>
 		{% for coach in coaches %}
-			<div class="btn-admin">
+			<div class="btn-admin mt-2">
 				{% if is_granted('ROLE_ADMIN') %}
 					<a href="{{ path('coach_edit', {id: coach.id}) }}" class="btn update btn-sm">Modifier</a>
 					<a href="{{ path('coach_delete', {id: coach.id}) }}" class="btn complet btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce coach ?');">Supprimer</a>
 				{% endif %}
 			</div>
+			{% if coach.name %}
+				<h1>
+					{{coach.name|raw }}
+				</h1>
+			{% endif %}
 			<div class="col d-flex">
 				{% if coach.photo %}
 					<div class="img-coach">
 						<img src="{{ asset('uploads/photos/' ~ coach.photo) }}" alt="{{ coach.name }}">
 					</div>
 				{% endif %}
-				<div
-					class="col presentation">
-			<p>{{ coach.presentation|raw }}</p>
+				<div class="col presentation">
+					<p>{{ coach.presentation|raw }}</p>
 				</div>
 			</div>
 			<div class="col content-scrollable description">
@@ -30,8 +33,8 @@
 				<p>{{ coach.secondDescription|raw }}</p>
 			</div>
 		{% endfor %}
+		{% if is_granted('ROLE_ADMIN') %}
+			<a href="{{ path('coach_new') }}" class="btn btn-general mt-2 mb-2">Ajouter un Coach</a>
+		{% endif %}
 	</div>
-	{% if is_granted('ROLE_ADMIN') %}
-		<a href="{{ path('coach_new') }}" class="btn btn-general mt-2">Ajouter un Coach</a>
-	{% endif %}
 </div>{% endblock %}

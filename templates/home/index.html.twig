@@ -1,89 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - Studio de Pole Dance et Yoga Aérien{% endblock %}
-
-{% block stylesheets %}
-	<style>
-		body {
-			font-family: 'Roboto', sans-serif;
-			color: #333;
-			background-color: #f9f9f9;
-		}
-
-		/* Bannière en haut de la page */
-		.banner {
-			position: relative;
-			width: 108%;
-			height: 550px;
-			background-image: url("{{ asset('images/banniere.jpg') }}");
-			background-size: cover;
-			background-position: center;
-			background-position-y: -1070px;
-			left: -72px
-		}
-
-		h1 {
-			background-color: transparent;
-			text-align: center;
-			font-size: 60px;
-			position: relative;
-			top: 200px;
-		}
-
-		/* Autres styles pour la page */
-		.container-home {
-			position: relative;
-			max-width: 1200px;
-			margin: 20px auto 0;
-			top: 0px;
-			margin-bottom: 30px;
-		}
-
-		h2 {
-			font-size: 2.5rem;
-			font-weight: bold;
-			color: #2C3E50;
-			text-align: center;
-			margin-bottom: 1.5rem;
-			margin-top: 30px;
-		}
-
-		/* Section de contenu de la page */
-
-		.section h3 {
-			font-size: 2rem;
-			margin-bottom: 1rem;
-		}
-
-		.section p {
-			font-size: 1.1rem;
-			line-height: 1.6;
-			margin-bottom: 1.5rem;
-		}
-
-		/* Styles pour la carte */
-		.map-section {
-			margin-top: 3rem;
-			text-align: center;
-		}
-
-		#map {
-			height: 500px;
-			width: 100%;
-			border-radius: 8px;
-			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-		}
-	</style>
+{% block title %}Accueil - Studio de Pole Dance et Yoga Aérien
 {% endblock %}
 
 {% block body %}
-	<div class="banner">
-		<div class="banner-content"></div>
-		<h1>
+	<div class="hompage banner">
+		<h1 class="home-title">
 			Air Studio 73
 		</h1>
 	</div>
-	<div class="container-home">
+	<div
+		class="container-home">
 		<!-- Section Introduction générale -->
 		<section class="section">
 			<h2>L'idée et le concept</h2>
@@ -112,20 +39,83 @@
 				<b>25 Chemin de la Plaine, 73220 AITON</b>. Voici l'emplacement exact :</p>
 			<div id="map"></div>
 		</div>
+		<div
+			class="list-group">
+			<!-- Section moyenne des avis -->
+			{% if reviews|length > 0 %}
+				<div class="mb-4 text-center">
+					<h3 class="mt-5">Avis des clients</h3>
+					<p class="mb-1">
+						{% for i in 1..5 %}
+							{% if i <= averageRating|round(0, 'floor') %}
+								<i class="fas fa-star text-warning"></i>
+							{% else %}
+								<i class="far fa-star text-warning"></i>
+							{% endif %}
+						{% endfor %}
+						<span class="text-muted">({{ averageRating|number_format(1) }}
+							/ 5)</span>
+					</p>
+				</div>
+			{% else %}
+				<p class="text-muted text-center">Aucun avis pour ce cours.</p>
+			{% endif %}
+
+			<!-- Liste des avis -->
+			<div class="content-scrollable">
+				{% for review in reviews %}
+					<div class="list-group-item list-group-item-action flex-column align-items-start shadow-sm mb-3">
+						<div class="d-flex w-100 justify-content-between">
+							<h5 class="mb-1">
+								{% for i in 1..5 %}
+									{% if i <= review.rating %}
+										<i class="fas fa-star text-warning"></i>
+									{% else %}
+										<i class="far fa-star text-warning"></i>
+									{% endif %}
+								{% endfor %}
+							</h5>
+							<small class="text-muted">
+								Posté le
+								{{ review.createdAt|date('d/m/Y') }}
+								par
+								{{ review.user.firstname }}
+								{{ review.user.lastname }}
+							</small>
+							{% if is_granted('ROLE_ADMIN') %}
+								<a href="?delete={{ review.id }}" class="text-danger ms-2" onclick="return confirm('Voulez-vous vraiment supprimer cet avis ?')">
+									<i class="fas fa-times"></i>
+								</a>
+							{% endif %}
+						</div>
+						<p class="mb-1">{{ review.comment }}</p>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+		{% if is_granted('ROLE_USER') %}
+			<h4>Laisser un avis :</h4>
+			<div>
+				<a href="/cours/1#leaveReview" class="btn btn-general btn-sm mr-3 mb-2">⭐ Pole Dance</a>
+				<a href="/cours/2#leaveReview" class="btn btn-general btn-sm mr-3 mb-2">⭐ Yoga</a>
+				<a href="/cours/3#leaveReview" class="btn btn-general btn-sm mr-3 mb-2">⭐ Hammock</a>
+			</div>
+		{% endif %}
 	</div>
 
 	<!-- Script pour la carte Leaflet -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var map = L.map('map').setView([45.5648, 6.2940], 13); // Coordonnées pour Aiton
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+var map = L.map('map').setView([
+45.5648, 6.2940
+], 13); // Coordonnées pour Aiton
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+maxZoom: 19,
+attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 
-        L.marker([45.5648, 6.2940]).addTo(map)
-            .bindPopup('<b>Notre Studio</b><br>25 Chemin de la Plaine, 73220 AITON.').openPopup();
-    });
-</script>
+L.marker([45.5648, 6.2940]).addTo(map).bindPopup('<b>Notre Studio</b><br>25 Chemin de la Plaine, 73220 AITON.').openPopup();
+});
+	</script>
 {% endblock %}
