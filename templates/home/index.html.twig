@@ -58,7 +58,7 @@
 					</p>
 				</div>
 			{% else %}
-				<p class="text-muted text-center">Aucun avis pour ce cours.</p>
+				
 			{% endif %}
 
 			<!-- Liste des avis -->
@@ -94,7 +94,7 @@
 			</div>
 		</div>
 		{% if is_granted('ROLE_USER') %}
-			<h4>Laisser un avis :</h4>
+			<h4 class="mt-3">Laisser un avis :</h4>
 			<div>
 				<a href="/cours/1#leaveReview" class="btn btn-general btn-sm mr-3 mb-2">⭐ Pole Dance</a>
 				<a href="/cours/2#leaveReview" class="btn btn-general btn-sm mr-3 mb-2">⭐ Yoga</a>
