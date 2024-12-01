@@ -1575,6 +1575,14 @@ input#review_rating_0 {
 	i.far.fa-star.text-warning {
 		font-size: 16px;
 	}
+
+	.container-reglement, .container-cgv {
+		max-height: none;
+		margin-bottom: 20px;
+		margin-top: 20px;
+		max-height: 650px;
+		width: 95%;
+	}
 }
 
 @media screen and (max-width: 485px) {
@@ -1634,10 +1642,24 @@ input#review_rating_0 {
 	.aucun-dispo {
 		margin-top: 40%;
 	}
+
+	.liste-people li {
+		font-size: 12px !important;
+	}
+
+	/* .container-reglement {
+		margin-top: 10px;
+		max-height: none;
+		width: 95%;
+	} */
 }
 
 @media screen and (max-width: 385px) {
 	.calendrier .create-cours {
 		margin-top: 5px;
+	}
+
+	.liste-people li {
+		font-size: 10px !important;
 	}
 }
